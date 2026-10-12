@@ -1,0 +1,194 @@
+[
+  {
+    "id": "usr-101",
+    "fullName": "Miz Brymo",
+    "username": "mizbrymo",
+    "email": "mizbrymo@gmail.com",
+    "password": "12345",
+    "pin": "1234",
+    "transactionPin": "8869",
+    "role": "Super Admin",
+    "is_admin": true,
+    "phone": "+41 44 915 8901",
+    "avatar": "MB",
+    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+    "dob": "1984-06-14",
+    "address": "109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland",
+    "status": "active",
+    "statusReason": "Super Admin Clearance",
+    "kycStatus": "verified",
+    "createdAt": "2025-01-15T09:30:00Z",
+    "lastLogin": "2026-10-12T15:38:47.100Z",
+    "accounts": [
+      {
+        "accountNumber": "WB-9482-1049-55",
+        "type": "Checking",
+        "name": "Premier Checking Account",
+        "currency": "USD",
+        "balance": 248500,
+        "status": "active",
+        "routingNumber": "021000089"
+      },
+      {
+        "accountNumber": "WB-9482-1049-56",
+        "type": "Savings",
+        "name": "Swiss High-Yield Wealth Reserve",
+        "currency": "CHF",
+        "balance": 1450000,
+        "status": "active",
+        "routingNumber": "021000089"
+      }
+    ],
+    "transactions": [],
+    "cards": [
+      {
+        "id": "crd-1",
+        "cardNumber": "•••• •••• •••• 1234",
+        "cardHolder": "MIZ BRYMO",
+        "type": "Black Metal Premier",
+        "expiry": "09/29",
+        "status": "active",
+        "dailyAtmLimit": 10000,
+        "onlineLimit": 50000
+      }
+    ],
+    "cryptoWallets": [
+      {
+        "currency": "BTC",
+        "balance": 4.85,
+        "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9",
+        "status": "active"
+      },
+      {
+        "currency": "ETH",
+        "balance": 32.4,
+        "address": "0x71C...9B28",
+        "status": "active"
+      },
+      {
+        "currency": "USDT",
+        "balance": 125000,
+        "address": "0x99A...11C4",
+        "status": "active"
+      }
+    ],
+    "wireTransferCodes": {
+      "COT": {
+        "code": "CT-78234",
+        "active": true,
+        "notes": "Cost of Transfer clearance token"
+      },
+      "TAX": {
+        "code": "TX-99120",
+        "active": true,
+        "notes": "Federal Tax Clearance certificate"
+      },
+      "IMF": {
+        "code": "IMF-44912",
+        "active": true,
+        "notes": "IMF regulatory signoff"
+      },
+      "AML": {
+        "code": "AML-00821",
+        "active": true,
+        "notes": "Anti-Money Laundering key"
+      },
+      "PAP": {
+        "code": "PAP-33810",
+        "active": true,
+        "notes": "Proof of Anti-Piracy clearance"
+      }
+    },
+    "activityLog": []
+  },
+  {
+    "id": "usr-659",
+    "fullName": "Olle Robert Christer Råström",
+    "firstName": "Olle Robert Christer",
+    "lastName": "Råström",
+    "username": "ollerobertrstrm52",
+    "email": "debstarnetwork@gmail.com",
+    "password": "Password123!",
+    "pin": "8869",
+    "transactionPin": "8869",
+    "role": "Member",
+    "is_admin": false,
+    "phone": "+46702813441",
+    "avatar": "OR",
+    "avatarColor": "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+    "dob": "1982-05-18",
+    "nationality": "Sweden",
+    "address": "Korgmakargatan 32 621 53 Visby",
+    "status": "active",
+    "account_status": "active",
+    "accountStatus": "active",
+    "statusReason": "Active Member Clearance",
+    "kycStatus": "verified",
+    "kyc_status": "verified",
+    "createdAt": "2026-10-07T10:00:00Z",
+    "lastLogin": "2026-10-12T15:38:47.101Z",
+    "accounts": [
+      {
+        "accountNumber": "09372996993",
+        "type": "Checking",
+        "name": "Primary Checking Vault",
+        "currency": "USD",
+        "balance": 100000,
+        "status": "active",
+        "routingNumber": "021000089"
+      }
+    ],
+    "transactions": [],
+    "cards": [
+      {
+        "id": "crd-659",
+        "cardNumber": "4532 7140 3114 3230",
+        "cardHolder": "OLLE ROBERT CHRISTER RÅSTRÖM",
+        "type": "Visa Platinum Debit",
+        "expiry": "09/31",
+        "cvv": "775",
+        "pin": "8869",
+        "status": "active",
+        "dailyAtmLimit": 10000,
+        "onlineLimit": 50000
+      }
+    ],
+    "cryptoWallets": [
+      {
+        "currency": "BTC",
+        "balance": 0,
+        "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9",
+        "status": "active"
+      }
+    ],
+    "wireTransferCodes": {
+      "COT": {
+        "code": "0467799",
+        "active": true,
+        "notes": "Cost of Transfer clearance token"
+      },
+      "TAX": {
+        "code": "TX-88392",
+        "active": true,
+        "notes": "Tax Clearance certificate"
+      },
+      "IMF": {
+        "code": "9498779",
+        "active": true,
+        "notes": "IMF Clearance signoff"
+      },
+      "AML": {
+        "code": "AML-86902",
+        "active": true,
+        "notes": "Anti-Money Laundering key"
+      },
+      "PAP": {
+        "code": "PAP-70216",
+        "active": true,
+        "notes": "Proof of Anti-Piracy clearance"
+      },
+      "OTP": "806158"
+    },
+    "activityLog": []
+  }
+]
