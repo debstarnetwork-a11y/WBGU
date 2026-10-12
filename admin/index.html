@@ -36,12 +36,14 @@
       try {
         var sess = sessionStorage.getItem('wb_credit_union_admin_session') || localStorage.getItem('wb_credit_union_admin_session');
         if (!sess) {
-          window.location.replace('/pages/admin-login.html');
+          var target = '/pages/admin-login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.replace(target);
           return;
         }
         var auth = JSON.parse(sess);
         if (!auth || (!auth.is_admin && auth.role !== 'Super Admin' && auth.role !== 'Admin')) {
-          window.location.replace('/pages/admin-login.html');
+          var target = '/pages/admin-login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.replace(target);
           return;
         }
       } catch (e) {

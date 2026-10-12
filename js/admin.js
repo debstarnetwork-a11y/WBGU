@@ -179,7 +179,8 @@ export async function initAdminDashboard() {
 
   if (!currentAdmin || (!currentAdmin.is_admin && currentAdmin.role !== 'Super Admin' && currentAdmin.role !== 'Admin')) {
     console.warn('[SECURITY] Unauthenticated admin access attempt. Redirecting to login.');
-    window.location.replace('/pages/admin-login.html');
+    const returnPath = window.location.pathname + window.location.search;
+    window.location.replace('/pages/admin-login.html?redirect=' + encodeURIComponent(returnPath));
     return;
   }
 

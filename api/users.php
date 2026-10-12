@@ -158,6 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // If database returned no users or was offline, load from file
     if (empty($users)) {
         $users = loadUsersFromFile($dataFile);
+    } else {
+        // Guarantee Super Admin is present even if database only has member accounts
+        $hasAdminInList = false;
+        foreach ($users as $u) {
+            if (!empty($u['is_admin']) || in_array($u['role'] ?? '', ['Super Admin', 'Admin'])) {
+                $hasAdminInList = true;
+                break;
+            }
+        }
+        if (!$hasAdminInList) {
+            $fileUsers = loadUsersFromFile($dataFile);
+            foreach ($fileUsers as $fu) {
+                if (!empty($fu['is_admin']) || ($fu['role'] ?? '') === 'Super Admin') {
+                    $users[] = $fu;
+                }
+            }
+        }
     }
 
     echo json_encode([

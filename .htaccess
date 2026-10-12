@@ -1,0 +1,29 @@
+# ==============================================================================
+# WB CREDIT UNION - CPANEL & APACHE REWRITE CONFIGURATION
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Admin Portal URL Rewrites (Ensure /pages/admin, /admin, /pages/admin/ all work seamlessly)
+  RewriteRule ^pages/admin/?$ pages/admin/index.html [L,QSA]
+  RewriteRule ^admin/?$ admin/index.html [L,QSA]
+  RewriteRule ^pages/admin-dashboard/?$ pages/admin-dashboard.html [L,QSA]
+
+  # 2. Admin API Endpoints
+  RewriteRule ^api/admin/login/?$ api/admin-login.php [L,QSA]
+  RewriteRule ^api/admin-login/?$ api/admin-login.php [L,QSA]
+  RewriteRule ^api/admin/users/?$ api/admin-users.php [L,QSA]
+  RewriteRule ^api/users/?$ api/users.php [L,QSA]
+</IfModule>
+
+# Security Headers & MIME Types
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Disable Directory Browsing
+Options -Indexes
