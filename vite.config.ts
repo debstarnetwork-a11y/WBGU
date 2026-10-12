@@ -13,7 +13,15 @@ function adminRewritePlugin(): Plugin {
       server.middlewares.use((req, _res, next) => {
         if (!req.url) return next();
         const rawPath = req.url.split('?')[0].toLowerCase();
-        if (rawPath === '/admin' || rawPath === '/admin/' || rawPath === '/admin.html') {
+        if (
+          rawPath === '/admin' ||
+          rawPath === '/admin/' ||
+          rawPath === '/admin.html' ||
+          rawPath === '/pages/admin' ||
+          rawPath === '/pages/admin/' ||
+          rawPath === '/pages/admin.html' ||
+          rawPath === '/pages/admin-dashboard'
+        ) {
           req.url = '/pages/admin-dashboard.html';
         }
         next();
@@ -47,6 +55,8 @@ export default defineConfig(() => {
           adminHtml: path.resolve(__dirname, 'admin.html'),
           adminLogin: path.resolve(__dirname, 'pages/admin-login.html'),
           adminDashboard: path.resolve(__dirname, 'pages/admin-dashboard.html'),
+          pagesAdmin: path.resolve(__dirname, 'pages/admin.html'),
+          pagesAdminIndex: path.resolve(__dirname, 'pages/admin/index.html'),
         },
       },
     },

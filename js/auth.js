@@ -2577,19 +2577,19 @@ export function initAdminLoginForm() {
     const enrolled = getAdminBiometrics() || getEnrolledBiometrics();
     if (!enrolled) {
       if (biometricStatusText) {
-        biometricStatusText.textContent = 'Thumbprint biometrics not configured. Click to register.';
-        biometricStatusText.style.color = '#f87171';
-      }
-      if (biometricBtn) {
-        biometricBtn.textContent = 'Set Up Fingerprint Biometrics (mizbrymo@gmail.com)';
-      }
-    } else {
-      if (biometricStatusText) {
-        biometricStatusText.textContent = `Enrolled (${enrolled.fingerLabel || 'Thumbprint'}): Touch sensor or click to sign in`;
+        biometricStatusText.textContent = 'Touch sensor or click to scan thumbprint';
         biometricStatusText.style.color = '#6ee7b7';
       }
       if (biometricBtn) {
-        biometricBtn.textContent = `Scan Thumbprint Biometrics (${enrolled.email || enrolled.userEmail || 'mizbrymo@gmail.com'})`;
+        biometricBtn.textContent = 'Scan Thumbprint Biometrics';
+      }
+    } else {
+      if (biometricStatusText) {
+        biometricStatusText.textContent = 'Enrolled: Touch sensor or click to sign in';
+        biometricStatusText.style.color = '#6ee7b7';
+      }
+      if (biometricBtn) {
+        biometricBtn.textContent = 'Scan Thumbprint Biometrics';
       }
     }
   };
@@ -2672,7 +2672,7 @@ export function initAdminLoginForm() {
 
     setTimeout(() => {
       if (biometricStatusText) {
-        biometricStatusText.textContent = `✓ Match Confirmed: Super Admin ${enrolled.email || enrolled.userEmail || 'mizbrymo@gmail.com'}`;
+        biometricStatusText.textContent = '✓ Biometric Match Confirmed: Super Admin Clearance Granted';
         biometricStatusText.style.color = '#10b981';
       }
       executeAdminLogin(enrolled.email || enrolled.userEmail || 'mizbrymo@gmail.com', 'Mizbrymo (Super Admin)');

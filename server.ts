@@ -578,17 +578,33 @@ Respond concisely, politely, professionally, and in the language specified (${la
     return res.status(400).json({ success: false, error: 'Cards must be an array' });
   });
 
-  app.get(['/admin', '/admin/', '/admin.html'], (_req, res) => {
-    const adminPath = path.resolve(__dirname, 'admin/index.html');
-    if (fs.existsSync(adminPath)) {
-      return res.sendFile(adminPath);
+  app.get(
+    [
+      '/admin',
+      '/admin/',
+      '/admin.html',
+      '/pages/admin',
+      '/pages/admin/',
+      '/pages/admin.html',
+      '/pages/admin-dashboard',
+      '/pages/admin-dashboard.html',
+    ],
+    (_req, res) => {
+      const pageAdminPath = path.resolve(__dirname, 'pages/admin-dashboard.html');
+      if (fs.existsSync(pageAdminPath)) {
+        return res.sendFile(pageAdminPath);
+      }
+      const adminPath = path.resolve(__dirname, 'admin/index.html');
+      if (fs.existsSync(adminPath)) {
+        return res.sendFile(adminPath);
+      }
+      const distAdminPath = path.resolve(__dirname, 'dist/pages/admin-dashboard.html');
+      if (fs.existsSync(distAdminPath)) {
+        return res.sendFile(distAdminPath);
+      }
+      return res.sendFile(path.resolve(__dirname, 'admin.html'));
     }
-    const distAdminPath = path.resolve(__dirname, 'dist/admin/index.html');
-    if (fs.existsSync(distAdminPath)) {
-      return res.sendFile(distAdminPath);
-    }
-    return res.sendFile(path.resolve(__dirname, 'pages/admin-dashboard.html'));
-  });
+  );
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
