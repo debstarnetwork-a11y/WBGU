@@ -31,7 +31,7 @@
       } catch (e) {}
     })();
 
-    // Automatic Treasury Clearance Session Initialization
+    // Strict Treasury Admin Authentication Guard
     (function() {
       try {
         var sess = sessionStorage.getItem('wb_credit_union_admin_session') || localStorage.getItem('wb_credit_union_admin_session');
@@ -39,21 +39,16 @@
         if (sess) {
           try { auth = JSON.parse(sess); } catch (e) {}
         }
-        if (!auth || (!auth.is_admin && auth.role !== 'Super Admin' && auth.role !== 'Admin')) {
-          var defaultAdmin = {
-            id: 'wb-adm-001',
-            email: 'mizbrymo@gmail.com',
-            fullName: 'Miz Brymo',
-            role: 'Super Admin',
-            badgeNumber: 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: 'Master_Clearance',
-            createdAt: new Date().toISOString()
-          };
-          sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(defaultAdmin));
-          localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(defaultAdmin));
+        var isAuthorized = auth && (auth.is_admin === true || auth.role === 'Super Admin' || auth.role === 'Admin');
+        if (!isAuthorized) {
+          // Deny direct access and redirect immediately to Admin Login
+          sessionStorage.removeItem('wb_credit_union_admin_session');
+          localStorage.removeItem('wb_credit_union_admin_session');
+          window.location.replace('/pages/admin-login.html');
         }
-      } catch (e) {}
+      } catch (e) {
+        window.location.replace('/pages/admin-login.html');
+      }
     })();
 
     window.switchAdminView = function(view) {

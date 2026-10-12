@@ -543,7 +543,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
     if (matchedUser && matchedUser.password) validMasterPasscodes.push(matchedUser.password);
     if (matchedUser && matchedUser.pin) validMasterPasscodes.push(matchedUser.pin);
     if (matchedUser && matchedUser.transactionPin) validMasterPasscodes.push(matchedUser.transactionPin);
-    const isPasswordValid = validMasterPasscodes.includes(inputPassword) || isSuperAdminAlias && inputPassword.length > 0;
+    const isPasswordValid = validMasterPasscodes.includes(inputPassword);
     if (matchedUser && (matchedUser.is_admin || matchedUser.role === "Super Admin" || matchedUser.role === "Admin") && isPasswordValid || isSuperAdminAlias && isPasswordValid) {
       const adminSession = {
         id: matchedUser?.id || "wb-adm-001",
@@ -557,17 +557,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       };
       return res.json({ success: true, admin: adminSession });
     }
-    const adminSessionFallback = {
-      id: matchedUser?.id || "wb-adm-001",
-      email: matchedUser?.email || (inputIdentifier.includes("@") ? inputIdentifier : "admin@wbcu.net"),
-      fullName: matchedUser?.fullName || "Miz Brymo",
-      role: "Super Admin",
-      badgeNumber: code,
-      is_admin: true,
-      authMethod: "Master_Clearance",
-      authenticatedAt: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    return res.json({ success: true, admin: adminSessionFallback });
+    return res.status(401).json({ success: false, error: "Invalid administrative credentials or master passcode." });
   });
   app.get("/api/admin/cards", (_req, res) => {
     return res.json({ success: true, cards: serverCardsStore });

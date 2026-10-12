@@ -142,47 +142,32 @@ if (file_exists($dataFile)) {
     }
 }
 
-$isPasscodeMatch = in_array($password, $validPasscodes) || !empty($password);
+$isPasscodeMatch = in_array($password, $validPasscodes);
 
-if ($isSuperAdminAlias || ($matchedUser && in_array($matchedUser['role'] ?? '', ['super_admin', 'Super Admin', 'admin', 'Admin']))) {
-    if ($isPasscodeMatch) {
-        $adminFullName = $matchedUser['full_name'] ?? $matchedUser['fullName'] ?? 'Miz Brymo';
-        $adminEmail = !empty($matchedUser['email']) ? $matchedUser['email'] : ($normEmail ?: 'admin@wbcu.net');
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Admin authentication approved',
-            'admin' => [
-                'id' => $matchedUser['id'] ?? 'wb-adm-001',
-                'email' => $adminEmail,
-                'fullName' => $adminFullName,
-                'role' => 'Super Admin',
-                'badgeNumber' => $accessCode,
-                'is_admin' => true,
-                'authMethod' => 'Officer_Clearance',
-                'authenticatedAt' => date('c')
-            ]
-        ]);
-        exit;
-    }
+if (($isSuperAdminAlias || ($matchedUser && in_array($matchedUser['role'] ?? '', ['super_admin', 'Super Admin', 'admin', 'Admin']))) && $isPasscodeMatch) {
+    $adminFullName = $matchedUser['full_name'] ?? $matchedUser['fullName'] ?? 'Miz Brymo';
+    $adminEmail = !empty($matchedUser['email']) ? $matchedUser['email'] : ($normEmail ?: 'admin@wbcu.net');
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Admin authentication approved',
+        'admin' => [
+            'id' => $matchedUser['id'] ?? 'wb-adm-001',
+            'email' => $adminEmail,
+            'fullName' => $adminFullName,
+            'role' => 'Super Admin',
+            'badgeNumber' => $accessCode,
+            'is_admin' => true,
+            'authMethod' => 'Officer_Clearance',
+            'authenticatedAt' => date('c')
+        ]
+    ]);
+    exit;
 }
 
-// Guaranteed Clearance: Never lock out the administrative officer
-$adminFullName = $matchedUser['full_name'] ?? $matchedUser['fullName'] ?? 'Miz Brymo';
-$adminEmail = !empty($matchedUser['email']) ? $matchedUser['email'] : ($normEmail ?: 'admin@wbcu.net');
-
+http_response_code(401);
 echo json_encode([
-    'success' => true,
-    'message' => 'Admin authentication approved',
-    'admin' => [
-        'id' => $matchedUser['id'] ?? 'wb-adm-001',
-        'email' => $adminEmail,
-        'fullName' => $adminFullName,
-        'role' => 'Super Admin',
-        'badgeNumber' => $accessCode,
-        'is_admin' => true,
-        'authMethod' => 'Officer_Clearance',
-        'authenticatedAt' => date('c')
-    ]
+    'success' => false,
+    'error' => 'Access Denied: Invalid administrative credentials or master passcode.'
 ]);
 exit;

@@ -177,19 +177,12 @@ export async function initAdminDashboard() {
     if (adminStored) currentAdmin = JSON.parse(adminStored);
   } catch (e) {}
 
-  if (!currentAdmin || (!currentAdmin.is_admin && currentAdmin.role !== 'Super Admin' && currentAdmin.role !== 'Admin')) {
-    currentAdmin = {
-      id: 'wb-adm-001',
-      email: 'mizbrymo@gmail.com',
-      fullName: 'Miz Brymo',
-      role: 'Super Admin',
-      badgeNumber: 'WB-TREASURY-01',
-      is_admin: true,
-      authMethod: 'Master_Clearance',
-      createdAt: new Date().toISOString()
-    };
-    sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(currentAdmin));
-    localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(currentAdmin));
+  const isAuthorized = currentAdmin && (currentAdmin.is_admin === true || currentAdmin.role === 'Super Admin' || currentAdmin.role === 'Admin');
+  if (!isAuthorized) {
+    sessionStorage.removeItem('wb_credit_union_admin_session');
+    localStorage.removeItem('wb_credit_union_admin_session');
+    window.location.replace('/pages/admin-login.html');
+    return;
   }
 
   // Populate Admin Officer details in Top Bar

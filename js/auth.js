@@ -2801,53 +2801,21 @@ export function initAdminLoginForm() {
           if (foundUser.transactionPin) validPasscodes.push(foundUser.transactionPin);
         }
 
-        const isPasswordCorrect = validPasscodes.includes(password) || (isMasterAdmin && password.length > 0);
+        const isPasswordCorrect = validPasscodes.includes(password);
 
-        if (isMasterAdmin && isPasswordCorrect) {
+        if ((isMasterAdmin || (foundUser && (foundUser.is_admin || foundUser.role === 'Super Admin' || foundUser.role === 'Admin'))) && isPasswordCorrect) {
           adminSession = {
-            id: 'wb-adm-001',
-            email: normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net',
-            fullName: 'Miz Brymo',
-            role: 'Super Admin',
+            id: foundUser?.id || 'wb-adm-001',
+            email: foundUser?.email || (normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net'),
+            fullName: foundUser?.fullName || 'Miz Brymo',
+            role: foundUser?.role || 'Super Admin',
             badgeNumber: accessCode || 'WB-TREASURY-01',
             is_admin: true,
-            authMethod: 'Master_Clearance',
-            createdAt: new Date().toISOString(),
-          };
-        } else if (foundUser && (foundUser.is_admin || foundUser.role === 'Super Admin' || foundUser.role === 'Admin') && isPasswordCorrect) {
-          adminSession = {
-            id: foundUser.id || 'wb-adm-001',
-            email: foundUser.email,
-            fullName: foundUser.fullName || 'Treasury Administrator',
-            role: foundUser.role || 'Super Admin',
-            badgeNumber: accessCode || 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: 'Database_Clearance',
-            createdAt: new Date().toISOString(),
-          };
-        } else if (isMasterAdmin) {
-          adminSession = {
-            id: 'wb-adm-001',
-            email: normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net',
-            fullName: 'Miz Brymo',
-            role: 'Super Admin',
-            badgeNumber: accessCode || 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: 'Master_Clearance',
+            authMethod: foundUser ? 'Database_Clearance' : 'Master_Clearance',
             createdAt: new Date().toISOString(),
           };
         } else {
-          // Guaranteed Clearance: Never lock out the administrative officer
-          adminSession = {
-            id: foundUser?.id || 'wb-adm-001',
-            email: normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net',
-            fullName: foundUser?.fullName || 'Miz Brymo',
-            role: 'Super Admin',
-            badgeNumber: accessCode || 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: 'Master_Clearance',
-            createdAt: new Date().toISOString(),
-          };
+          throw new Error('Access Denied: Invalid administrative credentials or master passcode.');
         }
       }
 
