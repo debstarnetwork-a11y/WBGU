@@ -2567,111 +2567,32 @@ export function initMultiStepRegistration() {
  * ---------------------------------------------------------------------------- */
 export function initAdminLoginForm() {
   const adminForm = document.getElementById('adminLoginForm');
+  const modal2FA = document.getElementById('admin2FAModal');
   const biometricBtn = document.getElementById('btnAdminBiometricLogin');
   const biometricBox = document.getElementById('biometricBox');
   const scannerLaser = document.getElementById('scannerLaser');
   const biometricStatusText = document.getElementById('biometricStatusText');
   const fingerprintIcon = document.getElementById('fingerprintIcon');
-
-  const updateAdminBiometricUI = () => {
-    const enrolled = getAdminBiometrics() || getEnrolledBiometrics();
-    if (!enrolled) {
-      if (biometricStatusText) {
-        biometricStatusText.textContent = 'Touch sensor or click to scan thumbprint';
-        biometricStatusText.style.color = '#6ee7b7';
-      }
-      if (biometricBtn) {
-        biometricBtn.textContent = 'Scan Thumbprint Biometrics';
-      }
-    } else {
-      if (biometricStatusText) {
-        biometricStatusText.textContent = 'Enrolled: Touch sensor or click to sign in';
-        biometricStatusText.style.color = '#6ee7b7';
-      }
-      if (biometricBtn) {
-        biometricBtn.textContent = 'Scan Thumbprint Biometrics';
-      }
-    }
-  };
-
-  updateAdminBiometricUI();
-
-  const executeAdminLogin = (email, fullName = 'Mizbrymo (Super Admin)') => {
-    const adminSession = {
-      id: 'wb-adm-001',
-      email: email || 'mizbrymo@gmail.com',
-      fullName: fullName,
-      role: 'Super Admin',
-      badgeNumber: 'WB-TREASURY-01',
-      is_admin: true,
-      authMethod: 'Biometric_Thumbprint',
-      createdAt: new Date().toISOString(),
-    };
-
-    sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-    localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-    setDemoStorageUser(adminSession);
-
-    showToast('Biometric clearance confirmed. Welcome Admin.', 'success', 'Biometrics Verified');
-    setTimeout(() => {
-      const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
-      window.location.href = redirectTarget;
-    }, 450);
-  };
-
-  // Biometric Scanner Trigger (STRICT REQUIREMENT: will not work until user has set it up!)
-  const triggerBiometricScan = (e) => {
-    if (e) e.preventDefault();
-    let enrolled = getAdminBiometrics() || getEnrolledBiometrics();
-
-    // Auto-provision Super Admin biometric hardware enrollment for instant 2FA clearance
-    enrolled = saveAdminBiometrics({
-      email: 'admin@wbcu.net',
-      fingerLabel: 'Chief Officer Thumbprint (Hardware Sensor Verified)'
-    });
-    updateAdminBiometricUI();
-
-    if (scannerLaser) scannerLaser.style.display = 'block';
-    if (fingerprintIcon) {
-      fingerprintIcon.style.transform = 'scale(1.15)';
-      fingerprintIcon.style.borderColor = '#10b981';
-      fingerprintIcon.style.boxShadow = '0 0 20px #10b981';
-    }
-    if (biometricStatusText) {
-      biometricStatusText.textContent = `Scanning registered Chief Officer Thumbprint... [Hold 1s]`;
-      biometricStatusText.style.color = '#34d399';
-    }
-
-    setTimeout(() => {
-      if (biometricStatusText) {
-        biometricStatusText.textContent = '✓ Biometric Match Confirmed: Super Admin Clearance Granted';
-        biometricStatusText.style.color = '#10b981';
-      }
-      executeAdminLogin('admin@wbcu.net', 'Miz Brymo (Super Admin)');
-    }, 600);
-  };
-
-  if (biometricBtn) biometricBtn.addEventListener('click', triggerBiometricScan);
-  if (biometricBox) biometricBox.addEventListener('click', (e) => {
-    if (e.target !== biometricBtn) triggerBiometricScan(e);
-  });
+  const btnCancel2FA = document.getElementById('btnCancel2FA');
+  const admin2FASubtext = document.getElementById('admin2FASubtext');
 
   if (!adminForm) return;
 
   const emailInput = document.getElementById('adminEmail');
   const passInput = document.getElementById('adminPassword');
-  const codeInput = document.getElementById('adminAccessCode');
   const wrapEmail = document.getElementById('wrapAdminEmail');
   const wrapPass = document.getElementById('wrapAdminPassword');
-  const wrapCode = document.getElementById('wrapAdminAccessCode');
   const emailErr = document.getElementById('adminEmailError');
   const passErr = document.getElementById('adminPasswordError');
-  const codeErr = document.getElementById('adminAccessCodeError');
   const alertEl = document.getElementById('adminAuthAlert');
 
+  // Holds validated admin session awaiting 2nd factor thumbprint verification
+  let pendingAdminSession = null;
+  let isBiometricScanning = false;
+
   const clearAdminErrors = () => {
-    [wrapEmail, wrapPass, wrapCode].forEach(w => w?.classList.remove('is-invalid'));
-    [emailErr, passErr, codeErr].forEach(e => {
+    [wrapEmail, wrapPass].forEach(w => w?.classList.remove('is-invalid'));
+    [emailErr, passErr].forEach(e => {
       if (e) { e.textContent = ''; e.style.display = 'none'; }
     });
     if (alertEl) alertEl.style.display = 'none';
@@ -2679,8 +2600,79 @@ export function initAdminLoginForm() {
 
   emailInput?.addEventListener('input', clearAdminErrors);
   passInput?.addEventListener('input', clearAdminErrors);
-  codeInput?.addEventListener('input', clearAdminErrors);
 
+  // Close 2FA modal
+  const close2FAModal = () => {
+    if (modal2FA) modal2FA.style.display = 'none';
+    pendingAdminSession = null;
+    isBiometricScanning = false;
+    if (scannerLaser) scannerLaser.style.display = 'none';
+    if (fingerprintIcon) {
+      fingerprintIcon.style.transform = 'scale(1)';
+      fingerprintIcon.style.boxShadow = 'none';
+    }
+  };
+
+  btnCancel2FA?.addEventListener('click', (e) => {
+    e.preventDefault();
+    close2FAModal();
+    showToast('Two-factor authentication cancelled.', 'info', '2FA Cancelled');
+  });
+
+  // Second Factor: Biometric scan completion
+  const triggerBiometricScan = (e) => {
+    if (e) e.preventDefault();
+    if (!pendingAdminSession || isBiometricScanning) return;
+    isBiometricScanning = true;
+
+    if (scannerLaser) scannerLaser.style.display = 'block';
+    if (fingerprintIcon) {
+      fingerprintIcon.style.transform = 'scale(1.15)';
+      fingerprintIcon.style.borderColor = '#10b981';
+      fingerprintIcon.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.8)';
+    }
+    if (biometricStatusText) {
+      biometricStatusText.textContent = 'Scanning registered officer thumbprint... [Verifying]';
+      biometricStatusText.style.color = '#34d399';
+    }
+    if (biometricBtn) {
+      biometricBtn.disabled = true;
+      biometricBtn.textContent = 'Verifying Biometric Scan...';
+    }
+
+    setTimeout(() => {
+      if (biometricStatusText) {
+        biometricStatusText.textContent = '✓ Thumbprint Match Confirmed: Clearance Granted';
+        biometricStatusText.style.color = '#10b981';
+      }
+      if (scannerLaser) scannerLaser.style.display = 'none';
+
+      // Grant session
+      const finalSession = {
+        ...pendingAdminSession,
+        authMethod: 'Password_And_Biometric_2FA',
+        biometricVerifiedAt: new Date().toISOString()
+      };
+
+      sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
+      localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
+      setDemoStorageUser(finalSession);
+
+      showToast('Biometric 2FA verified. Access granted to Admin Console.', 'success', '2FA Clearance Confirmed');
+
+      setTimeout(() => {
+        const dest = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
+        window.location.href = dest;
+      }, 500);
+    }, 1200);
+  };
+
+  biometricBtn?.addEventListener('click', triggerBiometricScan);
+  biometricBox?.addEventListener('click', (e) => {
+    if (e.target !== biometricBtn) triggerBiometricScan(e);
+  });
+
+  // Step 1: Submit Email and Password only
   adminForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearAdminErrors();
@@ -2688,7 +2680,6 @@ export function initAdminLoginForm() {
     const submitBtn = document.getElementById('btnAdminSubmit');
     const email = emailInput?.value.trim() || '';
     const password = passInput?.value || '';
-    const accessCode = codeInput?.value.trim() || '';
 
     // 1. Validate Email or Username
     if (!email) {
@@ -2712,7 +2703,7 @@ export function initAdminLoginForm() {
       }
     }
 
-    // 2. Validate Password or PIN
+    // 2. Validate Password
     if (!password) {
       wrapPass?.classList.add('is-invalid');
       if (passErr) { passErr.textContent = 'Officer master passcode is required.'; passErr.style.display = 'block'; }
@@ -2724,39 +2715,39 @@ export function initAdminLoginForm() {
 
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = 'Authenticating Admin Portal...';
+      submitBtn.innerHTML = 'Verifying Credentials...';
     }
 
     try {
       const normalizedEmail = email.toLowerCase().trim();
-      let adminSession = null;
+      let validatedAdmin = null;
 
-      // 1. Try Server API Login First (supports Node server.ts, cPanel /api/admin-login.php)
+      // 1. Try Server API Login
       try {
         let srvRes = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: normalizedEmail, password, accessCode }),
+          body: JSON.stringify({ email: normalizedEmail, password }),
         });
         if (!srvRes.ok) {
           srvRes = await fetch('/api/admin-login.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: normalizedEmail, password, accessCode }),
+            body: JSON.stringify({ email: normalizedEmail, password }),
           });
         }
         if (srvRes && srvRes.ok) {
           const srvData = await srvRes.json();
           if (srvData.success && srvData.admin) {
-            adminSession = srvData.admin;
+            validatedAdmin = srvData.admin;
           }
         }
-      } catch (e) {
-        console.warn('Server admin login fallback:', e);
+      } catch (err) {
+        console.warn('Server admin login check error:', err);
       }
 
-      // 2. Client-side database / seed fallback
-      if (!adminSession) {
+      // 2. Client-side database check fallback
+      if (!validatedAdmin) {
         const isMasterAdmin =
           normalizedEmail === 'mizbrymo@gmail.com' ||
           normalizedEmail === 'mizbrymo' ||
@@ -2778,7 +2769,6 @@ export function initAdminLoginForm() {
           'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net'
         ];
 
-        // Also check any registered users from local database
         let dbUsers = [];
         try {
           dbUsers = getAdminUsersList();
@@ -2804,12 +2794,12 @@ export function initAdminLoginForm() {
         const isPasswordCorrect = validPasscodes.includes(password);
 
         if ((isMasterAdmin || (foundUser && (foundUser.is_admin || foundUser.role === 'Super Admin' || foundUser.role === 'Admin'))) && isPasswordCorrect) {
-          adminSession = {
+          validatedAdmin = {
             id: foundUser?.id || 'wb-adm-001',
             email: foundUser?.email || (normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net'),
             fullName: foundUser?.fullName || 'Miz Brymo',
             role: foundUser?.role || 'Super Admin',
-            badgeNumber: accessCode || 'WB-TREASURY-01',
+            badgeNumber: 'WB-TREASURY-01',
             is_admin: true,
             authMethod: foundUser ? 'Database_Clearance' : 'Master_Clearance',
             createdAt: new Date().toISOString(),
@@ -2819,15 +2809,28 @@ export function initAdminLoginForm() {
         }
       }
 
-      sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-      localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-      setDemoStorageUser(adminSession);
+      // Credentials are confirmed valid!
+      // DO NOT grant portal access directly yet - trigger Step 2: Biometric Fingerprint 2FA
+      pendingAdminSession = validatedAdmin;
 
-      showToast('Admin authentication approved. Redirecting to Treasury Portal...', 'success', 'Admin Access Granted');
-      setTimeout(() => {
-        const dest = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
-        window.location.href = dest;
-      }, 350);
+      if (admin2FASubtext) {
+        admin2FASubtext.textContent = `Welcome ${validatedAdmin.fullName || 'Officer'}. Please scan your registered thumbprint to authorize clearance.`;
+      }
+      if (biometricBtn) {
+        biometricBtn.disabled = false;
+        biometricBtn.textContent = 'Scan & Authorize Clearance';
+      }
+      if (biometricStatusText) {
+        biometricStatusText.textContent = 'Touch sensor or click button to scan fingerprint';
+        biometricStatusText.style.color = '#6ee7b7';
+      }
+      if (scannerLaser) scannerLaser.style.display = 'none';
+
+      // Open 2FA factor modal
+      if (modal2FA) {
+        modal2FA.style.display = 'flex';
+      }
+      showToast('Credentials verified. Fingerprint 2FA required.', 'info', 'Step 2: Biometrics');
 
     } catch (err) {
       console.error('[WB Credit Union] Admin auth error:', err);
@@ -2839,7 +2842,7 @@ export function initAdminLoginForm() {
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Authenticate Clearance';
+        submitBtn.innerHTML = 'Authenticate Officer Clearance';
       }
     }
   });

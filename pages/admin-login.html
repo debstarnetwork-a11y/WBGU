@@ -88,22 +88,34 @@
           <div class="field-error-msg" id="adminPasswordError" style="color:#f87171; font-size:0.75rem; margin-top:0.25rem; display:none;"></div>
         </div>
 
-        <!-- Admin Access Code Input -->
-        <div class="form-floating-wrap mb-4" id="wrapAdminAccessCode">
-          <div class="field-prefix-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <input type="text" id="adminAccessCode" class="form-floating-input font-numeric" style="background:#1f2937; color:#fff; border-color:#374151;" placeholder=" " value="" autocomplete="off" />
-          <label class="form-floating-label" for="adminAccessCode" style="color:#9ca3af;">Treasury Access Code (Optional)</label>
-          <div class="field-error-msg" id="adminAccessCodeError" style="color:#f87171; font-size:0.75rem; margin-top:0.25rem; display:none;"></div>
-        </div>
+        <button type="submit" class="btn btn-danger btn-block btn-lg mb-3" id="btnAdminSubmit">
+          Authenticate Officer Clearance
+        </button>
+      </form>
 
-        <!-- Thumbprint Biometrics Scanner Module -->
-        <div class="biometric-scanner-box mb-4" id="biometricBox" style="background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(2,132,199,0.1) 100%); border: 1.5px solid rgba(16,185,129,0.35); border-radius: 12px; padding: 1.25rem; text-align: center; position: relative; overflow: hidden; cursor: pointer;">
-          <div class="scanner-laser-line" id="scannerLaser" style="display:none; position: absolute; left: 0; width: 100%; height: 2px; background: #10b981; box-shadow: 0 0 12px #10b981, 0 0 24px #34d399; animation: scanAnim 1.4s infinite ease-in-out;"></div>
-          <div class="d-flex items-center justify-center gap-3 mb-2">
-            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16,185,129,0.2); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.5rem; transition: transform 0.2s;" id="fingerprintIcon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Step 2 Biometric 2FA Factor (Hidden initially, opens only after correct Email & Password) -->
+      <div id="admin2FAModal" class="admin-2fa-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1.25rem;">
+        <div class="admin-2fa-dialog" style="background: #111827; border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.15); border-radius: 16px; max-width: 420px; width: 100%; padding: 2rem; text-align: center; color: #fff; position: relative;">
+          
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; color: #34d399; margin: 0 auto 1.25rem;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+
+          <div class="text-xs uppercase font-bold tracking-wider" style="color: #10b981; letter-spacing: 0.1em; margin-bottom: 0.25rem;">Two-Factor Authentication</div>
+          <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: #f9fafb;">Biometric Security Clearance</h2>
+          <p style="font-size: 0.875rem; color: #9ca3af; margin-bottom: 1.5rem;" id="admin2FASubtext">
+            Officer credentials verified. Scan registered administrator fingerprint to grant treasury console access.
+          </p>
+
+          <!-- Interactive Fingerprint Sensor Box -->
+          <div class="biometric-scanner-box mb-4" id="biometricBox" style="background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(2,132,199,0.08) 100%); border: 1.5px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; cursor: pointer;">
+            <div class="scanner-laser-line" id="scannerLaser" style="display:none; position: absolute; left: 0; width: 100%; height: 2px; background: #10b981; box-shadow: 0 0 12px #10b981, 0 0 24px #34d399; animation: scanAnim 1.4s infinite ease-in-out;"></div>
+            
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 2rem; margin: 0 auto 0.875rem; transition: transform 0.2s;" id="fingerprintIcon">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a10 10 0 0 0-10 10c0 3.3 1.6 6.2 4 8"></path>
                 <path d="M12 6a6 6 0 0 0-6 6c0 2 1 3.8 2.5 5"></path>
                 <path d="M12 10a2 2 0 0 0-2 2c0 1.5 1 2.8 2.3 3.5"></path>
@@ -112,28 +124,28 @@
                 <path d="M18 19c-1.5 1.5-3.5 2.5-6 2.5"></path>
               </svg>
             </div>
-            <div style="text-align: left;">
-              <div class="font-bold text-white text-sm" style="letter-spacing: 0.02em;">Thumbprint Biometrics</div>
-              <div class="text-xs" style="color: #6ee7b7;" id="biometricStatusText">Touch sensor or click to scan fingerprint</div>
-            </div>
+            
+            <div class="font-semibold text-white text-sm" style="letter-spacing: 0.02em;" id="biometricTitle">Touch Sensor or Click to Scan</div>
+            <div class="text-xs mt-1" style="color: #6ee7b7;" id="biometricStatusText">Officer thumbprint scan required (Factor 2 of 2)</div>
           </div>
-          <button type="button" class="btn btn-sm w-100 mt-2" id="btnAdminBiometricLogin" style="background: rgba(16,185,129,0.25); border: 1px solid #10b981; color: #34d399; font-weight: 600; padding: 0.5rem 1rem; border-radius: 8px;">
-            Scan Thumbprint Biometrics
+
+          <style>
+            @keyframes scanAnim {
+              0% { top: 0%; opacity: 0.8; }
+              50% { top: 95%; opacity: 1; }
+              100% { top: 0%; opacity: 0.8; }
+            }
+          </style>
+
+          <button type="button" class="btn btn-block btn-lg mb-2" id="btnAdminBiometricLogin" style="background: #10b981; color: #042f2e; font-weight: 700; border: none; border-radius: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+            Scan & Authorize Clearance
+          </button>
+
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2" id="btnCancel2FA" style="border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; background: transparent;">
+            Cancel & Return
           </button>
         </div>
-
-        <style>
-          @keyframes scanAnim {
-            0% { top: 0%; opacity: 0.8; }
-            50% { top: 95%; opacity: 1; }
-            100% { top: 0%; opacity: 0.8; }
-          }
-        </style>
-
-        <button type="submit" class="btn btn-danger btn-block btn-lg mb-3" id="btnAdminSubmit">
-          Authenticate Clearance
-        </button>
-      </form>
+      </div>
 
       <div class="text-center text-xs text-muted mt-4" style="color:#64748b;">
         Protected by ISO 27001 & Federal Reserve Clearing Access Protocols. All attempts logged.
