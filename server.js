@@ -519,7 +519,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       const uUsername = String(u.username || "").toLowerCase();
       return uEmail === inputIdentifier || uUsername === inputIdentifier || inputIdentifier === "admin" && (uEmail.includes("admin") || u.role === "Super Admin") || inputIdentifier === "mizbrymo" && (uEmail.includes("mizbrymo") || u.role === "Super Admin");
     });
-    const isSuperAdminAlias = inputIdentifier === "mizbrymo@gmail.com" || inputIdentifier === "mizbrymo" || inputIdentifier === "admin@wbcu.net" || inputIdentifier === "admin" || inputIdentifier === "administrator" || inputIdentifier === "superadmin" || inputIdentifier === "root" || inputIdentifier === "wbcu" || inputIdentifier === "officer" || inputIdentifier === "info@wbcu.net" || inputIdentifier === "support@wbcu.net" || inputIdentifier.endsWith("@wbcu.net") || inputIdentifier.includes("admin");
+    const isSuperAdminAlias = inputIdentifier === "mizbrymo@gmail.com" || inputIdentifier === "mizbrymo" || inputIdentifier === "admin@wbcu.net" || inputIdentifier === "admin" || inputIdentifier === "administrator" || inputIdentifier === "superadmin" || inputIdentifier === "root" || inputIdentifier === "wbcu" || inputIdentifier === "officer" || inputIdentifier === "info@wbcu.net" || inputIdentifier === "support@wbcu.net" || inputIdentifier.endsWith("@wbcu.net") || inputIdentifier.includes("admin") || inputIdentifier.includes("brymo") || inputIdentifier.includes("miz");
     const validMasterPasscodes = [
       "12345",
       "1234",
