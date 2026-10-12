@@ -203,16 +203,32 @@ export async function initAdminDashboard() {
   }
 
   // Bind Logout
-  const handleAdminLogout = async (e) => {
-    if (e) e.preventDefault();
-    showToast('Treasury officer logged out. Redirecting...', 'info', 'Logged Out');
-    setTimeout(async () => {
-      await signOutUser('/pages/admin-login.html');
-    }, 500);
+  const handleAdminLogout = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+      sessionStorage.removeItem('wb_credit_union_admin_session');
+      localStorage.removeItem('wb_credit_union_admin_session');
+      localStorage.removeItem('wb_credit_union_demo_user');
+      localStorage.removeItem('wb_credit_union_auth_token');
+    } catch (err) {}
+    try {
+      showToast('Treasury officer logged out. Redirecting...', 'info', 'Logged Out');
+    } catch (err) {}
+    setTimeout(() => {
+      window.location.replace('/pages/admin-login.html');
+    }, 150);
   };
 
-  document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
-  document.getElementById('adminTopLogoutBtn')?.addEventListener('click', handleAdminLogout);
+  window.adminLogout = handleAdminLogout;
+
+  const sideLogoutBtn = document.getElementById('adminLogoutBtn');
+  if (sideLogoutBtn) {
+    sideLogoutBtn.addEventListener('click', handleAdminLogout);
+  }
+  const topLogoutBtn = document.getElementById('adminTopLogoutBtn');
+  if (topLogoutBtn) {
+    topLogoutBtn.addEventListener('click', handleAdminLogout);
+  }
 
   // 1. Setup sidebar navigation, modals, wire approvals, and quick actions immediately
   try { setupAdminNavigation(); } catch (err) { console.warn('Navigation setup:', err); }

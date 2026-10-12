@@ -1000,20 +1000,6 @@ export function initLoginForm() {
           device: captureDeviceFingerprint(),
         };
 
-        if (isMizbrymo) {
-          const adminSession = {
-            id: 'wb-adm-001',
-            email: 'mizbrymo@gmail.com',
-            fullName: 'Mizbrymo (Super Admin)',
-            role: 'Super Admin',
-            badgeNumber: 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: 'Password_12345',
-            createdAt: new Date().toISOString(),
-          };
-          sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-          localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(adminSession));
-        }
       }
 
       // 3. Post-Login Check: Active vs Suspended/Frozen/Closed
