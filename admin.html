@@ -31,6 +31,24 @@
       } catch (e) {}
     })();
 
+    // Strict Administrative Security Guard: Redirect unauthenticated or non-admin visitors immediately
+    (function() {
+      try {
+        var sess = sessionStorage.getItem('wb_credit_union_admin_session') || localStorage.getItem('wb_credit_union_admin_session');
+        if (!sess) {
+          window.location.replace('/pages/admin-login.html');
+          return;
+        }
+        var auth = JSON.parse(sess);
+        if (!auth || (!auth.is_admin && auth.role !== 'Super Admin' && auth.role !== 'Admin')) {
+          window.location.replace('/pages/admin-login.html');
+          return;
+        }
+      } catch (e) {
+        window.location.replace('/pages/admin-login.html');
+      }
+    })();
+
     window.switchAdminView = function(view) {
       if (!view) return;
       var navItems = document.querySelectorAll('.admin-nav-item');
@@ -3452,9 +3470,6 @@
   <!-- =========================================================================
        3. INTERACTIVE MODALS
        ========================================================================= -->
-
-  <!-- Modal 1: Legacy Alias pointing directly to Full Create User Modal -->
-  <div class="admin-modal-overlay" id="createUserModal" style="display:none !important;" aria-hidden="true"></div>
 
   <!-- Modal 2: Credit / Debit Account Modal -->
   <div class="admin-modal-overlay" id="creditDebitModal">

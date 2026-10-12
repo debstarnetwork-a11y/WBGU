@@ -10,7 +10,22 @@ var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3e3;
+  let portVal = 3e3;
+  const portIdx = process.argv.indexOf("--port");
+  if (portIdx !== -1 && process.argv[portIdx + 1]) {
+    portVal = parseInt(process.argv[portIdx + 1], 10);
+  } else if (process.env.NODE_ENV !== "production") {
+    portVal = 3e3;
+  } else if (process.env.PORT) {
+    portVal = isNaN(Number(process.env.PORT)) ? process.env.PORT : parseInt(process.env.PORT, 10);
+  }
+  const PORT = portVal;
+  let hostVal = "0.0.0.0";
+  const hostIdx = process.argv.indexOf("--host");
+  if (hostIdx !== -1 && process.argv[hostIdx + 1]) {
+    hostVal = process.argv[hostIdx + 1];
+  }
+  const HOST = hostVal;
   app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
   function sanitizeHost(rawHost) {
@@ -474,10 +489,10 @@ Respond concisely, politely, professionally, and in the language specified (${la
   }
   let serverCardsStore = null;
   let serverTxStore = null;
-  app.get("/api/admin/users", (_req, res) => {
+  app.get(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], (_req, res) => {
     return res.json({ success: true, users: serverUsersStore });
   });
-  app.post("/api/admin/users", (req, res) => {
+  app.post(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], (req, res) => {
     const { users } = req.body || {};
     if (Array.isArray(users)) {
       serverUsersStore = users;
@@ -501,9 +516,20 @@ Respond concisely, politely, professionally, and in the language specified (${la
     }
     return res.status(400).json({ success: false, error: "Cards must be an array" });
   });
+  app.get(["/admin", "/admin/", "/admin.html"], (_req, res) => {
+    const adminPath = path.resolve(__dirname, "admin/index.html");
+    if (fs.existsSync(adminPath)) {
+      return res.sendFile(adminPath);
+    }
+    const distAdminPath = path.resolve(__dirname, "dist/admin/index.html");
+    if (fs.existsSync(distAdminPath)) {
+      return res.sendFile(distAdminPath);
+    }
+    return res.sendFile(path.resolve(__dirname, "pages/admin-dashboard.html"));
+  });
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: false },
       appType: "spa"
     });
     app.use(vite.middlewares);
@@ -518,8 +544,8 @@ Respond concisely, politely, professionally, and in the language specified (${la
       console.log(`[WB Credit Union Server] Listening on Passenger socket ${PORT}`);
     });
   } else {
-    app.listen(PORT, () => {
-      console.log(`[WB Credit Union Server] Listening on http://localhost:${PORT}`);
+    app.listen(Number(PORT), HOST, () => {
+      console.log(`[WB Credit Union Server] Listening on http://${HOST}:${PORT}`);
     });
   }
 }

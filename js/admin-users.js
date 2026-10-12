@@ -849,6 +849,46 @@ let currentSortDir = 'desc';
 let selectedUserIds = new Set();
 let activeDetailUser = null;
 
+/**
+ * Asynchronously synchronizes admin users with the persistent backend store / database
+ */
+export async function syncAdminUsersWithServer() {
+  try {
+    const res = await fetch('/api/admin/users');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (Array.isArray(data.users) && data.users.length > 0) {
+      let updated = false;
+      data.users.forEach((serverUser) => {
+        if (!serverUser || !serverUser.email) return;
+        const existsIdx = currentUsers.findIndex(
+          (u) => (u.id && serverUser.id && u.id === serverUser.id) ||
+                 (u.email && serverUser.email && u.email.toLowerCase() === serverUser.email.toLowerCase()) ||
+                 (u.username && serverUser.username && u.username.toLowerCase() === serverUser.username.toLowerCase())
+        );
+        if (existsIdx === -1) {
+          currentUsers.push(serverUser);
+          updated = true;
+        } else {
+          // Merge missing properties
+          currentUsers[existsIdx] = { ...serverUser, ...currentUsers[existsIdx] };
+          updated = true;
+        }
+      });
+
+      if (updated) {
+        saveAdminUsersList(currentUsers);
+        filteredUsers = [...currentUsers];
+        renderUsersTable();
+        const badge = document.getElementById('sidebarUserBadge');
+        if (badge) badge.textContent = currentUsers.length.toLocaleString();
+      }
+    }
+  } catch (err) {
+    console.warn('[ADMIN USER SYNC INFO]', err);
+  }
+}
+
 /* ----------------------------------------------------------------------------
  * 4. INITIALIZE USER MANAGEMENT SECTION
  * ---------------------------------------------------------------------------- */
@@ -864,6 +904,9 @@ export function initAdminUserManagement() {
   setupExportButtons();
 
   renderUsersTable();
+
+  // Synchronize users from server database / admin-users.json
+  syncAdminUsersWithServer();
 }
 
 /* ----------------------------------------------------------------------------
@@ -3448,12 +3491,20 @@ function setupCreateUserModal() {
   }
 
   // Open Full Create User Modal triggers
-  const openFullModal = () => {
+  const openFullModal = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     randomizeCreateUserModalFields();
-    if (modal) modal.classList.add('show');
-    const fnInput = document.getElementById('adminNewUserFirstName');
-    if (fnInput) setTimeout(() => fnInput.focus(), 80);
+    const targetModal = document.getElementById('createUserFullModal') || modal;
+    if (targetModal) {
+      targetModal.classList.add('show');
+      targetModal.style.display = 'flex';
+      const fnInput = document.getElementById('adminNewUserFirstName');
+      if (fnInput) setTimeout(() => fnInput.focus(), 80);
+    }
   };
+
+  window.openCreateUserModal = openFullModal;
+  window.wbRandomizeCreateUserModalFields = randomizeCreateUserModalFields;
 
   const fullBtn = document.getElementById('btnOpenFullCreateUserModal');
   if (fullBtn) fullBtn.addEventListener('click', openFullModal);
@@ -3743,10 +3794,17 @@ function setupCreateUserModal() {
       filteredUsers.unshift(newUser);
 
       renderUsersTable();
+      const userBadge = document.getElementById('sidebarUserBadge');
+      if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
+
       form.reset();
       randomizeCreateUserModalFields();
-      if (photoPreview) photoPreview.textContent = 'No file chosen';
-      if (modal) modal.classList.remove('show');
+      if (photoPreview) photoPreview.textContent = 'No photo';
+      const targetModal = document.getElementById('createUserFullModal') || modal;
+      if (targetModal) {
+        targetModal.classList.remove('show');
+        targetModal.style.display = '';
+      }
       showToast(`Member account created for ${fullName} (${acctNum}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
     });
   }

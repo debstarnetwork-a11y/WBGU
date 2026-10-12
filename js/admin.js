@@ -164,30 +164,23 @@ export async function initAdminDashboard() {
   if (!adminRoot) return;
 
   // Initialize multi-language translation for admin dashboard
-  initI18n();
+  try {
+    initI18n();
+  } catch (err) {
+    console.warn('i18n init error:', err);
+  }
 
-  // Retrieve current admin session or create default Super Admin session if unauthenticated
+  // Retrieve current admin session. If unauthenticated, redirect to Admin Login immediately.
   let currentAdmin = null;
   try {
     const adminStored = sessionStorage.getItem('wb_credit_union_admin_session') || localStorage.getItem('wb_credit_union_admin_session');
     if (adminStored) currentAdmin = JSON.parse(adminStored);
   } catch (e) {}
 
-  if (!currentAdmin) {
-    currentAdmin = {
-      id: 'wb-adm-001',
-      email: 'mizbrymo@gmail.com',
-      fullName: 'Miz Brymo',
-      role: 'Super Admin',
-      badgeNumber: 'WB-TREASURY-01',
-      is_admin: true,
-      authMethod: 'Master_Clearance',
-      createdAt: new Date().toISOString(),
-    };
-    try {
-      sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(currentAdmin));
-      localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(currentAdmin));
-    } catch (e) {}
+  if (!currentAdmin || (!currentAdmin.is_admin && currentAdmin.role !== 'Super Admin' && currentAdmin.role !== 'Admin')) {
+    console.warn('[SECURITY] Unauthenticated admin access attempt. Redirecting to login.');
+    window.location.replace('/pages/admin-login.html');
+    return;
   }
 
   // Populate Admin Officer details in Top Bar
@@ -961,12 +954,34 @@ function setupWireApprovals() {
  * 9. MODALS & QUICK ACTIONS
  * ---------------------------------------------------------------------------- */
 function setupModals() {
+  // Generic modal open handlers
+  document.querySelectorAll('[data-open-modal]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const modalId = btn.getAttribute('data-open-modal');
+      if (modalId === 'createUserFullModal' || modalId === 'createUserModal') {
+        if (typeof window.openCreateUserModal === 'function') {
+          window.openCreateUserModal();
+        } else {
+          document.getElementById('createUserFullModal')?.classList.add('show');
+        }
+        return;
+      }
+      const modal = document.getElementById(modalId);
+      if (modal) modal.classList.add('show');
+    });
+  });
+
   // Generic modal close handlers
   document.querySelectorAll('[data-close-modal]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const modalId = btn.getAttribute('data-close-modal');
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.remove('show');
+      if (modalId === 'createUserFullModal' || modalId === 'createUserModal') {
+        document.getElementById('createUserFullModal')?.classList.remove('show');
+        document.getElementById('createUserModal')?.classList.remove('show');
+      }
     });
   });
 
@@ -981,19 +996,24 @@ function setupModals() {
 }
 
 function setupQuickActions() {
-  // 1. Full Create User Modal Trigger & Submission
+  // 1. Full Create User Modal Trigger
   const openCreateUserBtn = document.getElementById('btnOpenCreateUserModal');
   const openFullCreateUserBtn = document.getElementById('btnOpenFullCreateUserModal');
-  const createUserFullModal = document.getElementById('createUserFullModal');
 
-  const openFullModal = () => {
+  const openFullModal = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (typeof window.wbRandomizeCreateUserModalFields === 'function') {
       window.wbRandomizeCreateUserModalFields();
     }
-    if (createUserFullModal) {
-      createUserFullModal.classList.add('show');
+    const targetModal = document.getElementById('createUserFullModal') || document.getElementById('createUserModal');
+    if (targetModal) {
+      targetModal.classList.add('show');
+      const firstInput = document.getElementById('adminNewUserFirstName');
+      if (firstInput) setTimeout(() => firstInput.focus(), 60);
     }
   };
+
+  window.openCreateUserModal = openFullModal;
 
   if (openCreateUserBtn) {
     openCreateUserBtn.addEventListener('click', openFullModal);
@@ -1003,162 +1023,9 @@ function setupQuickActions() {
     openFullCreateUserBtn.addEventListener('click', openFullModal);
   }
 
-  if (createUserForm) {
-    createUserForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('newUserName')?.value.trim();
-      const email = document.getElementById('newUserEmail')?.value.trim();
-      const deposit = parseFloat(document.getElementById('newUserDeposit')?.value || '0');
-      const acctType = document.getElementById('newUserAccountType')?.value || 'Checking';
-      const currency = document.getElementById('newUserCurrency')?.value || 'USD';
-      const kycStatus = document.getElementById('newUserKycStatus')?.value || 'Verified';
-      const pin = document.getElementById('newUserPin')?.value.trim() || '1234';
-
-      if (!name || !email) {
-        showToast('Full name and email are required to open an account.', 'error', 'Validation Error');
-        return;
-      }
-
-      // 1. Automatically generate account number
-      const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
-      const acctNum = `WB-9482-${randomDigits.toString().slice(0, 4)}-${randomDigits.toString().slice(4, 6)}`;
-      const randomUserId = `usr-${Math.floor(100 + Math.random() * 900)}`;
-
-      // 2. Automatically generate all regulatory transfer codes (COT, TAX, IMF, AML, PAP, OTP)
-      const generatedCodes = {
-        COT: { code: `CT-${Math.floor(10000 + Math.random() * 90000)}`, active: true, notes: 'Cost of Transfer clearance token' },
-        TAX: { code: `TX-${Math.floor(10000 + Math.random() * 90000)}`, active: true, notes: 'Federal Tax Clearance certificate' },
-        IMF: { code: `IMF-${Math.floor(10000 + Math.random() * 90000)}`, active: true, notes: 'IMF Special Drawing Rights signoff' },
-        AML: { code: `AML-${Math.floor(10000 + Math.random() * 90000)}`, active: true, notes: 'Anti-Money Laundering verification key' },
-        PAP: { code: `PAP-${Math.floor(10000 + Math.random() * 90000)}`, active: true, notes: 'Proof of Anti-Piracy / Source of Wealth code' },
-        OTP: { code: `${Math.floor(100000 + Math.random() * 900000)}`, active: true, notes: 'Automated One-Time Passcode clearance' }
-      };
-
-      // 3. Automatically generate official bank ATM Card bearing member's full name
-      const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
-      const cardFormatted = cardRawNum.replace(/(.{4})/g, '$1 ').trim();
-      const expYear = String((new Date().getFullYear() + 5) % 100).padStart(2, '0');
-      const cardCvv = String(Math.floor(100 + Math.random() * 900));
-
-      const newAtmCard = {
-        id: `crd-${Date.now()}`,
-        cardNumber: cardFormatted,
-        cardMasked: `•••• •••• •••• ${cardRawNum.slice(-4)}`,
-        card_number: cardRawNum,
-        cardHolder: name.toUpperCase(),
-        cardholder_name: name.toUpperCase(),
-        userEmail: email,
-        accountNumber: acctNum,
-        cardType: 'Sovereign Visa Platinum Debit',
-        theme: 'card-theme-corporate',
-        expiry: `09/${expYear}`,
-        expiry_month: '09',
-        expiry_year: expYear,
-        cvv: cardCvv,
-        pin,
-        status: deposit > 0 ? 'active' : 'pending_approval',
-        is_frozen: false,
-        printStatus: 'requested',
-        trackingNumber: `CH-POST-${Math.floor(10000000 + Math.random() * 90000000)}-SWISS`,
-        shippingAddress: 'Zurich, Switzerland',
-        dailyAtmLimit: 5000,
-        dailyPosLimit: 25000,
-        monthlyLimit: 50000,
-        allowOnline: true,
-        allowInternational: true,
-        allowContactless: true,
-        createdAt: new Date().toISOString(),
-        recentTransactions: []
-      };
-
-      // 4. Zero initial transaction history if deposit is 0
-      const initialTransactions = deposit > 0 ? [
-        {
-          id: `TX-${Date.now().toString().slice(-5)}`,
-          date: new Date().toISOString(),
-          type: 'credit',
-          amount: deposit,
-          currency,
-          description: 'Initial Sovereign Treasury Opening Deposit',
-          status: 'completed',
-          reference: 'INITIAL-DEP',
-          adminNotes: 'Account opening credit'
-        }
-      ] : [];
-
-      const newUser = {
-        id: randomUserId,
-        fullName: name,
-        email,
-        phone: '+41 44 915 0000',
-        avatar: name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase(),
-        avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-        dob: '1988-06-15',
-        address: 'Zurich, Switzerland',
-        status: deposit > 0 ? 'active' : 'inactive',
-        statusReason: deposit > 0 ? 'Provisioned by Treasury Officer' : 'Pending Administrative Approval',
-        kycStatus: kycStatus.toLowerCase() === 'verified' ? 'verified' : 'pending',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        accounts: [
-          {
-            accountNumber: acctNum,
-            type: acctType,
-            name: `${acctType} Vault`,
-            currency,
-            balance: deposit,
-            status: deposit > 0 ? 'active' : 'inactive',
-            routingNumber: '021000089'
-          }
-        ],
-        transactions: initialTransactions,
-        cards: [newAtmCard],
-        cryptoWallets: [],
-        wireTransferCodes: generatedCodes,
-        activityLog: [
-          {
-            date: new Date().toISOString().replace('T', ' ').slice(0, 19),
-            action: 'Account provisioned with automated ATM card & wire codes',
-            ip: 'Admin Console',
-            officer: 'Chief Treasury Auditor'
-          }
-        ]
-      };
-
-      // Persist User to Admin Database
-      try {
-        const rawUsers = localStorage.getItem('wb_credit_union_admin_users_db');
-        const adminUsers = rawUsers ? JSON.parse(rawUsers) : [];
-        adminUsers.unshift(newUser);
-        localStorage.setItem('wb_credit_union_admin_users_db', JSON.stringify(adminUsers));
-      } catch (err) {
-        console.warn('Sync admin users error:', err);
-      }
-
-      // Persist ATM Card to Admin Cards Database
-      try {
-        const rawCards = localStorage.getItem('wb_credit_union_admin_cards_db');
-        const adminCards = rawCards ? JSON.parse(rawCards) : [];
-        adminCards.unshift(newAtmCard);
-        localStorage.setItem('wb_credit_union_admin_cards_db', JSON.stringify(adminCards));
-      } catch (err) {
-        console.warn('Sync admin cards error:', err);
-      }
-
-      // Update state metrics
-      defaultStats.totalUsers += 1;
-      defaultStats.totalAccounts += 1;
-      defaultStats.totalBalance += deposit;
-      renderDashboardStats();
-
-      // Log activity
-      pushNewActivity(`New member registered: ${name} (${acctNum}, Card: ${newAtmCard.cardMasked})`, 'users', '👤', 'rgba(59,130,246,0.2)', '#60a5fa');
-      
-      showToast(`Account provisioned for ${name}. Account: ${acctNum} | ATM Card: ${newAtmCard.cardMasked} generated.`, 'success', 'Account Created');
-      createUserForm.reset();
-      if (createUserModal) createUserModal.classList.remove('show');
-    });
-  }
+  document.querySelectorAll('[data-open-modal="createUserFullModal"], [data-open-modal="createUserModal"]').forEach((el) => {
+    el.addEventListener('click', openFullModal);
+  });
 
   // 2. Credit / Debit Ledger Adjustment Trigger & Submission
   const openLedgerBtn = document.getElementById('btnOpenLedgerModal');
