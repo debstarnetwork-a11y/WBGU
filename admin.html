@@ -554,7 +554,7 @@
             </div>
             
             <div class="admin-quick-actions-bar">
-              <button type="button" class="admin-btn admin-btn-primary" id="btnOpenCreateUserModal" data-open-modal="createUserFullModal" onclick="if(window.openCreateUserModal){window.openCreateUserModal(event);}else{var m=document.getElementById('createUserFullModal');if(m){m.classList.add('show');m.style.display='flex';}}">
+              <button type="button" class="admin-btn admin-btn-primary" id="btnOpenCreateUserModal" data-open-modal="createUserFullModal" onclick="if(window.wbRandomizeCreateUserModalFields){window.wbRandomizeCreateUserModalFields();} if(window.openCreateUserModal){window.openCreateUserModal(event);}else{var m=document.getElementById('createUserFullModal');if(m){m.classList.add('show');m.style.display='flex';}}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                   <circle cx="8.5" cy="7" r="4"></circle>
@@ -1005,7 +1005,7 @@
                 Export PDF
               </button>
 
-              <button type="button" class="admin-btn admin-btn-primary" id="btnOpenFullCreateUserModal" data-open-modal="createUserFullModal" onclick="if(window.openCreateUserModal){window.openCreateUserModal(event);}else{var m=document.getElementById('createUserFullModal');if(m){m.classList.add('show');m.style.display='flex';}}">
+              <button type="button" class="admin-btn admin-btn-primary" id="btnOpenFullCreateUserModal" data-open-modal="createUserFullModal" onclick="if(window.wbRandomizeCreateUserModalFields){window.wbRandomizeCreateUserModalFields();} if(window.openCreateUserModal){window.openCreateUserModal(event);}else{var m=document.getElementById('createUserFullModal');if(m){m.classList.add('show');m.style.display='flex';}}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                   <circle cx="8.5" cy="7" r="4"></circle>
@@ -3850,7 +3850,7 @@
                 <label class="admin-form-label m-0">Username *</label>
                 <button type="button" id="btnAdminGenUsername" onclick="if(window.wbGenUsername){window.wbGenUsername();} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #60a5fa; border-color: rgba(96,165,250,0.4);" title="Auto-generate username">🎲 Randomize</button>
               </div>
-              <input type="text" id="adminNewUserUsername" class="admin-form-control font-mono" value="mbrymo88" placeholder="e.g. mbrymo88" required />
+              <input type="text" id="adminNewUserUsername" class="admin-form-control font-mono" value="" placeholder="e.g. mbrymo88" required />
             </div>
             <div>
               <label class="admin-form-label">Email *</label>
@@ -3865,7 +3865,7 @@
           <div class="d-grid grid-cols-1 grid-md-3 gap-3 mb-3">
             <div>
               <label class="admin-form-label">Date of birth (mm/dd/yyyy) *</label>
-              <input type="text" id="adminNewUserDob" class="admin-form-control" placeholder="mm/dd/yyyy" value="05/18/1982" required />
+              <input type="text" id="adminNewUserDob" class="admin-form-control" placeholder="mm/dd/yyyy" value="" required />
             </div>
             <div>
               <label class="admin-form-label">Occupation *</label>
@@ -4082,7 +4082,7 @@
                 <label class="admin-form-label m-0">Account Number *</label>
                 <button type="button" id="btnAdminGenAccountNum" onclick="if(window.wbGenAccountNumber){window.wbGenAccountNumber();}else{var s=''+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(10+Math.random()*90);var el=document.getElementById('adminNewUserAccountNum');if(el)el.value=s;} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
               </div>
-              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" value="9104-8263-51" placeholder="Auto-generated unique number" required />
+              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" value="" placeholder="Auto-generated unique number" required />
             </div>
             <div>
               <label class="admin-form-label">Initial Account Balance ($) *</label>
@@ -4097,19 +4097,19 @@
           <div class="d-grid grid-cols-2 grid-md-4 gap-3 mb-3">
             <div>
               <label class="admin-form-label">COT Code *</label>
-              <input type="text" id="adminNewUserCotCode" class="admin-form-control font-mono" value="CT-84920" placeholder="Auto-generated COT" required />
+              <input type="text" id="adminNewUserCotCode" class="admin-form-control font-mono" value="" placeholder="Auto-generated COT" required />
             </div>
             <div>
               <label class="admin-form-label">IMF Clearance *</label>
-              <input type="text" id="adminNewUserImfCode" class="admin-form-control font-mono" value="IMF-71049" placeholder="Auto-generated IMF" required />
+              <input type="text" id="adminNewUserImfCode" class="admin-form-control font-mono" value="" placeholder="Auto-generated IMF" required />
             </div>
             <div>
               <label class="admin-form-label">TAX Code *</label>
-              <input type="text" id="adminNewUserTaxCode" class="admin-form-control font-mono" value="TX-39201" placeholder="Auto-generated TAX" required />
+              <input type="text" id="adminNewUserTaxCode" class="admin-form-control font-mono" value="" placeholder="Auto-generated TAX" required />
             </div>
             <div>
               <label class="admin-form-label">4 Digit Transaction PIN *</label>
-              <input type="text" id="adminNewUserTxPin" class="admin-form-control font-mono" value="8869" maxlength="4" placeholder="Auto-generated PIN" required />
+              <input type="text" id="adminNewUserTxPin" class="admin-form-control font-mono" value="" maxlength="4" placeholder="Auto-generated PIN" required />
             </div>
           </div>
 

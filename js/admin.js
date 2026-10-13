@@ -1078,6 +1078,26 @@ function setupQuickActions() {
     el.addEventListener('click', openFullModal);
   });
 
+  // 1b. Add click listeners to overview stat cards for easier navigation
+  const statUsers = document.querySelector('.admin-metric-card.border-blue');
+  const statTx = document.querySelector('.admin-metric-card.border-emerald');
+  const statWires = document.querySelector('.admin-metric-card.border-amber');
+
+  if (statUsers) statUsers.addEventListener('click', () => switchAdminView('users'));
+  if (statTx) statTx.addEventListener('click', () => switchAdminView('transactions'));
+  if (statWires) statWires.addEventListener('click', () => switchAdminView('wires'));
+
+  // 1c. Hook up Dashboard Alert Buttons
+  const btnKyc = document.getElementById('btnReviewKycAlert');
+  const btnWire = document.getElementById('btnReviewWireAlert');
+  const btnAudit = document.getElementById('btnAuditFailedTx');
+  const btnSuspended = document.getElementById('btnInspectSuspended');
+
+  if (btnKyc) btnKyc.addEventListener('click', () => switchAdminView('users'));
+  if (btnWire) btnWire.addEventListener('click', () => switchAdminView('wires'));
+  if (btnAudit) btnAudit.addEventListener('click', () => switchAdminView('transactions'));
+  if (btnSuspended) btnSuspended.addEventListener('click', () => switchAdminView('users'));
+
   // 2. Credit / Debit Ledger Adjustment Trigger & Submission
   const openLedgerBtn = document.getElementById('btnOpenLedgerModal');
   const ledgerModal = document.getElementById('creditDebitModal');

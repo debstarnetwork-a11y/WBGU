@@ -84,11 +84,11 @@ export function getEffectiveMemberName(targetUser = null) {
   } catch (e) {}
   try {
     const active = JSON.parse(localStorage.getItem('wb_credit_union_active_user') || '{}');
-    if (active?.fullName && active.fullName !== 'Alexander Morgan' && active.fullName !== 'Chief Treasury Auditor') {
-      return active.fullName;
-    }
+    if (active?.fullName) return active.fullName;
+    if (active?.name) return active.name;
+    if (active?.email) return active.email.split('@')[0];
   } catch (e) {}
-  return 'Miz Brymo';
+  return 'Chief Treasury Auditor';
 }
 
 export function getEffectiveMemberEmail(targetUser = null) {
@@ -115,8 +115,6 @@ export const initialSeedUsers = [
     fullName: 'Miz Brymo',
     email: 'mizbrymo@gmail.com',
     password: '12345',
-    pin: '1234',
-    transactionPin: '8869',
     role: 'Super Admin',
     is_admin: true,
     phone: '+41 44 915 8901',
@@ -250,8 +248,7 @@ export const initialSeedUsers = [
     username: 'erostova26',
     email: 'elena.rostova@vanguardlogistics.ch',
     password: 'Vanguard@2026!',
-    pin: '7712',
-    transactionPin: '7712',
+    role: 'Member',
     role: 'Member',
     phone: '+41 22 819 4012',
     avatar: 'ER',
@@ -283,8 +280,7 @@ export const initialSeedUsers = [
     username: 'msterling88',
     email: 'treasury@sterlingmerchant.com',
     password: 'Sterling#884!',
-    pin: '4410',
-    transactionPin: '4410',
+    role: 'Member',
     role: 'Member',
     phone: '+44 20 7946 0912',
     avatar: 'MS',
@@ -316,8 +312,7 @@ export const initialSeedUsers = [
     username: 'chenwei_sg',
     email: 'chen.wei@singaporebiotech.sg',
     password: 'MemberPass123!',
-    pin: '9920',
-    transactionPin: '9920',
+    role: 'Member',
     role: 'Member',
     phone: '+65 6789 0123',
     avatar: 'CW',
@@ -348,8 +343,7 @@ export const initialSeedUsers = [
     username: 'gdubois_fr',
     email: 'genevieve.dubois@chateau-dubois.fr',
     password: 'MemberPass123!',
-    pin: '3310',
-    transactionPin: '3310',
+    role: 'Member',
     role: 'Member',
     phone: '+33 1 42 68 55 00',
     avatar: 'GD',
@@ -379,8 +373,7 @@ export const initialSeedUsers = [
     username: 'cmendez_es',
     email: 'carlos.mendez@mendezholdings.es',
     password: 'MemberPass123!',
-    pin: '6618',
-    transactionPin: '6618',
+    role: 'Member',
     role: 'Member',
     phone: '+34 91 580 1200',
     avatar: 'CM',
@@ -410,8 +403,7 @@ export const initialSeedUsers = [
     username: 'ovanderbilt_nl',
     email: 'olivia.vanderbilt@vanderbilt-estate.nl',
     password: 'MemberPass123!',
-    pin: '2290',
-    transactionPin: '2290',
+    role: 'Member',
     role: 'Member',
     phone: '+31 20 555 0192',
     avatar: 'OV',
@@ -441,8 +433,7 @@ export const initialSeedUsers = [
     username: 'sjenkins_au',
     email: 'sarah.jenkins@sydneyventures.com.au',
     password: 'MemberPass123!',
-    pin: '5519',
-    transactionPin: '5519',
+    role: 'Member',
     role: 'Member',
     phone: '+61 2 9220 0000',
     avatar: 'SJ',
@@ -472,8 +463,7 @@ export const initialSeedUsers = [
     username: 'amorgan_cap',
     email: 'morgan.capital@us-treasury.com',
     password: 'MemberPass123!',
-    pin: '1108',
-    transactionPin: '1108',
+    role: 'Member',
     role: 'Member',
     phone: '+1 212 555 0199',
     avatar: 'AM',
@@ -503,8 +493,7 @@ export const initialSeedUsers = [
     username: 'jplaurent_ch',
     email: 'jp.laurent@genevaprivate.ch',
     password: 'MemberPass123!',
-    pin: '8841',
-    transactionPin: '8841',
+    role: 'Member',
     role: 'Member',
     phone: '+41 22 909 1100',
     avatar: 'JL',
@@ -534,8 +523,7 @@ export const initialSeedUsers = [
     username: 'salmansoor_uae',
     email: 'sophia@dubaitreasury.ae',
     password: 'MemberPass123!',
-    pin: '4490',
-    transactionPin: '4490',
+    role: 'Member',
     role: 'Member',
     phone: '+971 4 300 8888',
     avatar: 'SA',
@@ -565,8 +553,7 @@ export const initialSeedUsers = [
     username: 'ksato_jp',
     email: 'kenji.sato@tokyosovereign.jp',
     password: 'MemberPass123!',
-    pin: '6620',
-    transactionPin: '6620',
+    role: 'Member',
     role: 'Member',
     phone: '+81 3 5555 0100',
     avatar: 'KS',
@@ -1225,7 +1212,9 @@ export async function syncAdminUsersWithServer() {
  * 4. INITIALIZE USER MANAGEMENT SECTION
  * ---------------------------------------------------------------------------- */
 export function initAdminUserManagement() {
+  console.log('[ADMIN USERS] Initializing User Management...');
   currentUsers = getAdminUsersList();
+  console.log('[ADMIN USERS] Loaded local users:', currentUsers.length);
   filteredUsers = [...currentUsers];
 
   setupSearchAndFilters();
@@ -1236,6 +1225,14 @@ export function initAdminUserManagement() {
   setupExportButtons();
 
   renderUsersTable();
+
+  // Retry logic for robustness
+  setTimeout(() => {
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (tbody && (!tbody.children.length || tbody.innerHTML.includes('No matching members'))) {
+      renderUsersTable();
+    }
+  }, 1000);
 
   // Synchronize users from server database / admin-users.json
   syncAdminUsersWithServer();
@@ -1408,6 +1405,11 @@ export function renderUsersTable() {
   }
 
   tbody.innerHTML = pagedUsers.map((u) => {
+    if (!u) return '';
+    if (!u.id) {
+       console.warn('[ADMIN RENDER] User object missing ID:', u);
+       return '';
+    }
     const totalBalance = Array.isArray(u.accounts) ? u.accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0) : 0;
     const primaryAcct = (Array.isArray(u.accounts) && u.accounts[0]) ? u.accounts[0] : { accountNumber: 'N/A', type: 'Checking', currency: 'USD' };
     const isChecked = selectedUserIds.has(u.id);
@@ -1854,6 +1856,7 @@ function setupUserDetailDrawer() {
 
   setupDrawerActionButtons();
   if (typeof window !== 'undefined') {
+    window.initAdminUserManagement = initAdminUserManagement;
     window.openUserDetailDrawer = openUserDetailDrawer;
     window._realOpenUserDetailDrawer = openUserDetailDrawer;
     window.closeUserDetailDrawer = closeUserDetailDrawer;
@@ -1863,6 +1866,7 @@ function setupUserDetailDrawer() {
 }
 
 export function openUserDetailDrawer(userId) {
+  console.log('[ADMIN DRAWER] Opening drawer for:', userId);
   if (!userId) return;
 
   // Resolve user by object, ID, email, or phone
@@ -2169,6 +2173,19 @@ function renderDrawerProfileTab(user) {
             <div class="d-flex items-center justify-between mt-1">
               <span class="text-xs text-muted" style="font-size: 0.7rem;">Admin can see, copy, change, or edit login password</span>
               <span class="badge-status-active action-chip" style="font-size: 0.65rem; padding: 1px 6px;">MASTER ACCESS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded mb-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(52, 211, 153, 0.25);">
+          <div class="text-xs font-bold text-white uppercase mb-2" style="color: #34d399;">🪪 Biometric Passport & KYC Documents</div>
+          <div class="d-flex items-center gap-4">
+            <div style="width: 140px; height: 100px; background: #0b1120; border: 1px dashed #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+              ${(user.passportPhoto || user.profilePhoto) ? `<img src="${escapeHtml(user.passportPhoto || user.profilePhoto)}" alt="Passport" style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" onclick="window.open(this.src);" title="Click to view full size" />` : `<span class="text-xs text-muted">No Passport</span>`}
+            </div>
+            <div class="flex-1">
+              <div class="text-xs text-white font-bold mb-1">Status: <span style="color: ${(user.kycStatus || '').toLowerCase() === 'verified' ? '#34d399' : '#fbbf24'};">${(user.kycStatus || 'Unverified').toUpperCase()}</span></div>
+              <p class="text-xs text-muted mb-0">High-resolution biometric document for Swiss interbank clearance. If blank, ask member to upload via Security settings.</p>
             </div>
           </div>
         </div>
@@ -3936,17 +3953,25 @@ function setupCreateUserModal() {
     const taxInput = document.getElementById('adminNewUserTaxCode');
     const pinInput = document.getElementById('adminNewUserTxPin');
 
-    if (acctTypeInput && (!acctTypeInput.value || acctTypeInput.value === '')) acctTypeInput.value = 'Checking';
-    if (pwdInput && !pwdInput.value) {
-      const generatedPwd = 'MemberPass' + Math.floor(100 + Math.random() * 900) + '!';
-      pwdInput.value = generatedPwd;
-      if (pwdConfirmInput) pwdConfirmInput.value = generatedPwd;
+    if (acctTypeInput) acctTypeInput.value = 'Checking';
+    
+    const generatedPwd = 'MemberPass' + Math.floor(100 + Math.random() * 900) + '!';
+    if (pwdInput) pwdInput.value = generatedPwd;
+    if (pwdConfirmInput) pwdConfirmInput.value = generatedPwd;
+    
+    if (acctNumInput) acctNumInput.value = generateRandomAccountNumber();
+    if (cotInput) cotInput.value = generateRandomCotCode();
+    if (imfInput) imfInput.value = generateRandomImfCode();
+    if (taxInput) taxInput.value = generateRandomTaxCode();
+    if (pinInput) pinInput.value = generateRandomPin();
+
+    // Also randomize username if it was auto-generated before
+    const unInput = document.getElementById('adminNewUserUsername');
+    if (unInput) {
+      const base = (document.getElementById('adminNewUserFirstName')?.value || 'user').toLowerCase().replace(/[^a-z]/g, '');
+      unInput.value = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+      unInput.setAttribute('data-auto', 'true');
     }
-    if (acctNumInput && !acctNumInput.value) acctNumInput.value = generateRandomAccountNumber();
-    if (cotInput && !cotInput.value) cotInput.value = generateRandomCotCode();
-    if (imfInput && !imfInput.value) imfInput.value = generateRandomImfCode();
-    if (taxInput && !taxInput.value) taxInput.value = generateRandomTaxCode();
-    if (pinInput && !pinInput.value) pinInput.value = generateRandomPin();
   };
 
   // Expose to window for global access

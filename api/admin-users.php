@@ -29,8 +29,8 @@ if (!file_exists($dataFile)) {
 $dbHost = 'localhost';
 $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user';
-// Hardcoded password as fallback if env is missing, but user should set this
-$dbPass = getenv('DB_PASS') ?: ''; 
+// Support both DB_PASS and DB_PASSWORD from environment
+$dbPass = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: ''; 
 
 $pdo = null;
 $dbError = null;
@@ -118,6 +118,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'occupation' => $row['occupation'] ?? '',
                         'profilePhoto' => $row['profile_photo_url'] ?? '',
                         'avatarUrl' => $row['profile_photo_url'] ?? '',
+                        'passportPhoto' => $row['profile_photo_url'] ?? '',
+                        'passportUrl' => $row['profile_photo_url'] ?? '',
+                        'kycDocument' => $row['profile_photo_url'] ?? '',
                         'status' => $row['status'] ?? 'active',
                         'kycStatus' => $row['kyc_status'] ?? 'verified',
                         'role' => ($row['role'] === 'super_admin' || $row['role'] === 'Super Admin') ? 'Super Admin' : (($row['role'] === 'admin' || $row['role'] === 'Admin') ? 'Admin' : 'Member'),
@@ -244,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nationality = $u['nationality'] ?? 'Switzerland';
                 $occupation = $u['occupation'] ?? 'Executive';
                 $address = $u['address'] ?? 'Zurich, Switzerland';
-                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? '';
+                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? $u['passportPhoto'] ?? $u['passportUrl'] ?? '';
                 $profId = 'prof-' . str_replace('usr-', '', $uid);
 
                 $profStmt = $pdo->prepare("INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, date_of_birth, nationality, occupation, address_line1, profile_photo_url) 
