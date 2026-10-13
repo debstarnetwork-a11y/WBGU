@@ -63,19 +63,19 @@
     };
 
     window.wbRandomizeCreateUserModalFields = function() {
-      var acct = document.getElementById('adminNewUserAccountNum');
-      var cot = document.getElementById('adminNewUserCotCode');
-      var imf = document.getElementById('adminNewUserImfCode');
-      var tax = document.getElementById('adminNewUserTaxCode');
-      var pin = document.getElementById('adminNewUserTxPin');
-      var pwd = document.getElementById('adminNewUserPassword');
-      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
-
       function randDigits(n) {
         var s = '';
         for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
         return s;
       }
+
+      var acct = document.getElementById('adminNewUserAccountNum') || document.getElementById('adminNewUserAccountNumber');
+      var cot = document.getElementById('adminNewUserCotCode') || document.getElementById('adminNewUserCot');
+      var imf = document.getElementById('adminNewUserImfCode') || document.getElementById('adminNewUserImf');
+      var tax = document.getElementById('adminNewUserTaxCode') || document.getElementById('adminNewUserTax');
+      var pin = document.getElementById('adminNewUserTxPin') || document.getElementById('adminNewUserPin');
+      var pwd = document.getElementById('adminNewUserPassword');
+      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
 
       if (acct) acct.value = 'WB-' + randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
       if (cot) cot.value = 'CT-' + randDigits(5);
@@ -85,6 +85,49 @@
       var newPwd = 'MemberPass' + randDigits(3) + '!';
       if (pwd) pwd.value = newPwd;
       if (pwdConfirm) pwdConfirm.value = newPwd;
+    };
+
+    window.wbGenAccountNumber = function() {
+      function randDigits(n) {
+        var s = '';
+        for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+        return s;
+      }
+      var acct = document.getElementById('adminNewUserAccountNum') || document.getElementById('adminNewUserAccountNumber');
+      if (acct) acct.value = 'WB-' + randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
+    };
+
+    window.wbGenAllCodes = function() {
+      if (typeof window.wbRandomizeCreateUserModalFields === 'function') {
+        window.wbRandomizeCreateUserModalFields();
+      }
+    };
+
+    window.wbGenPassword = function() {
+      function randDigits(n) {
+        var s = '';
+        for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+        return s;
+      }
+      var pwd = document.getElementById('adminNewUserPassword');
+      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
+      var newPwd = 'MemberPass' + randDigits(3) + '!';
+      if (pwd) pwd.value = newPwd;
+      if (pwdConfirm) pwdConfirm.value = newPwd;
+    };
+
+    window.wbTogglePwd = function() {
+      var pwd = document.getElementById('adminNewUserPassword');
+      var btn = document.getElementById('btnToggleAdminNewUserPwd');
+      if (pwd) {
+        if (pwd.type === 'password') {
+          pwd.type = 'text';
+          if (btn) btn.textContent = '🙈 Hide';
+        } else {
+          pwd.type = 'password';
+          if (btn) btn.textContent = '👁️ Show';
+        }
+      }
     };
 
     window.openCreateUserModal = function(e) {
@@ -3837,7 +3880,7 @@
             <div>
               <div class="d-flex items-center justify-between mb-1">
                 <label class="admin-form-label m-0">Account Number *</label>
-                <button type="button" id="btnAdminGenAccountNum" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
+                <button type="button" id="btnAdminGenAccountNum" onclick="window.wbGenAccountNumber ? window.wbGenAccountNumber() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
               </div>
               <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" placeholder="Auto-generated unique number" required />
             </div>
@@ -3849,7 +3892,7 @@
 
           <div class="d-flex items-center justify-between mt-4 mb-2">
             <div class="text-xs font-bold text-white uppercase" style="color: #fbbf24; letter-spacing: 0.05em;">3. Auto-Generated Wire Clearances &amp; Transaction PIN</div>
-            <button type="button" id="btnAdminGenAllCodes" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #fbbf24; border-color: rgba(251,191,36,0.4);" title="Re-roll all clearance codes">🎲 Re-generate All Codes</button>
+            <button type="button" id="btnAdminGenAllCodes" onclick="window.wbGenAllCodes ? window.wbGenAllCodes() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #fbbf24; border-color: rgba(251,191,36,0.4);" title="Re-roll all clearance codes">🎲 Re-generate All Codes</button>
           </div>
           <div class="d-grid grid-cols-2 grid-md-4 gap-3 mb-3">
             <div>
@@ -3896,7 +3939,7 @@
           <div class="p-3 rounded mb-3" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.35);">
             <div class="d-flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-white">Master Member Password Configuration</span>
-              <button type="button" id="btnAdminNewUserGenPwd" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #38bdf8; border-color: #0284c7;">
+              <button type="button" id="btnAdminNewUserGenPwd" onclick="window.wbGenPassword ? window.wbGenPassword() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #38bdf8; border-color: #0284c7;">
                 🎲 Auto-Generate Password
               </button>
             </div>
@@ -3904,7 +3947,7 @@
               <div>
                 <div class="d-flex items-center justify-between mb-1">
                   <label class="admin-form-label m-0">Password *</label>
-                  <button type="button" id="btnToggleAdminNewUserPwd" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem;">👁️ Show</button>
+                  <button type="button" id="btnToggleAdminNewUserPwd" onclick="window.wbTogglePwd ? window.wbTogglePwd() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem;">👁️ Show</button>
                 </div>
                 <input type="password" id="adminNewUserPassword" class="admin-form-control font-mono" placeholder="Enter password (e.g. MemberPass123!)" value="MemberPass123!" required />
               </div>
