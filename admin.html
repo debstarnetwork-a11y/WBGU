@@ -151,6 +151,14 @@
       }
     };
 
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        if (typeof window.wbRandomizeCreateUserModalFields === 'function') {
+          window.wbRandomizeCreateUserModalFields();
+        }
+      } catch (err) {}
+    });
+
     window.switchAdminView = function(view) {
       if (!view) return;
       var navItems = document.querySelectorAll('.admin-nav-item');
@@ -3847,7 +3855,180 @@
             <div>
               <label class="admin-form-label">Nationality *</label>
               <select id="adminNewUserNationality" class="admin-form-control" required>
-                <!-- Populated with ALL countries in the world via JavaScript -->
+                <option value="Switzerland" selected>Switzerland</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Afghanistan">Afghanistan</option>
+                <option value="Albania">Albania</option>
+                <option value="Algeria">Algeria</option>
+                <option value="Andorra">Andorra</option>
+                <option value="Angola">Angola</option>
+                <option value="Argentina">Argentina</option>
+                <option value="Armenia">Armenia</option>
+                <option value="Australia">Australia</option>
+                <option value="Austria">Austria</option>
+                <option value="Azerbaijan">Azerbaijan</option>
+                <option value="Bahamas">Bahamas</option>
+                <option value="Bahrain">Bahrain</option>
+                <option value="Bangladesh">Bangladesh</option>
+                <option value="Barbados">Barbados</option>
+                <option value="Belarus">Belarus</option>
+                <option value="Belgium">Belgium</option>
+                <option value="Belize">Belize</option>
+                <option value="Benin">Benin</option>
+                <option value="Bhutan">Bhutan</option>
+                <option value="Bolivia">Bolivia</option>
+                <option value="Bosnia and Herzegovina">Bosnia and Herzegovina</option>
+                <option value="Botswana">Botswana</option>
+                <option value="Brazil">Brazil</option>
+                <option value="Brunei">Brunei</option>
+                <option value="Bulgaria">Bulgaria</option>
+                <option value="Burkina Faso">Burkina Faso</option>
+                <option value="Burundi">Burundi</option>
+                <option value="Cambodia">Cambodia</option>
+                <option value="Cameroon">Cameroon</option>
+                <option value="Canada">Canada</option>
+                <option value="Cape Verde">Cape Verde</option>
+                <option value="Central African Republic">Central African Republic</option>
+                <option value="Chad">Chad</option>
+                <option value="Chile">Chile</option>
+                <option value="China">China</option>
+                <option value="Colombia">Colombia</option>
+                <option value="Comoros">Comoros</option>
+                <option value="Congo">Congo</option>
+                <option value="Costa Rica">Costa Rica</option>
+                <option value="Croatia">Croatia</option>
+                <option value="Cuba">Cuba</option>
+                <option value="Cyprus">Cyprus</option>
+                <option value="Czech Republic">Czech Republic</option>
+                <option value="Denmark">Denmark</option>
+                <option value="Dominican Republic">Dominican Republic</option>
+                <option value="Ecuador">Ecuador</option>
+                <option value="Egypt">Egypt</option>
+                <option value="El Salvador">El Salvador</option>
+                <option value="Equatorial Guinea">Equatorial Guinea</option>
+                <option value="Estonia">Estonia</option>
+                <option value="Ethiopia">Ethiopia</option>
+                <option value="Fiji">Fiji</option>
+                <option value="Finland">Finland</option>
+                <option value="France">France</option>
+                <option value="Gabon">Gabon</option>
+                <option value="Gambia">Gambia</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Germany">Germany</option>
+                <option value="Ghana">Ghana</option>
+                <option value="Greece">Greece</option>
+                <option value="Grenada">Grenada</option>
+                <option value="Guatemala">Guatemala</option>
+                <option value="Guinea">Guinea</option>
+                <option value="Guyana">Guyana</option>
+                <option value="Haiti">Haiti</option>
+                <option value="Honduras">Honduras</option>
+                <option value="Hungary">Hungary</option>
+                <option value="Iceland">Iceland</option>
+                <option value="India">India</option>
+                <option value="Indonesia">Indonesia</option>
+                <option value="Iran">Iran</option>
+                <option value="Iraq">Iraq</option>
+                <option value="Ireland">Ireland</option>
+                <option value="Israel">Israel</option>
+                <option value="Italy">Italy</option>
+                <option value="Jamaica">Jamaica</option>
+                <option value="Japan">Japan</option>
+                <option value="Jordan">Jordan</option>
+                <option value="Kazakhstan">Kazakhstan</option>
+                <option value="Kenya">Kenya</option>
+                <option value="Kuwait">Kuwait</option>
+                <option value="Kyrgyzstan">Kyrgyzstan</option>
+                <option value="Laos">Laos</option>
+                <option value="Latvia">Latvia</option>
+                <option value="Lebanon">Lebanon</option>
+                <option value="Lesotho">Lesotho</option>
+                <option value="Liberia">Liberia</option>
+                <option value="Libya">Libya</option>
+                <option value="Liechtenstein">Liechtenstein</option>
+                <option value="Lithuania">Lithuania</option>
+                <option value="Luxembourg">Luxembourg</option>
+                <option value="Madagascar">Madagascar</option>
+                <option value="Malawi">Malawi</option>
+                <option value="Malaysia">Malaysia</option>
+                <option value="Maldives">Maldives</option>
+                <option value="Mali">Mali</option>
+                <option value="Malta">Malta</option>
+                <option value="Mauritania">Mauritania</option>
+                <option value="Mauritius">Mauritius</option>
+                <option value="Mexico">Mexico</option>
+                <option value="Moldova">Moldova</option>
+                <option value="Monaco">Monaco</option>
+                <option value="Mongolia">Mongolia</option>
+                <option value="Montenegro">Montenegro</option>
+                <option value="Morocco">Morocco</option>
+                <option value="Mozambique">Mozambique</option>
+                <option value="Myanmar">Myanmar</option>
+                <option value="Namibia">Namibia</option>
+                <option value="Nepal">Nepal</option>
+                <option value="Netherlands">Netherlands</option>
+                <option value="New Zealand">New Zealand</option>
+                <option value="Nicaragua">Nicaragua</option>
+                <option value="Niger">Niger</option>
+                <option value="Nigeria">Nigeria</option>
+                <option value="North Macedonia">North Macedonia</option>
+                <option value="Norway">Norway</option>
+                <option value="Oman">Oman</option>
+                <option value="Pakistan">Pakistan</option>
+                <option value="Palau">Palau</option>
+                <option value="Palestine">Palestine</option>
+                <option value="Panama">Panama</option>
+                <option value="Papua New Guinea">Papua New Guinea</option>
+                <option value="Paraguay">Paraguay</option>
+                <option value="Peru">Peru</option>
+                <option value="Philippines">Philippines</option>
+                <option value="Poland">Poland</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Qatar">Qatar</option>
+                <option value="Romania">Romania</option>
+                <option value="Russia">Russia</option>
+                <option value="Rwanda">Rwanda</option>
+                <option value="Samoa">Samoa</option>
+                <option value="San Marino">San Marino</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Senegal">Senegal</option>
+                <option value="Serbia">Serbia</option>
+                <option value="Seychelles">Seychelles</option>
+                <option value="Sierra Leone">Sierra Leone</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Slovakia">Slovakia</option>
+                <option value="Slovenia">Slovenia</option>
+                <option value="Somalia">Somalia</option>
+                <option value="South Africa">South Africa</option>
+                <option value="South Korea">South Korea</option>
+                <option value="Spain">Spain</option>
+                <option value="Sri Lanka">Sri Lanka</option>
+                <option value="Sudan">Sudan</option>
+                <option value="Suriname">Suriname</option>
+                <option value="Sweden">Sweden</option>
+                <option value="Syria">Syria</option>
+                <option value="Taiwan">Taiwan</option>
+                <option value="Tajikistan">Tajikistan</option>
+                <option value="Tanzania">Tanzania</option>
+                <option value="Thailand">Thailand</option>
+                <option value="Togo">Togo</option>
+                <option value="Trinidad and Tobago">Trinidad and Tobago</option>
+                <option value="Tunisia">Tunisia</option>
+                <option value="Turkey">Turkey</option>
+                <option value="Turkmenistan">Turkmenistan</option>
+                <option value="Uganda">Uganda</option>
+                <option value="Ukraine">Ukraine</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+                <option value="Uruguay">Uruguay</option>
+                <option value="Uzbekistan">Uzbekistan</option>
+                <option value="Vanuatu">Vanuatu</option>
+                <option value="Vatican City">Vatican City</option>
+                <option value="Venezuela">Venezuela</option>
+                <option value="Vietnam">Vietnam</option>
+                <option value="Yemen">Yemen</option>
+                <option value="Zambia">Zambia</option>
+                <option value="Zimbabwe">Zimbabwe</option>
               </select>
             </div>
           </div>
@@ -3870,7 +4051,7 @@
               <select id="adminNewUserAcctType" class="admin-form-control" required>
                 <option value="">Please select Account Type</option>
                 <option value="Savings">Savings Account</option>
-                <option value="Checking">Premier Checking Account</option>
+                <option value="Checking" selected>Premier Checking Account</option>
                 <option value="Business">Institutional Business Vault</option>
                 <option value="Offshore">Swiss Sovereign Offshore</option>
                 <option value="Fixed Deposit">Fixed Deposit Yield Certificate</option>
@@ -3880,9 +4061,9 @@
             <div>
               <div class="d-flex items-center justify-between mb-1">
                 <label class="admin-form-label m-0">Account Number *</label>
-                <button type="button" id="btnAdminGenAccountNum" onclick="window.wbGenAccountNumber ? window.wbGenAccountNumber() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
+                <button type="button" id="btnAdminGenAccountNum" onclick="if(window.wbGenAccountNumber){window.wbGenAccountNumber();}else{var s='WB-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(10+Math.random()*90);var el=document.getElementById('adminNewUserAccountNum');if(el)el.value=s;} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
               </div>
-              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" placeholder="Auto-generated unique number" required />
+              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" value="WB-9104-8263-51" placeholder="Auto-generated unique number" required />
             </div>
             <div>
               <label class="admin-form-label">Initial Account Balance ($) *</label>
@@ -3892,24 +4073,24 @@
 
           <div class="d-flex items-center justify-between mt-4 mb-2">
             <div class="text-xs font-bold text-white uppercase" style="color: #fbbf24; letter-spacing: 0.05em;">3. Auto-Generated Wire Clearances &amp; Transaction PIN</div>
-            <button type="button" id="btnAdminGenAllCodes" onclick="window.wbGenAllCodes ? window.wbGenAllCodes() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #fbbf24; border-color: rgba(251,191,36,0.4);" title="Re-roll all clearance codes">🎲 Re-generate All Codes</button>
+            <button type="button" id="btnAdminGenAllCodes" onclick="if(window.wbGenAllCodes){window.wbGenAllCodes();}else if(window.wbRandomizeCreateUserModalFields){window.wbRandomizeCreateUserModalFields();} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #fbbf24; border-color: rgba(251,191,36,0.4);" title="Re-roll all clearance codes">🎲 Re-generate All Codes</button>
           </div>
           <div class="d-grid grid-cols-2 grid-md-4 gap-3 mb-3">
             <div>
               <label class="admin-form-label">COT Code *</label>
-              <input type="text" id="adminNewUserCotCode" class="admin-form-control font-mono" placeholder="Auto-generated COT" required />
+              <input type="text" id="adminNewUserCotCode" class="admin-form-control font-mono" value="CT-84920" placeholder="Auto-generated COT" required />
             </div>
             <div>
               <label class="admin-form-label">IMF Clearance *</label>
-              <input type="text" id="adminNewUserImfCode" class="admin-form-control font-mono" placeholder="Auto-generated IMF" required />
+              <input type="text" id="adminNewUserImfCode" class="admin-form-control font-mono" value="IMF-71049" placeholder="Auto-generated IMF" required />
             </div>
             <div>
               <label class="admin-form-label">TAX Code *</label>
-              <input type="text" id="adminNewUserTaxCode" class="admin-form-control font-mono" placeholder="Auto-generated TAX" required />
+              <input type="text" id="adminNewUserTaxCode" class="admin-form-control font-mono" value="TX-39201" placeholder="Auto-generated TAX" required />
             </div>
             <div>
               <label class="admin-form-label">4 Digit Transaction PIN *</label>
-              <input type="text" id="adminNewUserTxPin" class="admin-form-control font-mono" maxlength="4" placeholder="Auto-generated PIN" required />
+              <input type="text" id="adminNewUserTxPin" class="admin-form-control font-mono" value="8869" maxlength="4" placeholder="Auto-generated PIN" required />
             </div>
           </div>
 
@@ -3939,7 +4120,7 @@
           <div class="p-3 rounded mb-3" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.35);">
             <div class="d-flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-white">Master Member Password Configuration</span>
-              <button type="button" id="btnAdminNewUserGenPwd" onclick="window.wbGenPassword ? window.wbGenPassword() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #38bdf8; border-color: #0284c7;">
+              <button type="button" id="btnAdminNewUserGenPwd" onclick="if(window.wbGenPassword){window.wbGenPassword();}else{var p='MemberPass'+Math.floor(100+Math.random()*900)+'!';var a=document.getElementById('adminNewUserPassword');var b=document.getElementById('adminNewUserConfirmPassword');if(a)a.value=p;if(b)b.value=p;} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #38bdf8; border-color: #0284c7;">
                 🎲 Auto-Generate Password
               </button>
             </div>
@@ -3947,7 +4128,7 @@
               <div>
                 <div class="d-flex items-center justify-between mb-1">
                   <label class="admin-form-label m-0">Password *</label>
-                  <button type="button" id="btnToggleAdminNewUserPwd" onclick="window.wbTogglePwd ? window.wbTogglePwd() : false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem;">👁️ Show</button>
+                  <button type="button" id="btnToggleAdminNewUserPwd" onclick="if(window.wbTogglePwd){window.wbTogglePwd();} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem;">👁️ Show</button>
                 </div>
                 <input type="password" id="adminNewUserPassword" class="admin-form-control font-mono" placeholder="Enter password (e.g. MemberPass123!)" value="MemberPass123!" required />
               </div>
