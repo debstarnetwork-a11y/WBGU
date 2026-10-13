@@ -1,11 +1,8 @@
 -- ============================================================================
 -- WB CREDIT UNION (www.wbcu.net) - PHPMYADMIN / CPANEL MYSQL SETUP SCRIPT
 -- ============================================================================
--- Instructions:
--- 1. Open cPanel -> phpMyAdmin.
--- 2. Select your database (e.g. `glolbka_wbcu_db` or create a new database).
--- 3. Click the "SQL" tab at the top.
--- 4. Copy and paste this ENTIRE file into the text box and click "Go".
+-- Compatible with cPanel phpMyAdmin, MySQL 5.7 / 8.0+, MariaDB 10.3+
+-- Target Database: glolbka_wbcu_db (or your cPanel database)
 -- ============================================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -19,8 +16,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` VARCHAR(64) NOT NULL,
   `username` VARCHAR(100) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `password` VARCHAR(255) NOT NULL DEFAULT '12345',
-  `password_hash` VARCHAR(255) DEFAULT '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W',
+  `password_hash` VARCHAR(255) NOT NULL DEFAULT '12345',
   `role` VARCHAR(50) NOT NULL DEFAULT 'super_admin',
   `is_admin` TINYINT(1) NOT NULL DEFAULT 1,
   `transaction_pin` VARCHAR(10) DEFAULT '8869',
@@ -138,20 +134,17 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
 -- ----------------------------------------------------------------------------
 -- 7. SEED DATA FOR ADMIN & MEMBER ACCESS
 -- ----------------------------------------------------------------------------
-
--- Insert/Update Super Admin Users
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `password_hash`, `role`, `is_admin`, `transaction_pin`, `two_factor_enabled`, `status`, `kyc_status`)
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `is_admin`, `transaction_pin`, `two_factor_enabled`, `status`, `kyc_status`)
 VALUES 
-('usr-101', 'mizbrymo', 'mizbrymo@gmail.com', '12345', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Super Admin', 1, '8869', 1, 'active', 'verified'),
-('usr-admin-01', 'admin', 'admin@wbcu.net', '12345', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Super Admin', 1, '8869', 1, 'active', 'verified'),
-('usr-659', 'ollerobertrstrm52', 'debstarnetwork@gmail.com', 'Password123!', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Member', 0, '8869', 1, 'active', 'verified')
+('usr-101', 'mizbrymo', 'mizbrymo@gmail.com', '12345', 'super_admin', 1, '8869', 1, 'active', 'verified'),
+('usr-admin-01', 'admin', 'admin@wbcu.net', '12345', 'super_admin', 1, '8869', 1, 'active', 'verified'),
+('usr-659', 'ollerobertrstrm52', 'debstarnetwork@gmail.com', 'Password123!', 'user', 0, '8869', 1, 'active', 'verified')
 ON DUPLICATE KEY UPDATE 
-  `password` = VALUES(`password`),
+  `password_hash` = VALUES(`password_hash`),
   `role` = VALUES(`role`),
   `is_admin` = VALUES(`is_admin`),
   `status` = VALUES(`status`);
 
--- Insert Profiles
 INSERT INTO `profiles` (`id`, `user_id`, `first_name`, `middle_name`, `last_name`, `full_name`, `phone_number`, `date_of_birth`, `nationality`, `occupation`, `address_line1`, `city`, `state`, `postal_code`, `country`)
 VALUES
 ('prof-101', 'usr-101', 'Miz', '', 'Brymo', 'Miz Brymo', '+41 44 915 8901', '1984-06-14', 'Switzerland', 'Executive Director', '109, Feldgüetliweg, Meilen', 'Zurich', 'Zurich', '8706', 'Switzerland'),
@@ -159,7 +152,6 @@ VALUES
 ('prof-659', 'usr-659', 'Olle', 'Robert Christer', 'Råström', 'Olle Robert Christer Råström', '+46702813441', '1982-05-18', 'Sweden', 'Executive Private Client', 'Korgmakargatan 32 621 53 Visby', 'Visby', 'Gotland', '621 53', 'Sweden')
 ON DUPLICATE KEY UPDATE `full_name` = VALUES(`full_name`);
 
--- Insert Primary Vault Accounts
 INSERT INTO `accounts` (`id`, `user_id`, `account_number`, `account_type`, `account_name`, `currency`, `balance`, `available_balance`, `routing_number`, `is_primary`, `status`)
 VALUES
 ('acct-101-usd', 'usr-101', 'WB-9482-1049-55', 'Checking', 'Premier Checking Vault', 'USD', 248500.00, 248500.00, '021000089', 1, 'active'),
@@ -167,7 +159,6 @@ VALUES
 ('acct-659-usd', 'usr-659', '09372996993', 'Checking', 'Primary Checking Vault', 'USD', 100000.00, 100000.00, '021000089', 1, 'active')
 ON DUPLICATE KEY UPDATE `balance` = VALUES(`balance`);
 
--- Insert Wire Transfer Codes
 INSERT INTO `wire_transfer_codes` (`id`, `user_id`, `code_type`, `code_value`, `display_name`, `description`, `is_active`)
 VALUES
 ('wc-101-cot', 'usr-101', 'COT', 'CT-78234', 'COT Code', 'Cost of Transfer clearance token', 1),
@@ -178,13 +169,11 @@ VALUES
 ('wc-101-otp', 'usr-101', 'OTP', '806158', 'OTP Code', 'One-time passcode', 1)
 ON DUPLICATE KEY UPDATE `code_value` = VALUES(`code_value`);
 
--- Insert Cards
 INSERT INTO `cards` (`id`, `user_id`, `account_number`, `card_holder`, `card_number`, `card_masked`, `card_type`, `status`)
 VALUES
 ('crd-101-1', 'usr-101', 'WB-9482-1049-55', 'MIZ BRYMO', '4532714031141234', '•••• •••• •••• 1234', 'Black Metal Premier', 'active')
 ON DUPLICATE KEY UPDATE `card_holder` = VALUES(`card_holder`);
 
--- System Default Info
 INSERT INTO `system_settings` (`key_name`, `value_json`) VALUES
 ('institution_info', '{"bankName":"WB Credit Union","domain":"wbcu.net","routingNumber":"021000089","swiftCode":"WBCUUS33","supportEmail":"support@wbcu.net","headquarters":"109, Feldgüetliweg Meilen, Zurich 8706, Switzerland"}')
 ON DUPLICATE KEY UPDATE `value_json` = VALUES(`value_json`);

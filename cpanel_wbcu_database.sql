@@ -1,18 +1,12 @@
 -- ============================================================================
--- WB CREDIT UNION (www.wbcu.net) - COMPLETE CPANEL / MySQL DATABASE SCHEMA
+-- WB CREDIT UNION (www.wbcu.net) - PHPMYADMIN / CPANEL MYSQL SETUP SCRIPT
 -- ============================================================================
--- Compatible with: cPanel phpMyAdmin, MySQL 5.7 / 8.0+, MariaDB 10.3+
--- Target Database: glolbka_wbcu_db
--- Target User: glolbka_wbcu_user
--- Target Domain: wbcu.net
--- Charset: utf8mb4 / utf8mb4_unicode_ci
--- Engine: InnoDB
+-- Compatible with cPanel phpMyAdmin, MySQL 5.7 / 8.0+, MariaDB 10.3+
+-- Target Database: glolbka_wbcu_db (or your cPanel database)
 -- ============================================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
 SET time_zone = "+00:00";
 
 -- ----------------------------------------------------------------------------
@@ -22,8 +16,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` VARCHAR(64) NOT NULL,
   `username` VARCHAR(100) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `password` VARCHAR(255) NOT NULL DEFAULT '12345',
-  `password_hash` VARCHAR(255) DEFAULT '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W',
+  `password_hash` VARCHAR(255) NOT NULL DEFAULT '12345',
   `role` VARCHAR(50) NOT NULL DEFAULT 'super_admin',
   `is_admin` TINYINT(1) NOT NULL DEFAULT 1,
   `transaction_pin` VARCHAR(10) DEFAULT '8869',
@@ -40,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 2. MEMBER PROFILES (Extended Identity & Compliance)
+-- 2. MEMBER PROFILES TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `profiles` (
   `id` VARCHAR(64) NOT NULL,
@@ -55,15 +48,11 @@ CREATE TABLE IF NOT EXISTS `profiles` (
   `nationality` VARCHAR(100) DEFAULT 'Switzerland',
   `occupation` VARCHAR(150) DEFAULT 'Executive Private Client',
   `address_line1` TEXT DEFAULT NULL,
-  `address_line2` TEXT DEFAULT NULL,
   `city` VARCHAR(100) DEFAULT 'Zurich',
   `state` VARCHAR(100) DEFAULT 'Zurich',
   `postal_code` VARCHAR(30) DEFAULT '8706',
   `country` VARCHAR(100) DEFAULT 'Switzerland',
   `profile_photo_url` TEXT DEFAULT NULL,
-  `avatar_color` VARCHAR(100) DEFAULT 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-  `id_type` VARCHAR(50) DEFAULT 'Passport',
-  `id_number` VARCHAR(100) DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -71,31 +60,28 @@ CREATE TABLE IF NOT EXISTS `profiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 3. BANK VAULT ACCOUNTS (Multi-Currency Ledgers)
+-- 3. BANK VAULT ACCOUNTS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `accounts` (
   `id` VARCHAR(64) NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `account_number` VARCHAR(30) NOT NULL,
   `account_type` VARCHAR(50) NOT NULL DEFAULT 'Checking',
-  `account_name` VARCHAR(150) NOT NULL DEFAULT 'Primary Checking Vault',
+  `account_name` VARCHAR(150) NOT NULL DEFAULT 'Primary Vault',
   `currency` VARCHAR(10) NOT NULL DEFAULT 'USD',
   `balance` DECIMAL(18, 2) NOT NULL DEFAULT 0.00,
   `available_balance` DECIMAL(18, 2) NOT NULL DEFAULT 0.00,
   `routing_number` VARCHAR(30) NOT NULL DEFAULT '021000089',
-  `swift_bic` VARCHAR(30) NOT NULL DEFAULT 'WBCUUS33',
-  `iban` VARCHAR(50) DEFAULT NULL,
   `is_primary` TINYINT(1) NOT NULL DEFAULT 0,
   `status` VARCHAR(50) NOT NULL DEFAULT 'active',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_accounts_number` (`account_number`),
-  KEY `idx_accounts_user_id` (`user_id`)
+  KEY `idx_accounts_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 4. REGULATORY WIRE TRANSFER CLEARANCE CODES
+-- 4. WIRE TRANSFER CLEARANCE CODES TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wire_transfer_codes` (
   `id` VARCHAR(64) NOT NULL,
@@ -107,11 +93,11 @@ CREATE TABLE IF NOT EXISTS `wire_transfer_codes` (
   `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_wire_codes_user` (`user_id`)
+  KEY `idx_wire_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 5. DEBIT & CREDIT CARDS
+-- 5. DEBIT & CREDIT CARDS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `cards` (
   `id` VARCHAR(64) NOT NULL,
@@ -120,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `cards` (
   `card_holder` VARCHAR(150) NOT NULL,
   `card_number` VARCHAR(30) NOT NULL,
   `card_masked` VARCHAR(30) NOT NULL,
-  `card_type` VARCHAR(100) NOT NULL DEFAULT 'Sovereign Visa Platinum Debit',
+  `card_type` VARCHAR(100) NOT NULL DEFAULT 'Visa Platinum Debit',
   `theme` VARCHAR(50) DEFAULT 'obsidian',
   `expiry_month` VARCHAR(5) DEFAULT '09',
   `expiry_year` VARCHAR(5) DEFAULT '29',
@@ -136,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `cards` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 6. SYSTEM SETTINGS
+-- 6. SYSTEM SETTINGS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `system_settings` (
   `key_name` VARCHAR(100) NOT NULL,
@@ -146,15 +132,15 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- SEED DATA
+-- 7. SEED DATA FOR ADMIN & MEMBER ACCESS
 -- ----------------------------------------------------------------------------
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `password_hash`, `role`, `is_admin`, `transaction_pin`, `two_factor_enabled`, `status`, `kyc_status`)
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `is_admin`, `transaction_pin`, `two_factor_enabled`, `status`, `kyc_status`)
 VALUES 
-('usr-101', 'mizbrymo', 'mizbrymo@gmail.com', '12345', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Super Admin', 1, '8869', 1, 'active', 'verified'),
-('usr-admin-01', 'admin', 'admin@wbcu.net', '12345', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Super Admin', 1, '8869', 1, 'active', 'verified'),
-('usr-659', 'ollerobertrstrm52', 'debstarnetwork@gmail.com', 'Password123!', '$2a$12$e8F0l1u4dY.7c5N2WwYgfe8L19e4zVl9aI5C8.sE8q5D1a1f0z9W', 'Member', 0, '8869', 1, 'active', 'verified')
+('usr-101', 'mizbrymo', 'mizbrymo@gmail.com', '12345', 'super_admin', 1, '8869', 1, 'active', 'verified'),
+('usr-admin-01', 'admin', 'admin@wbcu.net', '12345', 'super_admin', 1, '8869', 1, 'active', 'verified'),
+('usr-659', 'ollerobertrstrm52', 'debstarnetwork@gmail.com', 'Password123!', 'user', 0, '8869', 1, 'active', 'verified')
 ON DUPLICATE KEY UPDATE 
-  `password` = VALUES(`password`),
+  `password_hash` = VALUES(`password_hash`),
   `role` = VALUES(`role`),
   `is_admin` = VALUES(`is_admin`),
   `status` = VALUES(`status`);
@@ -193,4 +179,3 @@ INSERT INTO `system_settings` (`key_name`, `value_json`) VALUES
 ON DUPLICATE KEY UPDATE `value_json` = VALUES(`value_json`);
 
 SET FOREIGN_KEY_CHECKS = 1;
-COMMIT;
