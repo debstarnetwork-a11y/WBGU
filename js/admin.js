@@ -971,7 +971,47 @@ function setupWireApprovals() {
 /* ----------------------------------------------------------------------------
  * 9. MODALS & QUICK ACTIONS
  * ---------------------------------------------------------------------------- */
-function setupModals() {
+  // Global delegated click handler for all modal close & cancel triggers
+  document.addEventListener('click', (e) => {
+    // 1. Check for close buttons or data-close-modal attributes
+    const closeBtn = e.target.closest('[data-close-modal], .admin-modal-close, .admin-form-modal-close, button[data-close], .btn-close');
+    if (closeBtn) {
+      const modalId = closeBtn.getAttribute('data-close-modal');
+      if (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.classList.remove('show');
+          modal.style.display = 'none';
+        }
+      }
+      const parentModal = closeBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal, .admin-drawer-panel');
+      if (parentModal) {
+        parentModal.classList.remove('show');
+        parentModal.style.display = 'none';
+      }
+    }
+
+    // 2. Check for Cancel / Close button clicks inside any modal overlay
+    const targetBtn = e.target.tagName === 'BUTTON' ? e.target : e.target.closest('button');
+    if (targetBtn && targetBtn.type !== 'submit') {
+      const btnText = (targetBtn.textContent || '').trim().toLowerCase();
+      if (btnText === 'cancel' || btnText === 'close' || btnText === 'close diagnostics' || btnText === 'close preview') {
+        const parentModal = targetBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal');
+        if (parentModal) {
+          e.preventDefault();
+          parentModal.classList.remove('show');
+          parentModal.style.display = 'none';
+        }
+      }
+    }
+
+    // 3. Close when clicking directly on backdrop overlay
+    if (e.target.classList && (e.target.classList.contains('admin-modal-overlay') || e.target.classList.contains('modal-overlay') || e.target.classList.contains('admin-form-modal-backdrop'))) {
+      e.target.classList.remove('show');
+      e.target.style.display = 'none';
+    }
+  });
+
   // Generic modal open handlers
   document.querySelectorAll('[data-open-modal]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -981,44 +1021,18 @@ function setupModals() {
         if (typeof window.openCreateUserModal === 'function') {
           window.openCreateUserModal();
         } else {
-          document.getElementById('createUserFullModal')?.classList.add('show');
+          const m = document.getElementById('createUserFullModal') || document.getElementById('createUserModal');
+          if (m) { m.classList.add('show'); m.style.display = 'flex'; }
         }
         return;
       }
       const modal = document.getElementById(modalId);
-      if (modal) modal.classList.add('show');
-    });
-  });
-
-  // Generic modal close handlers
-  document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      if (e && e.preventDefault) e.preventDefault();
-      const modalId = btn.getAttribute('data-close-modal');
-      const modal = document.getElementById(modalId);
       if (modal) {
-        modal.classList.remove('show');
-        modal.style.display = 'none';
-      }
-      if (modalId === 'createUserFullModal' || modalId === 'createUserModal') {
-        const m1 = document.getElementById('createUserFullModal');
-        const m2 = document.getElementById('createUserModal');
-        if (m1) { m1.classList.remove('show'); m1.style.display = 'none'; }
-        if (m2) { m2.classList.remove('show'); m2.style.display = 'none'; }
+        modal.classList.add('show');
+        modal.style.display = 'flex';
       }
     });
   });
-
-  // Close modals when clicking on background backdrop
-  document.querySelectorAll('.admin-modal-overlay').forEach((overlay) => {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.classList.remove('show');
-        overlay.style.display = 'none';
-      }
-    });
-  });
-}
 
 function setupQuickActions() {
   // 1. Full Create User Modal Trigger

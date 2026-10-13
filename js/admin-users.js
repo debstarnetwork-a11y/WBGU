@@ -124,48 +124,22 @@ export const initialSeedUsers = [
     avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
     dob: '1984-06-14',
     address: '109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland',
+    nationality: 'Switzerland',
     status: 'active',
     statusReason: 'Super Admin Clearance',
     kycStatus: 'verified',
     createdAt: '2025-01-15T09:30:00Z',
     lastLogin: new Date().toISOString(),
     accounts: [
-      {
-        accountNumber: '9482-1049-55',
-        type: 'Checking',
-        name: 'Premier Checking Account',
-        currency: 'USD',
-        balance: 248500.00,
-        status: 'active',
-        routingNumber: '021000089',
-      },
-      {
-        accountNumber: '9482-1049-56',
-        type: 'Savings',
-        name: 'Swiss High-Yield Wealth Reserve',
-        currency: 'CHF',
-        balance: 1450000.00,
-        status: 'active',
-        routingNumber: '021000089',
-      }
+      { accountNumber: '9482-1049-55', type: 'Checking', name: 'Premier Checking Account', currency: 'USD', balance: 248500.00, status: 'active', routingNumber: '021000089', isPrimary: true },
+      { accountNumber: '9482-1049-56', type: 'Savings', name: 'Swiss High-Yield Wealth Reserve', currency: 'CHF', balance: 1450000.00, status: 'active', routingNumber: '021000089' }
     ],
     transactions: [],
     cards: [
-      {
-        id: 'crd-1',
-        cardNumber: '•••• •••• •••• 1234',
-        cardHolder: 'MIZ BRYMO',
-        type: 'Black Metal Premier',
-        expiry: '09/29',
-        status: 'active',
-        dailyAtmLimit: 10000,
-        onlineLimit: 50000,
-      }
+      { id: 'crd-1', cardNumber: '•••• •••• •••• 1234', cardHolder: 'MIZ BRYMO', type: 'Black Metal Premier', expiry: '09/29', status: 'active', dailyAtmLimit: 10000, onlineLimit: 50000 }
     ],
     cryptoWallets: [
-      { currency: 'BTC', balance: 4.85, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' },
-      { currency: 'ETH', balance: 32.40, address: '0x71C...9B28', status: 'active' },
-      { currency: 'USDT', balance: 125000.00, address: '0x99A...11C4', status: 'active' }
+      { currency: 'BTC', balance: 4.85, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' }
     ],
     wireTransferCodes: {
       COT: { code: 'CT-78234', active: true, notes: 'Cost of Transfer clearance token for Swiss SWIFT' },
@@ -203,30 +177,11 @@ export const initialSeedUsers = [
     createdAt: '2026-10-07T10:00:00Z',
     lastLogin: new Date().toISOString(),
     accounts: [
-      {
-        accountNumber: '09372996993',
-        type: 'Checking',
-        name: 'Checking Primary Vault',
-        currency: 'USD',
-        balance: 100000.00,
-        status: 'active',
-        routingNumber: '021000089',
-      }
+      { accountNumber: '09372996993', type: 'Checking', name: 'Checking Primary Vault', currency: 'USD', balance: 100000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
     ],
     transactions: [],
     cards: [
-      {
-        id: 'crd-659',
-        cardNumber: '4532 7140 3114 3230',
-        cardHolder: 'OLLE ROBERT CHRISTER RÅSTRÖM',
-        type: 'Visa Platinum Debit',
-        expiry: '09/31',
-        cvv: '775',
-        pin: '8869',
-        status: 'active',
-        dailyAtmLimit: 10000,
-        onlineLimit: 50000,
-      }
+      { id: 'crd-659', cardNumber: '4532 7140 3114 3230', cardHolder: 'OLLE ROBERT CHRISTER RÅSTRÖM', type: 'Visa Platinum Debit', expiry: '09/31', cvv: '775', pin: '8869', status: 'active', dailyAtmLimit: 10000, onlineLimit: 50000 }
     ],
     cryptoWallets: [
       { currency: 'BTC', balance: 0.00, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' }
@@ -238,6 +193,352 @@ export const initialSeedUsers = [
       AML: { code: 'AML-86902', active: true, notes: 'Anti-Money Laundering verification key' },
       PAP: { code: 'PAP-70216', active: true, notes: 'Proof of Anti-Piracy clearance' },
       OTP: '806158'
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-102',
+    fullName: 'Elena Rostova',
+    firstName: 'Elena',
+    lastName: 'Rostova',
+    username: 'erostova26',
+    email: 'elena.rostova@vanguardlogistics.ch',
+    password: 'Vanguard@2026!',
+    pin: '7712',
+    transactionPin: '7712',
+    role: 'Member',
+    phone: '+41 22 819 4012',
+    avatar: 'ER',
+    avatarColor: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+    dob: '1987-11-22',
+    nationality: 'Switzerland',
+    address: 'Place du Molard 7, 1204 Geneva, Switzerland',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-09-12T14:20:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '9104-3381-19', type: 'Offshore', name: 'Swiss Sovereign Offshore Vault', currency: 'CHF', balance: 890000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '081294', active: true, notes: 'Cost of Transfer clearance token' },
+      TAX: { code: 'TX-44810', active: true, notes: 'Swiss Canton Tax Certificate' },
+      IMF: { code: '901248', active: true, notes: 'IMF Clearance signoff' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-103',
+    fullName: 'Marcus Sterling',
+    firstName: 'Marcus',
+    lastName: 'Sterling',
+    username: 'msterling88',
+    email: 'treasury@sterlingmerchant.com',
+    password: 'Sterling#884!',
+    pin: '4410',
+    transactionPin: '4410',
+    role: 'Member',
+    phone: '+44 20 7946 0912',
+    avatar: 'MS',
+    avatarColor: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+    dob: '1980-03-14',
+    nationality: 'United Kingdom',
+    address: '25 Bank Street, Canary Wharf, London E14 5JP, UK',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-08-25T11:00:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '8810-9234-71', type: 'Business', name: 'Institutional Corporate Vault', currency: 'GBP', balance: 2450000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '119402', active: true, notes: 'Cost of Transfer clearance token' },
+      TAX: { code: 'TX-10492', active: true, notes: 'UK HMRC Clearance Certificate' },
+      IMF: { code: '881042', active: true, notes: 'IMF Signoff' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-104',
+    fullName: 'Chen Wei',
+    firstName: 'Chen',
+    lastName: 'Wei',
+    username: 'chenwei_sg',
+    email: 'chen.wei@singaporebiotech.sg',
+    password: 'MemberPass123!',
+    pin: '9920',
+    transactionPin: '9920',
+    role: 'Member',
+    phone: '+65 6789 0123',
+    avatar: 'CW',
+    avatarColor: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+    dob: '1985-08-09',
+    nationality: 'Singapore',
+    address: '10 Marina Boulevard, Marina Bay Financial Centre, Singapore 018983',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-09-01T08:15:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '7721-4091-88', type: 'Checking', name: 'Singapore Asian Currency Unit', currency: 'USD', balance: 1320000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '770192', active: true, notes: 'MAS SWIFT Clearance Token' },
+      TAX: { code: 'TX-66910', active: true, notes: 'IRAS Tax Clearance' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-105',
+    fullName: 'Genevieve Dubois',
+    firstName: 'Genevieve',
+    lastName: 'Dubois',
+    username: 'gdubois_fr',
+    email: 'genevieve.dubois@chateau-dubois.fr',
+    password: 'MemberPass123!',
+    pin: '3310',
+    transactionPin: '3310',
+    role: 'Member',
+    phone: '+33 1 42 68 55 00',
+    avatar: 'GD',
+    avatarColor: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+    dob: '1979-12-01',
+    nationality: 'France',
+    address: '14 Avenue Montaigne, 75008 Paris, France',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-07-19T16:30:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '5510-8829-14', type: 'Savings', name: 'Euro Private Estate Holdings', currency: 'EUR', balance: 780000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '882014', active: true, notes: 'Banque de France Clearance' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-106',
+    fullName: 'Carlos Mendez',
+    firstName: 'Carlos',
+    lastName: 'Mendez',
+    username: 'cmendez_es',
+    email: 'carlos.mendez@mendezholdings.es',
+    password: 'MemberPass123!',
+    pin: '6618',
+    transactionPin: '6618',
+    role: 'Member',
+    phone: '+34 91 580 1200',
+    avatar: 'CM',
+    avatarColor: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+    dob: '1981-04-25',
+    nationality: 'Spain',
+    address: 'Paseo de la Castellana 89, 28046 Madrid, Spain',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-08-10T10:45:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '6619-3012-90', type: 'Business', name: 'Iberian Commercial Treasury', currency: 'EUR', balance: 540000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '991048', active: true, notes: 'Target2 SWIFT Token' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-107',
+    fullName: 'Olivia Vanderbilt',
+    firstName: 'Olivia',
+    lastName: 'Vanderbilt',
+    username: 'ovanderbilt_nl',
+    email: 'olivia.vanderbilt@vanderbilt-estate.nl',
+    password: 'MemberPass123!',
+    pin: '2290',
+    transactionPin: '2290',
+    role: 'Member',
+    phone: '+31 20 555 0192',
+    avatar: 'OV',
+    avatarColor: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+    dob: '1989-09-18',
+    nationality: 'Netherlands',
+    address: 'Herengracht 450, 1017 CA Amsterdam, Netherlands',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-09-18T13:10:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '4410-8839-21', type: 'Savings', name: 'Dutch Trust Reserve', currency: 'EUR', balance: 1120000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '339102', active: true, notes: 'Dutch National Bank Token' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-108',
+    fullName: 'Sarah Jenkins',
+    firstName: 'Sarah',
+    lastName: 'Jenkins',
+    username: 'sjenkins_au',
+    email: 'sarah.jenkins@sydneyventures.com.au',
+    password: 'MemberPass123!',
+    pin: '5519',
+    transactionPin: '5519',
+    role: 'Member',
+    phone: '+61 2 9220 0000',
+    avatar: 'SJ',
+    avatarColor: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+    dob: '1986-02-11',
+    nationality: 'Australia',
+    address: '1 Martin Place, Sydney NSW 2000, Australia',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-08-04T09:00:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '3310-9920-45', type: 'Checking', name: 'Pacific Rim Liquidity Vault', currency: 'AUD', balance: 670000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '772910', active: true, notes: 'RBA Clearance Key' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-109',
+    fullName: 'Alexander Morgan',
+    firstName: 'Alexander',
+    lastName: 'Morgan',
+    username: 'amorgan_cap',
+    email: 'morgan.capital@us-treasury.com',
+    password: 'MemberPass123!',
+    pin: '1108',
+    transactionPin: '1108',
+    role: 'Member',
+    phone: '+1 212 555 0199',
+    avatar: 'AM',
+    avatarColor: 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)',
+    dob: '1975-07-04',
+    nationality: 'United States',
+    address: '200 Park Avenue, Suite 300, New York, NY 10166',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-06-15T15:00:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '1109-8830-41', type: 'Checking', name: 'US Dollar Sovereign Premier', currency: 'USD', balance: 3450000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '992014', active: true, notes: 'Fedwire Clearing Key' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-110',
+    fullName: 'Jean-Pierre Laurent',
+    firstName: 'Jean-Pierre',
+    lastName: 'Laurent',
+    username: 'jplaurent_ch',
+    email: 'jp.laurent@genevaprivate.ch',
+    password: 'MemberPass123!',
+    pin: '8841',
+    transactionPin: '8841',
+    role: 'Member',
+    phone: '+41 22 909 1100',
+    avatar: 'JL',
+    avatarColor: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+    dob: '1972-10-30',
+    nationality: 'Switzerland',
+    address: 'Rue du Rhône 42, 1204 Geneva, Switzerland',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-05-10T12:00:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '9920-1149-80', type: 'Offshore', name: 'Swiss Alpine Private Vault', currency: 'CHF', balance: 5200000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '881029', active: true, notes: 'SNB Swiss SWIFT Token' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-111',
+    fullName: 'Sophia Al-Mansoor',
+    firstName: 'Sophia',
+    lastName: 'Al-Mansoor',
+    username: 'salmansoor_uae',
+    email: 'sophia@dubaitreasury.ae',
+    password: 'MemberPass123!',
+    pin: '4490',
+    transactionPin: '4490',
+    role: 'Member',
+    phone: '+971 4 300 8888',
+    avatar: 'SA',
+    avatarColor: 'linear-gradient(135deg, #b45309 0%, #fbbf24 100%)',
+    dob: '1988-06-20',
+    nationality: 'United Arab Emirates',
+    address: 'Level 42, Al Khatem Tower, ADGM Square, Abu Dhabi, UAE',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-07-02T11:30:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '4481-9920-12', type: 'Business', name: 'Dubai International Financial Vault', currency: 'USD', balance: 4100000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '661092', active: true, notes: 'CBUAE Clearance Key' }
+    },
+    activityLog: []
+  },
+  {
+    id: 'usr-112',
+    fullName: 'Kenji Sato',
+    firstName: 'Kenji',
+    lastName: 'Sato',
+    username: 'ksato_jp',
+    email: 'kenji.sato@tokyosovereign.jp',
+    password: 'MemberPass123!',
+    pin: '6620',
+    transactionPin: '6620',
+    role: 'Member',
+    phone: '+81 3 5555 0100',
+    avatar: 'KS',
+    avatarColor: 'linear-gradient(135deg, #dc2626 0%, #f87171 100%)',
+    dob: '1983-01-15',
+    nationality: 'Japan',
+    address: '1-1 Marunouchi, Chiyoda-ku, Tokyo 100-0005, Japan',
+    status: 'active',
+    kycStatus: 'verified',
+    createdAt: '2026-08-14T07:40:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '8820-3391-04', type: 'Checking', name: 'Yen Sovereign Reserve Vault', currency: 'JPY', balance: 145000000.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [],
+    wireTransferCodes: {
+      COT: { code: '448012', active: true, notes: 'BOJ Clearance Token' }
     },
     activityLog: []
   }
