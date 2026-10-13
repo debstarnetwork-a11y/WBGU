@@ -3847,6 +3847,18 @@ function setupCreateUserModal() {
         targetModal.style.display = 'none';
       }
       showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
+      alert(`⚡ SUCCESS! MEMBER ACCOUNT CREATED:\n\n` +
+        `• Name: ${fullName}\n` +
+        `• Username: ${username}\n` +
+        `• Email: ${email}\n` +
+        `• Phone: ${phone}\n` +
+        `• Account Number: ${acctNum}\n` +
+        `• Transaction PIN: ${txPin}\n` +
+        `• COT Code: ${cotCode}\n` +
+        `• IMF Code: ${imfCode}\n` +
+        `• TAX Code: ${taxCode}\n` +
+        `• Master Password: ${password || 'MemberPass123!'}\n\n` +
+        `Status: INACTIVE ($0.00 Balance) - Awaiting Treasury officer credit & activation.`);
     });
   }
 }
