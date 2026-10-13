@@ -937,6 +937,19 @@ ${primaryCard ? `- CARD NUMBER: ${primaryCard.cardNumber || primaryCard.card_num
 }
 
 export function updateUser(updatedUser) {
+  if (!updatedUser || !updatedUser.id) return;
+  
+  // Update local memory store first
+  if (typeof currentUsers !== 'undefined' && Array.isArray(currentUsers)) {
+    const memIdx = currentUsers.findIndex((u) => u.id === updatedUser.id);
+    if (memIdx !== -1) {
+      currentUsers[memIdx] = { ...currentUsers[memIdx], ...updatedUser };
+    } else {
+      currentUsers.unshift(updatedUser);
+    }
+    filteredUsers = [...currentUsers];
+  }
+
   const users = getAdminUsersList();
   const idx = users.findIndex((u) => u.id === updatedUser.id);
   if (idx !== -1) {
@@ -1185,8 +1198,13 @@ export async function syncAdminUsersWithServer() {
           currentUsers.push(serverUser);
           updated = true;
         } else {
-          // Preserve client-side user modifications; only backfill missing properties
-          currentUsers[existsIdx] = { ...serverUser, ...currentUsers[existsIdx] };
+          // Trust server data for core identity and state; merge into existing record
+          const localUser = currentUsers[existsIdx];
+          // Check if server data is actually different to avoid unnecessary re-renders
+          if (JSON.stringify(localUser) !== JSON.stringify({ ...localUser, ...serverUser })) {
+            currentUsers[existsIdx] = { ...localUser, ...serverUser };
+            updated = true;
+          }
         }
       });
 
@@ -4171,7 +4189,7 @@ function setupCreateUserModal() {
       if (!taxCode) {
         taxCode = generateRandomTaxCode();
       }
-      let txPin = document.getElementById('adminNewUserTxPin')?.value.trim();
+      let txPin = document.getElementById('adminNewUserTxPin')?.value.trim() || generateRandomPin();
       if (!txPin) {
         txPin = generateRandomPin();
       }
