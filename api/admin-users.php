@@ -95,32 +95,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             if (!empty($dbUsers)) {
                 $source = 'mysql';
+                
+                // BULK FETCHING to avoid N+1 problem (performance)
+                // Fetch all accounts
+                $allAccounts = [];
+                $acctStmt = $pdo->query("SELECT * FROM accounts");
+                while ($a = $acctStmt->fetch()) {
+                    $allAccounts[$a['user_id']][] = [
+                        'accountNumber' => $a['account_number'],
+                        'type' => $a['account_type'] ?? 'Checking',
+                        'name' => $a['account_name'] ?? 'Primary Vault',
+                        'currency' => $a['currency'] ?? 'USD',
+                        'balance' => (float)$a['balance'],
+                        'status' => $a['status'] ?? 'active',
+                        'routingNumber' => $a['routing_number'] ?? '021000089'
+                    ];
+                }
+
+                // Fetch all wire codes
+                $allWireCodes = [];
+                $wireStmt = $pdo->query("SELECT * FROM wire_transfer_codes");
+                while ($wc = $wireStmt->fetch()) {
+                    $allWireCodes[$wc['user_id']][$wc['code_type']] = [
+                        'code' => $wc['code_value'],
+                        'active' => (bool)$wc['is_active'],
+                        'notes' => $wc['description'] ?? ''
+                    ];
+                }
+
+                // Fetch all cards
+                $allCards = [];
+                $cardStmt = $pdo->query("SELECT * FROM cards");
+                while ($c = $cardStmt->fetch()) {
+                    $allCards[$c['user_id']][] = [
+                        'id' => $c['id'],
+                        'cardNumber' => $c['card_number'] ?? '•••• •••• •••• 1234',
+                        'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
+                        'cardHolder' => $c['card_holder'] ?? '',
+                        'type' => $c['card_type'] ?? 'Visa Platinum Debit',
+                        'expiry' => $c['expiry_display'] ?? '09/31',
+                        'cvv' => $c['cvv'] ?? '775',
+                        'pin' => $c['pin'] ?? '1234',
+                        'status' => $c['status'] ?? 'active'
+                    ];
+                }
+
                 foreach ($dbUsers as $row) {
                     $uid = $row['id'];
-                    
-                    // Fetch accounts
-                    $acctStmt = $pdo->prepare("SELECT * FROM accounts WHERE user_id = ?");
-                    $acctStmt->execute([$uid]);
-                    $accounts = $acctStmt->fetchAll();
-
-                    // Fetch wire codes
-                    $wireStmt = $pdo->prepare("SELECT * FROM wire_transfer_codes WHERE user_id = ?");
-                    $wireStmt->execute([$uid]);
-                    $wireCodesRaw = $wireStmt->fetchAll();
-                    $wireCodes = [];
-                    foreach ($wireCodesRaw as $wc) {
-                        $wireCodes[$wc['code_type']] = [
-                            'code' => $wc['code_value'],
-                            'active' => (bool)$wc['is_active'],
-                            'notes' => $wc['description'] ?? ''
-                        ];
-                    }
-
-                    // Fetch cards
-                    $cardStmt = $pdo->prepare("SELECT * FROM cards WHERE user_id = ?");
-                    $cardStmt->execute([$uid]);
-                    $cards = $cardStmt->fetchAll();
-
                     $fullName = !empty($row['full_name']) ? $row['full_name'] : trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
                     if (empty($fullName)) $fullName = $row['username'] ?? $row['email'] ?? 'Member';
 
@@ -151,31 +172,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'password' => $row['password'] ?? 'Password123!',
                         'createdAt' => $row['created_at'] ?? date('c'),
                         'lastLogin' => $row['last_login'] ?? date('c'),
-                        'accounts' => array_map(function($a) {
-                            return [
-                                'accountNumber' => $a['account_number'],
-                                'type' => $a['account_type'] ?? 'Checking',
-                                'name' => $a['account_name'] ?? 'Primary Vault',
-                                'currency' => $a['currency'] ?? 'USD',
-                                'balance' => (float)$a['balance'],
-                                'status' => $a['status'] ?? 'active',
-                                'routingNumber' => $a['routing_number'] ?? '021000089'
-                            ];
-                        }, $accounts),
-                        'wireTransferCodes' => $wireCodes,
-                        'cards' => array_map(function($c) {
-                            return [
-                                'id' => $c['id'],
-                                'cardNumber' => $c['card_number'] ?? '•••• •••• •••• 1234',
-                                'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
-                                'cardHolder' => $c['card_holder'] ?? '',
-                                'type' => $c['card_type'] ?? 'Visa Platinum Debit',
-                                'expiry' => $c['expiry_display'] ?? '09/31',
-                                'cvv' => $c['cvv'] ?? '775',
-                                'pin' => $c['pin'] ?? '1234',
-                                'status' => $c['status'] ?? 'active'
-                            ];
-                        }, $cards),
+                        'accounts' => $allAccounts[$uid] ?? [],
+                        'wireTransferCodes' => $allWireCodes[$uid] ?? [],
+                        'cards' => $allCards[$uid] ?? [],
                         'cryptoWallets' => [],
                         'activityLog' => []
                     ];

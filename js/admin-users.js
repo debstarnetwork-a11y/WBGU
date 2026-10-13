@@ -1245,6 +1245,7 @@ export function initAdminUserManagement() {
   setupUserDetailDrawer();
   setupCreateUserModal();
   setupExportButtons();
+  setupSystemSyncButtons();
 
   renderUsersTable();
 
@@ -4461,6 +4462,64 @@ function setupCreateUserModal() {
 /* ----------------------------------------------------------------------------
  * 11. EXPORT TO CSV & PDF
  * ---------------------------------------------------------------------------- */
+function setupSystemSyncButtons() {
+  const resetBtn = document.getElementById('btnResetAdminCache');
+  const syncBtn = document.getElementById('btnForceSyncToServer');
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to RESET the admin cache? This will clear all local storage and reload everything from the server database. Unsaved changes will be lost.')) {
+        const keysToClear = [
+          ADMIN_USERS_STORAGE_KEY,
+          'wb_credit_union_registered_members_list',
+          'wbcu_all_registered_users',
+          'wbcu_user_registered_accounts',
+          'wb_credit_union_active_user',
+          'wbcu_user_profile_v1'
+        ];
+        keysToClear.forEach(k => localStorage.removeItem(k));
+        showToast('Local cache cleared. Reloading...', 'success', 'Cache Reset');
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    });
+  }
+
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      if (confirm(`Are you sure you want to SYNC ${currentUsers.length} users to the live database? This will overwrite or update existing records on the server.`)) {
+        const originalText = syncBtn.innerHTML;
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Syncing...';
+        
+        try {
+          const res = await fetch('/api/admin-users.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ users: currentUsers }),
+          });
+          
+          const result = await res.json();
+          if (result.success) {
+            showToast(`Successfully synchronized ${currentUsers.length} users to the database.`, 'success', 'Sync Complete');
+            if (result.db_errors && result.db_errors.length > 0) {
+              console.warn('Sync partially succeeded with errors:', result.db_errors);
+              showToast('Some users could not be updated in the database. Check console for details.', 'warning', 'Sync Partial');
+            }
+          } else {
+            throw new Error(result.error || 'Server sync failed');
+          }
+        } catch (err) {
+          console.error('Manual sync failed:', err);
+          showToast('Failed to sync users to the server. Please check your connection and server logs.', 'error', 'Sync Failed');
+        } finally {
+          syncBtn.disabled = false;
+          syncBtn.innerHTML = originalText;
+        }
+      }
+    });
+  }
+}
+
 function setupExportButtons() {
   const exportCsvBtn = document.getElementById('btnExportUsersCsv');
   const exportPdfBtn = document.getElementById('btnExportUsersPdf');
