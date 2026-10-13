@@ -550,6 +550,7 @@ export function initAdminCardManagement() {
   window.syncAllCardsWithUsersDatabase = syncAllCardsWithUsersDatabase;
   window.deleteCardFromDb = deleteCardFromDb;
   window.renderCardsTable = renderCardsTable;
+  window.openCardDetailModal = openCardDetailModal;
 
   window.addEventListener('wbcu_user_updated', () => {
     syncAllCardsWithUsersDatabase();
@@ -847,7 +848,7 @@ export function renderCardsTable() {
       const isRequested = (c.status === 'pending_approval' || c.status === 'requested' || c.status === 'pending' || c.printStatus === 'requested' || currentCardsTab === 'requested');
 
       html += `
-        <tr class="admin-user-row" data-card-id="${c.id}">
+        <tr class="admin-user-row" data-card-id="${c.id}" onclick="if(window.openCardDetailModal){window.openCardDetailModal('${c.id}');}" style="cursor: pointer;">
           <td onclick="event.stopPropagation()">
             <input type="checkbox" class="card-batch-cb" data-card-id="${c.id}" ${isChecked ? 'checked' : ''} />
           </td>
@@ -913,7 +914,7 @@ export function renderCardsTable() {
               <button class="admin-btn admin-btn-primary admin-btn-sm btn-quick-download-png" data-card-id="${c.id}" title="Download physical card in PNG format">
                 🖼️ PNG
               </button>
-              <button class="admin-btn admin-btn-outline admin-btn-sm btn-inspect-card" data-card-id="${c.id}">
+              <button class="admin-btn admin-btn-outline admin-btn-sm btn-inspect-card" data-card-id="${c.id}" onclick="event.stopPropagation(); if(window.openCardDetailModal){window.openCardDetailModal('${c.id}');}">
                 Inspect &rarr;
               </button>
             </div>
