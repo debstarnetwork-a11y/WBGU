@@ -3,8 +3,18 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/glolbka/WBCU/
     - /bin/mkdir -p $DEPLOYPATH/dist
+    - /bin/mkdir -p $DEPLOYPATH/api
+    - /bin/mkdir -p $DEPLOYPATH/js
+    - # Copy Vite build files
     - if [ -d dist ] && [ "$(ls -A dist)" ]; then /bin/cp -R dist/* $DEPLOYPATH/dist/ ; fi
+    - # Copy PHP backend files (CRITICAL for live server)
+    - if [ -d api ] && [ "$(ls -A api)" ]; then /bin/cp -R api/* $DEPLOYPATH/api/ ; fi
+    - # Copy raw JS files if needed
+    - if [ -d js ] && [ "$(ls -A js)" ]; then /bin/cp -R js/* $DEPLOYPATH/js/ ; fi
+    - # Copy configuration and entry points
     - if [ -f server.js ]; then /bin/cp server.js $DEPLOYPATH/ ; fi
     - if [ -f package.json ]; then /bin/cp package.json $DEPLOYPATH/ ; fi
     - if [ -f .env ]; then /bin/cp .env $DEPLOYPATH/ ; fi
+    - if [ -f .htaccess ]; then /bin/cp .htaccess $DEPLOYPATH/ ; fi
+    - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/ ; fi
 

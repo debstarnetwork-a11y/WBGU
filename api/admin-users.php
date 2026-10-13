@@ -283,7 +283,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fullName = $u['fullName'] ?? trim(($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? ''));
                 if (empty($fullName)) $fullName = 'Member';
                 $firstName = $u['firstName'] ?? explode(' ', $fullName)[0] ?? '';
-                $lastName = $u['lastName'] ?? (count(explode(' ', $fullName)) > 1 ? end(explode(' ', $fullName)) : '');
+                $nameParts = explode(' ', $fullName);
+                $lastName = $u['lastName'] ?? (count($nameParts) > 1 ? end($nameParts) : '');
                 $phone = $u['phone'] ?? '+41 44 915 0000';
                 $dob = $u['dob'] ?? '1985-01-01';
                 $nationality = $u['nationality'] ?? 'Switzerland';
