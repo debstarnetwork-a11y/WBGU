@@ -3756,8 +3756,32 @@ function setupCreateUserModal() {
     populateWorldCountriesDropdown(natSelect, 'Afghanistan');
   }
 
-  // Auto-randomize account numbers and clearance codes
+  // Auto-randomize account numbers, clearance codes, and pre-fill default member fields
   const randomizeCreateUserModalFields = () => {
+    const fnInput = document.getElementById('adminNewUserFirstName');
+    const lnInput = document.getElementById('adminNewUserLastName');
+    const emailInput = document.getElementById('adminNewUserEmail');
+    const phoneInput = document.getElementById('adminNewUserPhone');
+    const unInput = document.getElementById('adminNewUserUsername');
+    const acctTypeInput = document.getElementById('adminNewUserAcctType');
+    const dobInput = document.getElementById('adminNewUserDob');
+    const occInput = document.getElementById('adminNewUserOccupation');
+    const addrInput = document.getElementById('adminNewUserAddress');
+    const pwdInput = document.getElementById('adminNewUserPassword');
+    const pwdConfirmInput = document.getElementById('adminNewUserConfirmPassword');
+
+    if (fnInput && !fnInput.value) fnInput.value = 'Alexander';
+    if (lnInput && !lnInput.value) lnInput.value = 'Brymo';
+    if (emailInput && !emailInput.value) emailInput.value = `member_${Math.floor(1000 + Math.random() * 9000)}@wbcu.net`;
+    if (phoneInput && !phoneInput.value) phoneInput.value = '+41 22 900 1122';
+    if (unInput && (!unInput.value || unInput.value === 'mbrymo88')) unInput.value = `mbrymo${Math.floor(10 + Math.random() * 90)}`;
+    if (acctTypeInput && (!acctTypeInput.value || acctTypeInput.value === '')) acctTypeInput.value = 'Checking';
+    if (dobInput && !dobInput.value) dobInput.value = '05/18/1982';
+    if (occInput && !occInput.value) occInput.value = 'Executive Director';
+    if (addrInput && !addrInput.value) addrInput.value = '12 Quai du Mont-Blanc, 1201 Geneva, Switzerland';
+    if (pwdInput && !pwdInput.value) pwdInput.value = 'MemberPass123!';
+    if (pwdConfirmInput && !pwdConfirmInput.value) pwdConfirmInput.value = 'MemberPass123!';
+
     const acctNumInput = document.getElementById('adminNewUserAccountNum');
     const cotInput = document.getElementById('adminNewUserCotCode');
     const imfInput = document.getElementById('adminNewUserImfCode');
