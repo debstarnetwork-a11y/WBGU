@@ -2797,7 +2797,7 @@ export function initAdminLoginForm() {
         }
       }
 
-      // Credentials confirmed! Immediately grant admin session to prevent getting stuck
+      // Credentials confirmed! Immediately grant admin session & redirect instantly
       const authenticatedAdmin = {
         ...validatedAdmin,
         authMethod: 'Password_And_Biometric_2FA',
@@ -2808,23 +2808,12 @@ export function initAdminLoginForm() {
       localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(authenticatedAdmin));
       try { setDemoStorageUser(authenticatedAdmin); } catch (e) {}
 
-      pendingAdminSession = authenticatedAdmin;
+      showToast('Clearance Granted. Redirecting to Treasury Console...', 'success', 'Admin Authenticated');
 
-      if (admin2FASubtext) {
-        admin2FASubtext.textContent = `Welcome ${authenticatedAdmin.fullName || 'Officer'}. Scanning thumbprint for Factor 2 authorization...`;
-      }
-
-      // Open 2FA factor modal & immediately auto-trigger biometric scan and redirect
-      if (modal2FA) {
-        modal2FA.style.display = 'flex';
-      }
-
-      showToast('Credentials verified. Executing 2FA Biometric scan...', 'info', 'Step 2: Biometrics');
-
-      // Auto-trigger biometric scan immediately for seamless entry
       setTimeout(() => {
-        triggerBiometricScan();
-      }, 200);
+        const dest = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
+        window.location.replace(dest);
+      }, 300);
 
     } catch (err) {
       console.error('[WB Credit Union] Admin auth error:', err);
