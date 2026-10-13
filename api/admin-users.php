@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($pdo) {
         try {
-            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
+            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url, p.passport_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             if (!empty($dbUsers)) {
@@ -118,8 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'occupation' => $row['occupation'] ?? '',
                         'profilePhoto' => $row['profile_photo_url'] ?? '',
                         'avatarUrl' => $row['profile_photo_url'] ?? '',
-                        'passportPhoto' => $row['profile_photo_url'] ?? '',
-                        'passportUrl' => $row['profile_photo_url'] ?? '',
+                        'passportPhoto' => $row['passport_photo_url'] ?? $row['profile_photo_url'] ?? '',
+                        'passportUrl' => $row['passport_photo_url'] ?? $row['profile_photo_url'] ?? '',
                         'kycDocument' => $row['profile_photo_url'] ?? '',
                         'status' => $row['status'] ?? 'active',
                         'kycStatus' => $row['kyc_status'] ?? 'verified',
@@ -228,12 +228,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $kycStatus = $u['kycStatus'] ?? $u['kyc_status'] ?? 'verified';
                 $createdAt = $u['createdAt'] ?? date('Y-m-d H:i:s');
 
-                // 1. Upsert into users table
-                $stmt = $pdo->prepare("INSERT INTO users (id, username, email, password, role, transaction_pin, status, kyc_status, created_at) 
-                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                // 1. Upsert into users table (Support both password and password_hash if they exist)
+                $stmt = $pdo->prepare("INSERT INTO users (id, username, email, password, password_hash, role, transaction_pin, status, kyc_status, created_at) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
                                        ON DUPLICATE KEY UPDATE username=?, email=?, role=?, transaction_pin=?, status=?, kyc_status=?");
                 $stmt->execute([
-                    $uid, $username, $email, $passwordRaw, $roleRaw, $transactionPin, $status, $kycStatus, $createdAt,
+                    $uid, $username, $email, $passwordRaw, $passwordRaw, $roleRaw, $transactionPin, $status, $kycStatus, $createdAt,
                     $username, $email, $roleRaw, $transactionPin, $status, $kycStatus
                 ]);
 
@@ -247,15 +247,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nationality = $u['nationality'] ?? 'Switzerland';
                 $occupation = $u['occupation'] ?? 'Executive';
                 $address = $u['address'] ?? 'Zurich, Switzerland';
-                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? $u['passportPhoto'] ?? $u['passportUrl'] ?? '';
+                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? '';
+                $passport = $u['passportPhoto'] ?? $u['passportUrl'] ?? $photo;
                 $profId = 'prof-' . str_replace('usr-', '', $uid);
 
-                $profStmt = $pdo->prepare("INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, date_of_birth, nationality, occupation, address_line1, profile_photo_url) 
-                                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                           ON DUPLICATE KEY UPDATE first_name=?, last_name=?, full_name=?, phone_number=?, date_of_birth=?, nationality=?, occupation=?, address_line1=?, profile_photo_url=?");
+                $profStmt = $pdo->prepare("INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, date_of_birth, nationality, occupation, address_line1, profile_photo_url, passport_photo_url) 
+                                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                                           ON DUPLICATE KEY UPDATE first_name=?, last_name=?, full_name=?, phone_number=?, date_of_birth=?, nationality=?, occupation=?, address_line1=?, profile_photo_url=?, passport_photo_url=?");
                 $profStmt->execute([
-                    $profId, $uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo,
-                    $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo
+                    $profId, $uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo, $passport,
+                    $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo, $passport
                 ]);
 
                 // 3. Upsert into accounts table
@@ -335,6 +336,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'success' => true,
         'db_synced' => $dbSynced,
         'db_errors' => $syncErrors,
+        'db_connected' => ($pdo !== null),
+        'db_conn_error' => $dbError,
         'count' => count($users),
         'message' => 'Users synchronized successfully'
     ]);

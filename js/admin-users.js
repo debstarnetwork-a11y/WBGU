@@ -844,7 +844,8 @@ export function saveAdminUsersList(users) {
     localStorage.setItem('wbcu_user_registered_accounts', JSON.stringify(users));
   } catch (e) {}
   try {
-    fetch('/api/admin/users', {
+    // Explicitly target the PHP endpoint for cPanel compatibility
+    fetch('/api/admin-users.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ users }),
@@ -1171,7 +1172,8 @@ let activeDetailUser = null;
  */
 export async function syncAdminUsersWithServer() {
   try {
-    const res = await fetch('/api/admin/users');
+    // Explicitly target the PHP endpoint for cPanel compatibility
+    const res = await fetch('/api/admin-users.php');
     if (!res.ok) return;
     const data = await res.json();
     if (Array.isArray(data.users) && data.users.length > 0) {
@@ -1201,6 +1203,14 @@ export async function syncAdminUsersWithServer() {
         renderUsersTable();
         const badge = document.getElementById('sidebarUserBadge');
         if (badge) badge.textContent = currentUsers.length.toLocaleString();
+      }
+      
+      // Notify about connection status for transparency
+      if (data.db_connected === false) {
+        console.error('[ADMIN DB] Database connection failed:', data.db_conn_error);
+        showToast('System is running on local file storage. Database is currently offline.', 'warning', 'Database Offline');
+      } else if (data.source === 'mysql') {
+        console.log('[ADMIN DB] Connected to Live Database');
       }
     }
   } catch (err) {
@@ -2125,30 +2135,45 @@ function renderDrawerProfileTab(user) {
           <!-- Profile Photo (URL or Upload) -->
           <div class="p-3 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(192, 132, 252, 0.35);">
             <div class="d-flex items-center justify-between mb-2">
-              <label class="admin-form-label m-0 text-white font-bold" style="font-size: 0.82rem;">Profile Photo (URL or Upload)</label>
-              <button type="button" id="btnRemoveEditUserPhoto" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);" title="Remove profile photo">
-                ✕ Clear Photo
-              </button>
+              <label class="admin-form-label m-0 text-white font-bold" style="font-size: 0.82rem;">Profile Photo</label>
+              <button type="button" id="btnRemoveEditUserPhoto" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);">✕ Clear</button>
             </div>
-            
             <div class="d-flex items-center gap-3 mb-2">
-              <div id="editUserPhotoPreview" class="avatar-sm rounded-circle d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 52px; height: 52px; background: #1e293b; border: 2px solid #a855f7; color: #cbd5e1; flex-shrink: 0;">
-                ${(user.profilePhoto || user.avatarUrl) ? `<img src="${escapeHtml(user.profilePhoto || user.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />` : `<span style="font-weight: 800; font-size: 1.1rem; color: #e2e8f0;">${escapeHtml(user.avatar || user.fullName.slice(0, 2).toUpperCase())}</span>`}
+              <div id="editUserPhotoPreview" class="avatar-sm rounded-circle d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 44px; height: 44px; background: #1e293b; border: 2px solid #a855f7; color: #cbd5e1; flex-shrink: 0;">
+                ${(user.profilePhoto || user.avatarUrl) ? `<img src="${escapeHtml(user.profilePhoto || user.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />` : `<span style="font-weight: 800; font-size: 1rem; color: #e2e8f0;">${escapeHtml(user.avatar || (user.fullName || 'MB').slice(0, 2).toUpperCase())}</span>`}
               </div>
               <div style="flex: 1; min-width: 0;">
-                <label class="admin-btn admin-btn-outline admin-btn-sm w-100 d-flex items-center justify-center gap-1 mb-1" style="cursor: pointer; padding: 5px 8px; font-size: 0.78rem; background: rgba(168, 85, 247, 0.1); border-color: #a855f7; color: #e9d5ff;">
-                  📁 Upload Photo File
+                <label class="admin-btn admin-btn-outline admin-btn-sm w-100 d-flex items-center justify-center gap-1 mb-1" style="cursor: pointer; padding: 4px 8px; font-size: 0.75rem; background: rgba(168, 85, 247, 0.1); border-color: #a855f7; color: #e9d5ff;">
+                  📁 Upload Photo
                   <input type="file" id="editUserProfilePhotoFile" accept="image/*" style="display: none;" />
                 </label>
-                <div class="text-xs text-muted" style="font-size: 0.7rem;">Or paste direct image URL below</div>
+                <input type="text" id="editUserProfilePhoto" class="admin-form-control font-mono" value="${escapeHtml(user.profilePhoto || user.avatarUrl || '')}" placeholder="Photo URL..." style="font-size: 0.75rem; padding: 4px 8px;" />
               </div>
-            </div>
-            
-            <div>
-              <input type="text" id="editUserProfilePhoto" class="admin-form-control font-mono" value="${escapeHtml(user.profilePhoto || user.avatarUrl || '')}" placeholder="https://... or data:image/..." style="font-size: 0.8rem; padding: 6px 10px;" />
             </div>
           </div>
 
+          <!-- Biometric Passport / ID (URL or Upload) -->
+          <div class="p-3 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.3);">
+            <div class="d-flex items-center justify-between mb-2">
+              <label class="admin-form-label m-0 text-white font-bold" style="font-size: 0.82rem;">Biometric Passport (ID)</label>
+              <button type="button" id="btnRemoveEditUserPassport" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);">✕ Clear</button>
+            </div>
+            <div class="d-flex items-center gap-3 mb-2">
+              <div id="editUserPassportPreview" class="avatar-sm rounded d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 44px; height: 44px; background: #1e293b; border: 2px solid #0ea5e9; color: #cbd5e1; flex-shrink: 0;">
+                ${(user.passportPhoto || user.passportUrl) ? `<img src="${escapeHtml(user.passportPhoto || user.passportUrl)}" alt="Passport" style="width: 100%; height: 100%; object-fit: cover;" />` : `<span style="font-weight: 800; font-size: 0.7rem; color: #94a3b8;">NO ID</span>`}
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <label class="admin-btn admin-btn-outline admin-btn-sm w-100 d-flex items-center justify-center gap-1 mb-1" style="cursor: pointer; padding: 4px 8px; font-size: 0.75rem; background: rgba(14, 165, 233, 0.1); border-color: #0ea5e9; color: #bae6fd;">
+                  📁 Upload ID
+                  <input type="file" id="editUserPassportFile" accept="image/*,application/pdf" style="display: none;" />
+                </label>
+                <input type="text" id="editUserPassport" class="admin-form-control font-mono" value="${escapeHtml(user.passportPhoto || user.passportUrl || '')}" placeholder="ID URL..." style="font-size: 0.75rem; padding: 4px 8px;" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid grid-cols-1 grid-md-2 gap-3 mb-3">
           <!-- User Password View & Edit -->
           <div class="p-3 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.4);">
             <div class="d-flex items-center justify-between mb-2">
@@ -2372,11 +2397,13 @@ function renderDrawerProfileTab(user) {
     
     // Save Profile Photo & Biometric Passport
     const updatedPhoto = document.getElementById('editUserProfilePhoto')?.value.trim() || '';
+    const updatedPassport = document.getElementById('editUserPassport')?.value.trim() || updatedPhoto;
+    
     user.profilePhoto = updatedPhoto;
     user.avatarUrl = updatedPhoto;
-    user.passportPhoto = updatedPhoto;
-    user.passportUrl = updatedPhoto;
-    user.kycDocument = updatedPhoto;
+    user.passportPhoto = updatedPassport;
+    user.passportUrl = updatedPassport;
+    user.kycDocument = updatedPassport;
     
     // Save User Password
     const pwdVal = document.getElementById('editUserPassword')?.value.trim();
@@ -4032,55 +4059,47 @@ function setupCreateUserModal() {
   if (!window._wbPhotoUploadDelegated) {
     window._wbPhotoUploadDelegated = true;
     document.addEventListener('change', (e) => {
-      if (e.target && e.target.id === 'adminNewUserProfilePhotoFile') {
+      if (!e.target) return;
+      const targetId = e.target.id;
+      
+      // Handle Profile Photo Uploads (Create & Edit)
+      if (targetId === 'adminNewUserProfilePhotoFile' || targetId === 'editUserProfilePhotoFile') {
         const file = e.target.files?.[0];
         if (file) {
-          if (file.size > 12 * 1024 * 1024) {
-            showToast('Image file size exceeds 12MB limit.', 'error', 'File Too Large');
-            return;
-          }
           const reader = new FileReader();
           reader.onload = (evt) => {
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const MAX_DIM = 400;
-              let width = img.width;
-              let height = img.height;
-              if (width > height) {
-                if (width > MAX_DIM) {
-                  height *= MAX_DIM / width;
-                  width = MAX_DIM;
-                }
-              } else {
-                if (height > MAX_DIM) {
-                  width *= MAX_DIM / height;
-                  height = MAX_DIM;
-                }
-              }
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, width, height);
-              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+            const dataUrl = evt.target?.result;
+            const targetUrlInput = (targetId === 'editUserProfilePhotoFile') ? 'editUserProfilePhoto' : 'adminNewUserProfilePhotoUrl';
+            const targetPreview = (targetId === 'editUserProfilePhotoFile') ? 'editUserPhotoPreview' : 'adminNewUserPhotoPreview';
+            
+            const urlEl = document.getElementById(targetUrlInput);
+            const previewEl = document.getElementById(targetPreview);
+            if (urlEl) urlEl.value = dataUrl;
+            if (previewEl) {
+              previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
 
-              const photoUrlInput = document.getElementById('adminNewUserProfilePhotoUrl');
-              const photoPreview = document.getElementById('adminNewUserPhotoPreview');
-              if (photoUrlInput) photoUrlInput.value = compressedDataUrl;
-              if (photoPreview) {
-                photoPreview.innerHTML = `<img src="${compressedDataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-              }
-            };
-            img.onerror = () => {
-              const dataUrl = evt.target?.result;
-              const photoUrlInput = document.getElementById('adminNewUserProfilePhotoUrl');
-              const photoPreview = document.getElementById('adminNewUserPhotoPreview');
-              if (photoUrlInput) photoUrlInput.value = dataUrl;
-              if (photoPreview) {
-                photoPreview.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-              }
-            };
-            img.src = evt.target?.result;
+      // Handle Passport / ID Uploads (Create & Edit)
+      if (targetId === 'adminNewUserPassportFile' || targetId === 'editUserPassportFile') {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            const dataUrl = evt.target?.result;
+            const targetUrlInput = (targetId === 'editUserPassportFile') ? 'editUserPassport' : 'adminNewUserPassportUrl';
+            const targetPreview = (targetId === 'editUserPassportFile') ? 'editUserPassportPreview' : 'adminNewUserPassportPreview';
+            
+            const urlEl = document.getElementById(targetUrlInput);
+            const previewEl = document.getElementById(targetPreview);
+            if (urlEl) urlEl.value = dataUrl;
+            if (previewEl) {
+              previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
+            }
+            showToast('Biometric ID document captured.', 'success', 'ID Uploaded');
           };
           reader.readAsDataURL(file);
         }
@@ -4107,9 +4126,36 @@ function setupCreateUserModal() {
 
   if (clearPhotoBtn) {
     clearPhotoBtn.addEventListener('click', () => {
+      const photoFile = document.getElementById('adminNewUserProfilePhotoFile');
       if (photoFile) photoFile.value = '';
       if (photoUrlInput) photoUrlInput.value = '';
-      if (photoPreview) photoPreview.textContent = 'No photo';
+      if (photoPreview) photoPreview.innerHTML = 'No photo';
+    });
+  }
+
+  const clearPassportBtn = document.getElementById('btnClearAdminNewUserPassport');
+  const passportUrlInput = document.getElementById('adminNewUserPassportUrl');
+  const passportPreview = document.getElementById('adminNewUserPassportPreview');
+
+  if (clearPassportBtn) {
+    clearPassportBtn.addEventListener('click', () => {
+      const passFile = document.getElementById('adminNewUserPassportFile');
+      if (passFile) passFile.value = '';
+      if (passportUrlInput) passportUrlInput.value = '';
+      if (passportPreview) passportPreview.innerHTML = 'No ID';
+    });
+  }
+
+  if (passportUrlInput) {
+    passportUrlInput.addEventListener('input', () => {
+      const url = passportUrlInput.value.trim();
+      if (passportPreview) {
+        if (url) {
+          passportPreview.innerHTML = `<img src="${escapeHtml(url)}" alt="Passport" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#f87171;font-size:0.65rem;\\'>Invalid</span>';" />`;
+        } else {
+          passportPreview.innerHTML = 'No ID';
+        }
+      }
     });
   }
 
@@ -4223,8 +4269,9 @@ function setupCreateUserModal() {
       const papCode = generateRandomPapCode();
       const otpCode = generateRandomOtpCode();
 
-      // Profile photo & Password
+      // Profile photo, Passport & Password
       const profilePhoto = document.getElementById('adminNewUserProfilePhotoUrl')?.value || '';
+      const passportPhoto = document.getElementById('adminNewUserPassportUrl')?.value || profilePhoto;
       const password = document.getElementById('adminNewUserPassword')?.value || '';
       const confirmPassword = document.getElementById('adminNewUserConfirmPassword')?.value || '';
 
@@ -4301,9 +4348,9 @@ function setupCreateUserModal() {
         nationality,
         profilePhoto,
         avatarUrl: profilePhoto,
-        passportPhoto: profilePhoto,
-        passportUrl: profilePhoto,
-        kycDocument: profilePhoto,
+        passportPhoto,
+        passportUrl: passportPhoto,
+        kycDocument: passportPhoto,
         password: password || 'MemberPass123!',
         avatar: fullName.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
         avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',

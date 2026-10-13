@@ -1085,7 +1085,7 @@ function setupQuickActions() {
 
   if (statUsers) statUsers.addEventListener('click', () => switchAdminView('users'));
   if (statTx) statTx.addEventListener('click', () => switchAdminView('transactions'));
-  if (statWires) statWires.addEventListener('click', () => switchAdminView('wires'));
+  if (statWires) statWires.addEventListener('click', () => switchAdminView('transactions'));
 
   // 1c. Hook up Dashboard Alert Buttons
   const btnKyc = document.getElementById('btnReviewKycAlert');
@@ -1094,7 +1094,7 @@ function setupQuickActions() {
   const btnSuspended = document.getElementById('btnInspectSuspended');
 
   if (btnKyc) btnKyc.addEventListener('click', () => switchAdminView('users'));
-  if (btnWire) btnWire.addEventListener('click', () => switchAdminView('wires'));
+  if (btnWire) btnWire.addEventListener('click', () => switchAdminView('transactions'));
   if (btnAudit) btnAudit.addEventListener('click', () => switchAdminView('transactions'));
   if (btnSuspended) btnSuspended.addEventListener('click', () => switchAdminView('users'));
 

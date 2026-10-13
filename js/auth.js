@@ -2495,7 +2495,8 @@ export function initMultiStepRegistration() {
         localStorage.setItem('wb_credit_union_admin_users_db', JSON.stringify(adminUsers));
         localStorage.setItem('wb_credit_union_registered_members_list', JSON.stringify(adminUsers));
         try {
-          fetch('/api/admin/users', {
+          // Explicitly target the PHP endpoint for cPanel compatibility
+          fetch('/api/admin-users.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ users: adminUsers }),

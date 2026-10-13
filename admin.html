@@ -4116,22 +4116,37 @@
           <div class="text-xs font-bold text-white uppercase mt-4 mb-2" style="color: #c084fc; letter-spacing: 0.05em;">4. Security Credentials &amp; Profile Media</div>
           
           <!-- Profile Photo (URL or Upload) -->
-          <div class="admin-form-group mb-3 p-3 rounded" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(192, 132, 252, 0.3);">
-            <div class="d-flex items-center justify-between mb-2">
-              <label class="admin-form-label m-0 font-bold text-white">Profile Photo (URL or Upload)</label>
-              <button type="button" id="btnClearAdminNewUserPhoto" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);">✕ Clear Photo</button>
-            </div>
-            <div class="d-flex items-center gap-3 mb-2">
-              <div id="adminNewUserPhotoPreview" class="avatar-sm rounded-circle d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 48px; height: 48px; background: #1e293b; border: 2px solid #8b5cf6; color: #94a3b8; flex-shrink: 0;">
-                No photo
+          <div class="d-grid grid-cols-1 grid-md-2 gap-3 mb-3">
+            <div class="admin-form-group p-3 rounded" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(192, 132, 252, 0.3);">
+              <div class="d-flex items-center justify-between mb-2">
+                <label class="admin-form-label m-0 font-bold text-white">Profile Photo</label>
+                <button type="button" id="btnClearAdminNewUserPhoto" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);">✕ Clear</button>
               </div>
-              <div style="flex: 1;">
-                <input type="file" id="adminNewUserProfilePhotoFile" accept="image/*" class="admin-form-control mb-1" style="padding: 5px 8px; font-size: 0.8rem;" />
-                <div class="text-xs text-muted" style="font-size: 0.72rem;">Or paste direct image URL below:</div>
+              <div class="d-flex items-center gap-3 mb-2">
+                <div id="adminNewUserPhotoPreview" class="avatar-sm rounded-circle d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 44px; height: 44px; background: #1e293b; border: 2px solid #8b5cf6; color: #94a3b8; flex-shrink: 0;">
+                  No photo
+                </div>
+                <div style="flex: 1;">
+                  <input type="file" id="adminNewUserProfilePhotoFile" accept="image/*" class="admin-form-control mb-1" style="padding: 4px 8px; font-size: 0.75rem;" />
+                  <input type="text" id="adminNewUserProfilePhotoUrl" class="admin-form-control font-mono" placeholder="Photo URL..." style="font-size: 0.75rem; padding: 4px 8px;" />
+                </div>
               </div>
             </div>
-            <div>
-              <input type="text" id="adminNewUserProfilePhotoUrl" class="admin-form-control font-mono" placeholder="https://... or data:image/..." style="font-size: 0.8rem; padding: 6px 10px;" />
+
+            <div class="admin-form-group p-3 rounded" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.3);">
+              <div class="d-flex items-center justify-between mb-2">
+                <label class="admin-form-label m-0 font-bold text-white">Biometric Passport (ID)</label>
+                <button type="button" id="btnClearAdminNewUserPassport" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239,68,68,0.4);">✕ Clear</button>
+              </div>
+              <div class="d-flex items-center gap-3 mb-2">
+                <div id="adminNewUserPassportPreview" class="avatar-sm rounded d-flex items-center justify-content-center text-xs font-bold overflow-hidden" style="width: 44px; height: 44px; background: #1e293b; border: 2px solid #0ea5e9; color: #94a3b8; flex-shrink: 0;">
+                  No ID
+                </div>
+                <div style="flex: 1;">
+                  <input type="file" id="adminNewUserPassportFile" accept="image/*,application/pdf" class="admin-form-control mb-1" style="padding: 4px 8px; font-size: 0.75rem;" />
+                  <input type="text" id="adminNewUserPassportUrl" class="admin-form-control font-mono" placeholder="Passport URL..." style="font-size: 0.75rem; padding: 4px 8px;" />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -4167,13 +4182,7 @@
             </label>
           </div>
 
-          <!-- Direct In-Body Prominent Execution Action Card -->
-          <div class="p-3 rounded mb-2" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.2) 100%); border: 1.5px solid #10b981; text-align: center;">
-            <div class="text-xs text-emerald font-bold mb-2" style="color:#34d399;">✓ All parameters configured. Click below to execute account creation:</div>
-            <button type="submit" class="admin-btn admin-btn-emerald w-100 py-3 font-bold text-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399; font-size: 1.05rem; width: 100%; justify-content: center; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); cursor: pointer;">
-              ⚡ EXECUTE &amp; CREATE ACCOUNT (Inactive / 0.00 Balance)
-            </button>
-          </div>
+          <!-- No In-Body duplicate button, using footer button only -->
 
         </div>
         <div class="admin-modal-footer" style="padding: 1rem 1.75rem; background-color: #0b0f19; border-top: 1px solid #334155; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; flex-shrink: 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.5);">
