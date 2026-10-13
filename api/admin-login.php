@@ -117,6 +117,9 @@ if ($pdo && !empty($normEmail)) {
         $row = $stmt->fetch();
         if ($row) {
             $matchedUser = $row;
+            if (!empty($row['password'])) $validPasscodes[] = $row['password'];
+            if (!empty($row['password_hash'])) $validPasscodes[] = $row['password_hash'];
+            if (!empty($row['pin'])) $validPasscodes[] = $row['pin'];
             if (!empty($row['transaction_pin'])) $validPasscodes[] = $row['transaction_pin'];
         }
     } catch (Exception $e) {}
