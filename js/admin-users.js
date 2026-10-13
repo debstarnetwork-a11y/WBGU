@@ -837,20 +837,32 @@ export function ensureUserHasUniqueCodesAndAccounts(user, persist = false) {
 }
 
 export function saveAdminUsersList(users) {
-  localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(users));
+  if (!users || !Array.isArray(users)) return;
+  
   try {
-    localStorage.setItem('wb_credit_union_registered_members_list', JSON.stringify(users));
-    localStorage.setItem('wbcu_all_registered_users', JSON.stringify(users));
-    localStorage.setItem('wbcu_user_registered_accounts', JSON.stringify(users));
-  } catch (e) {}
+    // Only save ONE copy to primary key to avoid QuotaExceededError (5MB limit)
+    // 1,428 users at ~2KB each = ~2.8MB. Saving 4 copies (11.2MB) will crash the browser.
+    localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(users));
+    
+    // Optional: Keep ONE secondary key for legacy compatibility if absolutely needed, 
+    // but better to just use the primary one.
+    // localStorage.setItem('wb_credit_union_registered_members_list', JSON.stringify(users));
+  } catch (e) {
+    console.warn('[ADMIN STORAGE] Local quota exceeded, relying on server sync only.', e);
+  }
+
   try {
     // Explicitly target the PHP endpoint for cPanel compatibility
     fetch('/api/admin-users.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ users }),
-    }).catch(() => {});
-  } catch (e) {}
+    }).catch((err) => {
+      console.error('[ADMIN SYNC] Failed to POST users to server:', err);
+    });
+  } catch (e) {
+    console.error('[ADMIN SYNC] POST fetch error:', e);
+  }
 }
 
 export function getUserById(userId) {
@@ -4403,38 +4415,45 @@ function setupCreateUserModal() {
         ]
       };
 
-      currentUsers.unshift(newUser);
-      saveAdminUsersList(currentUsers);
+      try {
+        currentUsers.unshift(newUser);
+        saveAdminUsersList(currentUsers);
 
-      // Reset filters and search inputs so new user displays immediately
-      const searchInput = document.getElementById('userSearchInput');
-      const statusFilter = document.getElementById('userStatusFilter');
-      const kycFilter = document.getElementById('userKycFilter');
-      const typeFilter = document.getElementById('userAccountTypeFilter');
-      const dateFilter = document.getElementById('userDateRangeFilter');
+        // Reset filters and search inputs so new user displays immediately
+        const searchInput = document.getElementById('userSearchInput');
+        const statusFilter = document.getElementById('userStatusFilter');
+        const kycFilter = document.getElementById('userKycFilter');
+        const typeFilter = document.getElementById('userAccountTypeFilter');
+        const dateFilter = document.getElementById('userDateRangeFilter');
 
-      if (searchInput) searchInput.value = '';
-      if (statusFilter) statusFilter.value = 'all';
-      if (kycFilter) kycFilter.value = 'all';
-      if (typeFilter) typeFilter.value = 'all';
-      if (dateFilter) dateFilter.value = 'all';
+        if (searchInput) searchInput.value = '';
+        if (statusFilter) statusFilter.value = 'all';
+        if (kycFilter) kycFilter.value = 'all';
+        if (typeFilter) typeFilter.value = 'all';
+        if (dateFilter) dateFilter.value = 'all';
 
-      filteredUsers = [...currentUsers];
-      currentPage = 1;
+        filteredUsers = [...currentUsers];
+        currentPage = 1;
 
-      renderUsersTable();
-      const userBadge = document.getElementById('sidebarUserBadge');
-      if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
+        renderUsersTable();
+        const userBadge = document.getElementById('sidebarUserBadge');
+        if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
 
-      form.reset();
-      randomizeCreateUserModalFields();
-      if (photoPreview) photoPreview.textContent = 'No photo';
-      const targetModal = document.getElementById('createUserFullModal') || modal;
-      if (targetModal) {
-        targetModal.classList.remove('show');
-        targetModal.style.display = 'none';
+        form.reset();
+        if (window.wbRandomizeCreateUserModalFields) window.wbRandomizeCreateUserModalFields();
+        if (photoPreview) photoPreview.innerHTML = 'No photo';
+        if (passportPreview) passportPreview.innerHTML = 'No ID';
+        
+        const targetModal = document.getElementById('createUserFullModal') || modal;
+        if (targetModal) {
+          targetModal.classList.remove('show');
+          targetModal.style.display = 'none';
+        }
+        showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
+      } catch (err) {
+        console.error('[ADMIN CREATE USER] Submission error:', err);
+        showToast('An error occurred while creating the user. Please check the console.', 'error', 'Submission Failed');
       }
-      showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
     });
   }
 }

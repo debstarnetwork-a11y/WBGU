@@ -69,7 +69,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($pdo) {
         try {
-            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url, p.passport_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
+            // Adaptive Column Detection for profile columns
+            $q = $pdo->query("DESCRIBE profiles");
+            $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
+            
+            $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1', 'city', 'country'];
+            $selectFields = ["u.*"];
+            
+            foreach ($profileFields as $f) {
+                if (in_array($f, $profileColumns)) {
+                    $selectFields[] = "p.$f";
+                }
+            }
+            
+            if (in_array('profile_photo_url', $profileColumns)) {
+                $selectFields[] = "p.profile_photo_url";
+            }
+            if (in_array('passport_photo_url', $profileColumns)) {
+                $selectFields[] = "p.passport_photo_url";
+            }
+
+            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC";
+            $stmt = $pdo->query($sql);
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             if (!empty($dbUsers)) {
@@ -228,14 +249,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $kycStatus = $u['kycStatus'] ?? $u['kyc_status'] ?? 'verified';
                 $createdAt = $u['createdAt'] ?? date('Y-m-d H:i:s');
 
-                // 1. Upsert into users table (Support both password and password_hash if they exist)
-                $stmt = $pdo->prepare("INSERT INTO users (id, username, email, password, password_hash, role, transaction_pin, status, kyc_status, created_at) 
-                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                       ON DUPLICATE KEY UPDATE username=?, email=?, role=?, transaction_pin=?, status=?, kyc_status=?");
-                $stmt->execute([
-                    $uid, $username, $email, $passwordRaw, $passwordRaw, $roleRaw, $transactionPin, $status, $kycStatus, $createdAt,
-                    $username, $email, $roleRaw, $transactionPin, $status, $kycStatus
-                ]);
+                // Adaptive Column Detection for users table
+                static $userColumns = null;
+                if ($userColumns === null) {
+                    $q = $pdo->query("DESCRIBE users");
+                    $userColumns = $q->fetchAll(PDO::FETCH_COLUMN);
+                }
+
+                $userFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
+                $userValues = [$uid, $username, $email, $roleRaw, $transactionPin, $status, $kycStatus, $createdAt];
+                
+                if (in_array('password', $userColumns)) {
+                    $userFields[] = 'password';
+                    $userValues[] = $passwordRaw;
+                }
+                if (in_array('password_hash', $userColumns)) {
+                    $userFields[] = 'password_hash';
+                    $userValues[] = $passwordRaw; // In production, this should be password_hash()
+                }
+
+                $placeholders = str_repeat('?,', count($userFields) - 1) . '?';
+                $updatePart = [];
+                foreach ($userFields as $f) {
+                    if ($f !== 'id' && $f !== 'created_at') {
+                        $updatePart[] = "`$f` = VALUES(`$f`)";
+                    }
+                }
+                
+                $sql = "INSERT INTO users (" . implode(', ', $userFields) . ") VALUES ($placeholders) ON DUPLICATE KEY UPDATE " . implode(', ', $updatePart);
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($userValues);
 
                 // 2. Upsert into profiles table
                 $fullName = $u['fullName'] ?? trim(($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? ''));
@@ -251,13 +294,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $passport = $u['passportPhoto'] ?? $u['passportUrl'] ?? $photo;
                 $profId = 'prof-' . str_replace('usr-', '', $uid);
 
-                $profStmt = $pdo->prepare("INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, date_of_birth, nationality, occupation, address_line1, profile_photo_url, passport_photo_url) 
-                                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                           ON DUPLICATE KEY UPDATE first_name=?, last_name=?, full_name=?, phone_number=?, date_of_birth=?, nationality=?, occupation=?, address_line1=?, profile_photo_url=?, passport_photo_url=?");
-                $profStmt->execute([
-                    $profId, $uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo, $passport,
-                    $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo, $passport
-                ]);
+                // Adaptive Column Detection for profiles table
+                static $profileColumns = null;
+                if ($profileColumns === null) {
+                    $q = $pdo->query("DESCRIBE profiles");
+                    $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
+                }
+
+                $profFields = ['id', 'user_id', 'first_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1'];
+                $profValues = [$profId, $uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address];
+
+                if (in_array('profile_photo_url', $profileColumns)) {
+                    $profFields[] = 'profile_photo_url';
+                    $profValues[] = $photo;
+                }
+                if (in_array('passport_photo_url', $profileColumns)) {
+                    $profFields[] = 'passport_photo_url';
+                    $profValues[] = $passport;
+                }
+
+                $pPlaceholders = str_repeat('?,', count($profFields) - 1) . '?';
+                $pUpdatePart = [];
+                foreach ($profFields as $f) {
+                    if ($f !== 'id' && $f !== 'user_id' && $f !== 'created_at') {
+                        $pUpdatePart[] = "`$f` = VALUES(`$f`)";
+                    }
+                }
+
+                $pSql = "INSERT INTO profiles (" . implode(', ', $profFields) . ") VALUES ($pPlaceholders) ON DUPLICATE KEY UPDATE " . implode(', ', $pUpdatePart);
+                $pStmt = $pdo->prepare($pSql);
+                $pStmt->execute($profValues);
 
                 // 3. Upsert into accounts table
                 if (!empty($u['accounts']) && is_array($u['accounts'])) {

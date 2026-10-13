@@ -83,5 +83,20 @@ DB_USER=glolbka_wbcu_user
 DB_PASSWORD=YOUR_CPANEL_DATABASE_PASSWORD
 APP_DOMAIN=wbcu.net
 SUPPORT_EMAIL=support@wbcu.net
+---
+
+## 6. Troubleshooting Common Errors
+
+### ❌ Error: Unknown column 'profile_photo_url' in 'users'
+If you see this error when trying to add the passport photo column, it's because you are targeting the wrong table. Profile photos and Passport photos are stored in the `profiles` table, not the `users` table.
+
+**✅ Correct SQL Fix:**
+```sql
+ALTER TABLE profiles ADD COLUMN passport_photo_url LONGTEXT NULL AFTER profile_photo_url;
 ```
+
+### ❌ User Management Board is Empty
+1. **Clear Browser Cache:** The admin dashboard uses aggressive caching. Press `Ctrl + F5` (Windows) or `Cmd + Shift + R` (Mac) to force a fresh load.
+2. **Check Database Connection:** Ensure your database credentials in `api/admin-users.php` are correct. If the database is offline, the system will fallback to `admin-users.json`.
+3. **Storage Quota:** If you have over 1,000 members, the local storage might be full. We have updated the code to handle large user bases, so ensure you have the latest `js/admin-users.js`.
 
