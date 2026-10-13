@@ -349,11 +349,7 @@ export function getAdminUsersList() {
     }
   } catch (e) {}
 
-  // PURGE ALL DUMMY TEST USERS
-  list = list.filter((u) => {
-    if (!u || !u.email) return true;
-    return !DUMMY_TEST_EMAILS.includes(u.email.toLowerCase());
-  });
+  // Preserve all valid member accounts
 
   // Ensure primary Super Admin user (Miz Brymo) exists
   let primary = list.find((u) => u.id === 'usr-101' || (u.email && u.email.toLowerCase().includes('mizbrymo')));
@@ -547,6 +543,11 @@ export function ensureUserHasUniqueCodesAndAccounts(user, persist = false) {
 
 export function saveAdminUsersList(users) {
   localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(users));
+  try {
+    localStorage.setItem('wb_credit_union_registered_members_list', JSON.stringify(users));
+    localStorage.setItem('wbcu_all_registered_users', JSON.stringify(users));
+    localStorage.setItem('wbcu_user_registered_accounts', JSON.stringify(users));
+  } catch (e) {}
   try {
     fetch('/api/admin/users', {
       method: 'POST',
@@ -1882,10 +1883,13 @@ function renderDrawerProfileTab(user) {
     user.nationality = document.getElementById('editUserNationality')?.value || user.nationality;
     user.address = document.getElementById('editUserAddress')?.value.trim() || user.address;
     
-    // Save Profile Photo
+    // Save Profile Photo & Biometric Passport
     const updatedPhoto = document.getElementById('editUserProfilePhoto')?.value.trim() || '';
     user.profilePhoto = updatedPhoto;
     user.avatarUrl = updatedPhoto;
+    user.passportPhoto = updatedPhoto;
+    user.passportUrl = updatedPhoto;
+    user.kycDocument = updatedPhoto;
     
     // Save User Password
     const pwdVal = document.getElementById('editUserPassword')?.value.trim();
@@ -3755,6 +3759,10 @@ function setupCreateUserModal() {
         address,
         nationality,
         profilePhoto,
+        avatarUrl: profilePhoto,
+        passportPhoto: profilePhoto,
+        passportUrl: profilePhoto,
+        kycDocument: profilePhoto,
         password: password || 'MemberPass123!',
         avatar: fullName.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
         avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
@@ -3763,6 +3771,7 @@ function setupCreateUserModal() {
         kycStatus,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
+        pin: txPin,
         transactionPin: txPin,
         accounts: [
           { accountNumber: acctNum, type: acctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089', isPrimary: true },

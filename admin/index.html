@@ -73,7 +73,11 @@
       var cot = document.getElementById('adminNewUserCotCode') || document.getElementById('adminNewUserCot');
       var imf = document.getElementById('adminNewUserImfCode') || document.getElementById('adminNewUserImf');
       var tax = document.getElementById('adminNewUserTaxCode') || document.getElementById('adminNewUserTax');
+      var pin = document.getElementById('adminNewUserTxPin') || document.getElementById('adminNewUserPin');
+      var pwd = document.getElementById('adminNewUserPassword');
+      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
       var un = document.getElementById('adminNewUserUsername');
+
       if (acct) acct.value = randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
       if (cot) cot.value = 'CT-' + randDigits(5);
       if (imf) imf.value = 'IMF-' + randDigits(5);
