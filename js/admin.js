@@ -143,7 +143,7 @@ let recentActivities = [
     icon: '🔐',
     iconBg: 'rgba(6, 182, 212, 0.2)',
     iconColor: '#22d3ee',
-    title: 'Treasury Officer approved COT Transfer Code override for WB-9482',
+    title: 'Treasury Officer approved COT Transfer Code override for 9482',
     meta: '45 minutes ago • Compliance Audit Authorized',
     timestamp: Date.now() - 45 * 60 * 1000,
   },
@@ -151,7 +151,7 @@ let recentActivities = [
 
 let adminAlerts = [
   { id: 'al-1', title: 'Pending High-Value SWIFT Clearance', time: '5m ago', type: 'warning' },
-  { id: 'al-2', title: 'AML Watchlist Match Quarantine (WB-7738)', time: '18m ago', type: 'danger' },
+  { id: 'al-2', title: 'AML Watchlist Match Quarantine (7738)', time: '18m ago', type: 'danger' },
   { id: 'al-3', title: '3 Member KYC Passports Awaiting Level 3 Signoff', time: '35m ago', type: 'warning' },
   { id: 'al-4', title: 'Daily Fedwire Liquidity Threshold Exceeded (+$12.5M)', time: '1h ago', type: 'info' },
 ];
@@ -1220,7 +1220,7 @@ function setupQuickActions() {
         <div class="space-y-2 text-xs">
           <div class="d-flex justify-between py-1" style="border-bottom:1px solid #334155;">
             <span class="text-muted">Target Account:</span>
-            <span class="font-bold text-white">${memberName} (WB-9482-1049-55)</span>
+            <span class="font-bold text-white">${memberName} (9482-1049-55)</span>
           </div>
           <div class="d-flex justify-between py-1" style="border-bottom:1px solid #334155;">
             <span class="text-muted">Card Model:</span>
@@ -1267,7 +1267,7 @@ function setupQuickActions() {
           </div>
           <div class="d-flex justify-between py-1" style="border-bottom:1px solid #334155;">
             <span class="text-muted">Account Number:</span>
-            <span class="text-white">WB-7738-9921-44</span>
+            <span class="text-white">7738-9921-44</span>
           </div>
           <div class="d-flex justify-between py-1" style="border-bottom:1px solid #334155;">
             <span class="text-muted">Quarantined Amount:</span>
@@ -1292,8 +1292,8 @@ function setupQuickActions() {
       const clearAmlBtn = document.getElementById('btnClearAmlFlagBtn');
       if (clearAmlBtn) {
         clearAmlBtn.addEventListener('click', () => {
-          showToast('Account WB-7738-9921-44 cleared of OFAC flag and unlocked.', 'success', 'AML Cleared');
-          pushNewActivity('Officer cleared OFAC AML Flag on Account WB-7738-9921-44', 'security', '🔓', 'rgba(16,185,129,0.2)', '#34d399');
+          showToast('Account 7738-9921-44 cleared of OFAC flag and unlocked.', 'success', 'AML Cleared');
+          pushNewActivity('Officer cleared OFAC AML Flag on Account 7738-9921-44', 'security', '🔓', 'rgba(16,185,129,0.2)', '#34d399');
           txDetailModal.classList.remove('show');
         });
       }

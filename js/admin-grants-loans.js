@@ -14,7 +14,7 @@ const defaultGrants = [
   {
     id: 'GR-SWISS-2026-01',
     applicantName: 'Miz Brymo',
-    accountNumber: 'WB-9482-1049-55',
+    accountNumber: '9482-1049-55',
     programType: 'Swiss Sovereign Clean Energy Transition Grant',
     category: 'Renewable Technology',
     amount: 450000.00,
@@ -27,7 +27,7 @@ const defaultGrants = [
   {
     id: 'GR-EU-2026-02',
     applicantName: 'Vanguard Logistics Corp',
-    accountNumber: 'WB-1102-8849-01',
+    accountNumber: '1102-8849-01',
     programType: 'European AI & Quantum Computing Initiative',
     category: 'Advanced Research',
     amount: 750000.00,
@@ -40,7 +40,7 @@ const defaultGrants = [
   {
     id: 'GR-UN-2026-03',
     applicantName: 'Elena Rostova',
-    accountNumber: 'WB-9941-2018-09',
+    accountNumber: '9941-2018-09',
     programType: 'Sovereign Humanitarian Relief Endowment',
     category: 'Humanitarian',
     amount: 250000.00,
@@ -53,7 +53,7 @@ const defaultGrants = [
   {
     id: 'GR-FT-2026-04',
     applicantName: 'Sterling Merchant Trading',
-    accountNumber: 'WB-7738-9921-44',
+    accountNumber: '7738-9921-44',
     programType: 'Global Cross-Border FinTech Accelerator Grant',
     category: 'Financial Infrastructure',
     amount: 120000.00,
@@ -69,7 +69,7 @@ const defaultLoans = [
   {
     id: 'LN-ZUR-2026-881',
     borrowerName: 'Miz Brymo',
-    accountNumber: 'WB-9482-1049-55',
+    accountNumber: '9482-1049-55',
     facilityType: 'Zurich Prime Commercial Real Estate Mortgage',
     principal: 2500000.00,
     interestRate: 3.2,
@@ -83,7 +83,7 @@ const defaultLoans = [
   {
     id: 'LN-LOM-2026-902',
     borrowerName: 'John Doe',
-    accountNumber: 'WB-9482-3819-22',
+    accountNumber: '9482-3819-22',
     facilityType: 'Private Wealth Lombard Credit Line',
     principal: 1000000.00,
     interestRate: 4.1,
@@ -97,7 +97,7 @@ const defaultLoans = [
   {
     id: 'LN-MAR-2026-714',
     borrowerName: 'Vanguard Logistics Corp',
-    accountNumber: 'WB-1102-8849-01',
+    accountNumber: '1102-8849-01',
     facilityType: 'Sovereign Maritime Trade Finance Facility',
     principal: 850000.00,
     interestRate: 3.8,
@@ -111,7 +111,7 @@ const defaultLoans = [
   {
     id: 'LN-EXE-2026-559',
     borrowerName: 'Elena Rostova',
-    accountNumber: 'WB-9941-2018-09',
+    accountNumber: '9941-2018-09',
     facilityType: 'Executive Wealth Asset-Backed Facility',
     principal: 500000.00,
     interestRate: 2.9,

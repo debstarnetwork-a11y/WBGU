@@ -43,7 +43,7 @@ const initialSeedTransactions = [
     userId: 'usr-101',
     userName: 'Miz Brymo',
     userEmail: 'mizbrymo@gmail.com',
-    accountNumber: 'WB-9482-1049-55',
+    accountNumber: '9482-1049-55',
     accountType: 'Premier Checking',
     type: 'wire',
     amount: 240000.00,
@@ -74,7 +74,7 @@ const initialSeedTransactions = [
     userId: 'usr-102',
     userName: 'Elena Rostova',
     userEmail: 'elena.rostova@vanguardlogistics.ch',
-    accountNumber: 'WB-1102-8849-01',
+    accountNumber: '1102-8849-01',
     accountType: 'Business Vault',
     type: 'wire',
     amount: 88500000.00,
@@ -104,7 +104,7 @@ const initialSeedTransactions = [
     userId: 'usr-103',
     userName: 'Sterling Merchant Trading',
     userEmail: 'treasury@sterlingmerchant.com',
-    accountNumber: 'WB-7738-9921-44',
+    accountNumber: '7738-9921-44',
     accountType: 'Business Vault',
     type: 'wire',
     amount: 185000000.00,
@@ -135,7 +135,7 @@ const initialSeedTransactions = [
     userId: 'usr-101',
     userName: 'Miz Brymo',
     userEmail: 'mizbrymo@gmail.com',
-    accountNumber: 'WB-9482-1049-55',
+    accountNumber: '9482-1049-55',
     accountType: 'Premier Checking',
     type: 'credit',
     amount: 50000.00,
@@ -160,7 +160,7 @@ const initialSeedTransactions = [
     userId: 'usr-104',
     userName: 'Dr. Chen Wei',
     userEmail: 'chen.wei@singaporebiotech.sg',
-    accountNumber: 'WB-4419-3301-88',
+    accountNumber: '4419-3301-88',
     accountType: 'Wealth Savings',
     type: 'credit',
     amount: 120000.00,
@@ -184,7 +184,7 @@ const initialSeedTransactions = [
     userId: 'usr-105',
     userName: 'Lady Genevieve Dubois',
     userEmail: 'genevieve.dubois@chateau-dubois.fr',
-    accountNumber: 'WB-6620-8812-33',
+    accountNumber: '6620-8812-33',
     accountType: 'Sovereign Offshore',
     type: 'card_purchase',
     amount: 14500.00,
@@ -208,7 +208,7 @@ const initialSeedTransactions = [
     userId: 'usr-104',
     userName: 'Dr. Chen Wei',
     userEmail: 'chen.wei@singaporebiotech.sg',
-    accountNumber: 'WB-4419-3301-88',
+    accountNumber: '4419-3301-88',
     accountType: 'Wealth Savings',
     type: 'crypto',
     amount: 65000.00,
@@ -232,7 +232,7 @@ const initialSeedTransactions = [
     userId: 'usr-107',
     userName: 'Carlos Mendez',
     userEmail: 'carlos.mendez@mendezholdings.es',
-    accountNumber: 'WB-5512-9901-22',
+    accountNumber: '5512-9901-22',
     accountType: 'Premier Checking',
     type: 'reversal',
     amount: 3200.00,
@@ -1144,7 +1144,7 @@ function setupManualTransactionModal() {
       }
 
       const txId = `TX-${Date.now().toString().slice(-5)}`;
-      const ref = `WB-${type.toUpperCase()}-${Date.now().toString().slice(-6)}`;
+      const ref = `${type.toUpperCase()}-${Date.now().toString().slice(-6)}`;
 
       const newTx = {
         id: txId,

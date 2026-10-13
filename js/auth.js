@@ -688,7 +688,7 @@ export function initLoginForm() {
   const demoAdminBtn = document.getElementById('quickDemoAdminBtn');
   if (demoAdminBtn) {
     demoAdminBtn.addEventListener('click', () => {
-      fillCredentials('mizbrymo@gmail.com', '12345', 'WB-9482-1049-55', '1', '2', '3', '4');
+      fillCredentials('mizbrymo@gmail.com', '12345', '9482-1049-55', '1', '2', '3', '4');
       showToast('Admin Officer credentials prefilled (mizbrymo@gmail.com / 12345).', 'info', 'Admin Access');
     });
   }
@@ -1030,7 +1030,7 @@ export function initLoginForm() {
         ];
       } else {
         userProfile.accounts = userProfile.accounts.map((a) => {
-          const aNum = a.accountNumber || a.account_number || `WB-${a.currency || 'USD'}-1001`;
+          const aNum = a.accountNumber || a.account_number || `${a.currency || 'USD'}-1001`;
           const aId = a.id || `acct-${(a.currency || 'usd').toLowerCase()}-${aNum.replace(/\s+/g, '')}`;
           const bal = typeof a.balance === 'number' ? a.balance : parseFloat(a.balance) || 0;
           const avail = a.available !== undefined && a.available !== null ? (typeof a.available === 'number' ? a.available : parseFloat(a.available) || 0) : bal;
@@ -1274,7 +1274,7 @@ export function initLoginForm() {
         ];
       } else {
         userProfile.accounts = userProfile.accounts.map((a) => {
-          const aNum = a.accountNumber || a.account_number || `WB-${a.currency || 'USD'}-1001`;
+          const aNum = a.accountNumber || a.account_number || `${a.currency || 'USD'}-1001`;
           const aId = a.id || `acct-${(a.currency || 'usd').toLowerCase()}-${aNum.replace(/\s+/g, '')}`;
           const bal = typeof a.balance === 'number' ? a.balance : parseFloat(a.balance) || 0;
           const avail = a.available !== undefined && a.available !== null ? (typeof a.available === 'number' ? a.available : parseFloat(a.available) || 0) : bal;
@@ -2219,7 +2219,7 @@ export function initMultiStepRegistration() {
     const biometricsEnabled = document.getElementById('biometricsToggle')?.checked || false;
 
     const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
-    const formattedAcctNum = `WB-9482-${randomDigits.toString().slice(0, 4)}-${randomDigits.toString().slice(4, 6)}`;
+    const formattedAcctNum = `9482-${randomDigits.toString().slice(0, 4)}-${randomDigits.toString().slice(4, 6)}`;
     const generatedAccountNumber = String(Math.floor(2000000000 + Math.random() * 7999999999));
 
     // Automated generation of all regulatory transfer codes

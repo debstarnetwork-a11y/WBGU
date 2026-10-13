@@ -389,7 +389,7 @@ function setupUserSearchForCodes() {
       <div class="p-2 d-flex justify-between items-center user-search-result-item" data-user-id="${u.id}" style="cursor:pointer; border-bottom:1px solid rgba(51,65,85,0.4);">
         <div>
           <div class="font-bold text-white text-xs">${escapeHtml(u.fullName)}</div>
-          <div class="text-xs text-muted font-mono">${escapeHtml(u.email)} • ${u.accounts[0]?.accountNumber || 'WB-000'}</div>
+          <div class="text-xs text-muted font-mono">${escapeHtml(u.email)} • ${u.accounts[0]?.accountNumber || '9482-1049-55'}</div>
         </div>
         <span class="action-chip action-chip-approve">Select &rarr;</span>
       </div>

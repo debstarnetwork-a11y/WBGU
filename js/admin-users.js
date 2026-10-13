@@ -131,7 +131,7 @@ export const initialSeedUsers = [
     lastLogin: new Date().toISOString(),
     accounts: [
       {
-        accountNumber: 'WB-9482-1049-55',
+        accountNumber: '9482-1049-55',
         type: 'Checking',
         name: 'Premier Checking Account',
         currency: 'USD',
@@ -140,7 +140,7 @@ export const initialSeedUsers = [
         routingNumber: '021000089',
       },
       {
-        accountNumber: 'WB-9482-1049-56',
+        accountNumber: '9482-1049-56',
         type: 'Savings',
         name: 'Swiss High-Yield Wealth Reserve',
         currency: 'CHF',
@@ -315,7 +315,7 @@ export function getAdminUsersList() {
           createdAt: active.createdAt || new Date().toISOString(),
           password: active.password || '12345',
           accounts: active.accounts || [
-            { accountNumber: active.accountNumber || 'WB-9482-1049-55', type: 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: active.balance || 0.00, status: 'active', routingNumber: '021000089' }
+            { accountNumber: active.accountNumber || '9482-1049-55', type: 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: active.balance || 0.00, status: 'active', routingNumber: '021000089' }
           ]
         });
       }
@@ -342,7 +342,7 @@ export function getAdminUsersList() {
           createdAt: new Date().toISOString(),
           password: 'MemberPass123!',
           accounts: [
-            { accountNumber: 'WB-9482-' + Math.floor(1000 + Math.random() * 9000), type: 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, status: 'active', routingNumber: '021000089' }
+            { accountNumber: '9482-' + Math.floor(1000 + Math.random() * 9000), type: 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, status: 'active', routingNumber: '021000089' }
           ]
         });
       }
@@ -1931,7 +1931,7 @@ function renderDrawerProfileTab(user) {
 
     if (!Array.isArray(user.accounts) || user.accounts.length === 0) {
       user.accounts = [
-        { id: `acct-usd-${user.id || 'usr'}`, accountNumber: newAcctNum || 'WB-9482-1049-55', type: newAcctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: newAcctBal, available: newAcctBal, status: user.status || 'active', routingNumber: '021000089', isPrimary: true },
+        { id: `acct-usd-${user.id || 'usr'}`, accountNumber: newAcctNum || '9482-1049-55', type: newAcctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: newAcctBal, available: newAcctBal, status: user.status || 'active', routingNumber: '021000089', isPrimary: true },
         { id: `acct-eur-${user.id || 'usr'}`, accountNumber: `WB-EUR-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: user.status || 'active', routingNumber: '021000089' },
         { id: `acct-gbp-${user.id || 'usr'}`, accountNumber: `WB-GBP-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'British Pound Sterling Vault', currency: 'GBP', balance: 0.00, available: 0.00, status: user.status || 'active', routingNumber: '021000089' },
         { id: `acct-chf-${user.id || 'usr'}`, accountNumber: `WB-CHF-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'Swiss Franc Reserve Vault', currency: 'CHF', balance: 0.00, available: 0.00, status: user.status || 'active', routingNumber: '021000089' },
@@ -2212,7 +2212,7 @@ function renderDrawerAccountsTab(user) {
     let exists = user.accounts.find(a => a.currency === sc.currency);
     if (!exists) {
       user.accounts.push({
-        accountNumber: `WB-${sc.currency}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`,
+        accountNumber: `${sc.currency}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`,
         type: sc.type,
         name: sc.name,
         currency: sc.currency,
@@ -2322,7 +2322,7 @@ function renderDrawerAccountsTab(user) {
             ]
           },
           { id: 'bal', type: 'number', step: '0.01', label: 'Initial Account Balance *', value: '10000.00', required: true },
-          { id: 'acctNum', label: 'Account Number *', fontMono: true, value: `WB-9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, required: true }
+          { id: 'acctNum', label: 'Account Number *', fontMono: true, value: `9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, required: true }
         ],
         onSubmit: ({ acctType, curr, bal, acctNum }) => {
           const initialBal = parseFloat(bal) || 0;
@@ -2795,7 +2795,7 @@ function renderDrawerCardsTab(user) {
             cardHolder: holder.toUpperCase(),
             cardholder_name: holder.toUpperCase(),
             userEmail: user.email,
-            accountNumber: user.accounts?.[0]?.accountNumber || 'WB-9482-1049-55',
+            accountNumber: user.accounts?.[0]?.accountNumber || '9482-1049-55',
             type: tier,
             cardType: tier,
             expiry: exp,

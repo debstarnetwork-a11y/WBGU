@@ -49,7 +49,7 @@ const initialSeedCards = [
     cardHolder: 'MIZ BRYMO',
     userId: 'usr-101',
     userEmail: 'mizbrymo@gmail.com',
-    accountNumber: 'WB-9482-1049-55',
+    accountNumber: '9482-1049-55',
     cardType: 'Black Metal Premier',
     theme: 'card-theme-black',
     status: 'active',
@@ -78,7 +78,7 @@ const initialSeedCards = [
     cardHolder: 'ELENA ROSTOVA',
     userId: 'usr-102',
     userEmail: 'elena.rostova@vanguardlogistics.ch',
-    accountNumber: 'WB-1102-8849-01',
+    accountNumber: '1102-8849-01',
     cardType: 'Executive Corporate Visa',
     theme: 'card-theme-corporate',
     status: 'active',
@@ -106,7 +106,7 @@ const initialSeedCards = [
     cardHolder: 'CHEN WEI',
     userId: 'usr-104',
     userEmail: 'chen.wei@singaporebiotech.sg',
-    accountNumber: 'WB-4419-3301-88',
+    accountNumber: '4419-3301-88',
     cardType: 'World Elite Mastercard',
     theme: 'card-theme-elite',
     status: 'active',
@@ -132,7 +132,7 @@ const initialSeedCards = [
     cardHolder: 'GENEVIEVE DUBOIS',
     userId: 'usr-105',
     userEmail: 'genevieve.dubois@chateau-dubois.fr',
-    accountNumber: 'WB-6620-8812-33',
+    accountNumber: '6620-8812-33',
     cardType: 'Sovereign 24K Gold Visa',
     theme: 'card-theme-gold',
     status: 'active',
@@ -160,7 +160,7 @@ const initialSeedCards = [
     cardHolder: 'STERLING MERCHANT TRADING',
     userId: 'usr-103',
     userEmail: 'treasury@sterlingmerchant.com',
-    accountNumber: 'WB-7738-9921-44',
+    accountNumber: '7738-9921-44',
     cardType: 'Executive Corporate Visa',
     theme: 'card-theme-corporate',
     status: 'blocked',
@@ -186,7 +186,7 @@ const initialSeedCards = [
     cardHolder: 'CARLOS MENDEZ',
     userId: 'usr-107',
     userEmail: 'carlos.mendez@mendezholdings.es',
-    accountNumber: 'WB-5512-9901-22',
+    accountNumber: '5512-9901-22',
     cardType: 'Virtual Instant Debit',
     theme: 'card-theme-corporate',
     status: 'expired',
@@ -284,7 +284,7 @@ export function getAdminCardsList() {
               cardHolder: uc.cardholder_name || uc.cardHolder || 'MEMBER',
               userId: uc.userId || 'usr-client',
               userEmail: uc.userEmail || 'member@wbcu.net',
-              accountNumber: uc.accountNumber || 'WB-9482-1049-55',
+              accountNumber: uc.accountNumber || '9482-1049-55',
               cardType: uc.cardType || uc.card_type || 'Visa Platinum Debit',
               theme: uc.theme || 'card-theme-corporate',
               status: uc.status || 'pending_approval',
@@ -792,7 +792,7 @@ export function renderCardsTable() {
         userId: matchedUser ? matchedUser.id : '',
         name: liveName,
         email: matchedUser?.email || c.userEmail || '',
-        accountNumber: matchedUser?.accounts?.[0]?.accountNumber || c.accountNumber || 'WB-9482-1049-55',
+        accountNumber: matchedUser?.accounts?.[0]?.accountNumber || c.accountNumber || '9482-1049-55',
         avatar: initials,
         photo: matchedUser?.profilePhoto || matchedUser?.avatarUrl || '',
         cards: []
@@ -1953,7 +1953,7 @@ function setupIssueNewCardModal() {
       ? user.accounts
       : [
           {
-            accountNumber: `WB-9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`,
+            accountNumber: `9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`,
             name: 'US Dollar Primary Vault',
             currency: 'USD',
             balance: 100000
@@ -2035,7 +2035,7 @@ function setupIssueNewCardModal() {
       acctNum = user.accounts[0].accountNumber;
     }
     if (!acctNum) {
-      acctNum = `WB-9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`;
+      acctNum = `9482-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`;
     }
 
     const cardTypeSelect = document.getElementById('issueCardTypeSelect');

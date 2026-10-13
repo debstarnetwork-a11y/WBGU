@@ -408,11 +408,11 @@ function renderTopAccountsLeaderboard() {
   if (!tbody) return;
 
   const top = [
-    { rank: 1, name: 'Elena Rostova (Vanguard Logistics)', account: 'WB-1102-8849-01', type: 'Business Vault', balance: '$18,450,000.00', flag: '🇨🇭' },
-    { rank: 2, name: 'Marcus Vance (Vance Capital AG)', account: 'WB-9901-2244-11', type: 'Swiss Sovereign', balance: '$12,800,000.00', flag: '🇺🇸' },
-    { rank: 3, name: 'Genevieve Dubois (Château Dubois)', account: 'WB-6620-8812-33', type: 'High-Yield Savings', balance: '$6,450,000.00', flag: '🇫🇷' },
-    { rank: 4, name: 'Miz Brymo (Private Wealth)', account: 'WB-9482-1049-55', type: 'Premier Checking', balance: '$4,820,450.00', flag: '🇨🇭' },
-    { rank: 5, name: 'Sterling Merchant Trading', account: 'WB-7738-9921-44', type: 'Multi-Currency', balance: '$4,250,000.00', flag: '🇬🇧' }
+    { rank: 1, name: 'Elena Rostova (Vanguard Logistics)', account: '1102-8849-01', type: 'Business Vault', balance: '$18,450,000.00', flag: '🇨🇭' },
+    { rank: 2, name: 'Marcus Vance (Vance Capital AG)', account: '9901-2244-11', type: 'Swiss Sovereign', balance: '$12,800,000.00', flag: '🇺🇸' },
+    { rank: 3, name: 'Genevieve Dubois (Château Dubois)', account: '6620-8812-33', type: 'High-Yield Savings', balance: '$6,450,000.00', flag: '🇫🇷' },
+    { rank: 4, name: 'Miz Brymo (Private Wealth)', account: '9482-1049-55', type: 'Premier Checking', balance: '$4,820,450.00', flag: '🇨🇭' },
+    { rank: 5, name: 'Sterling Merchant Trading', account: '7738-9921-44', type: 'Multi-Currency', balance: '$4,250,000.00', flag: '🇬🇧' }
   ];
 
   tbody.innerHTML = top.map((t) => `

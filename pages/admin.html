@@ -77,7 +77,7 @@
       var pwd = document.getElementById('adminNewUserPassword');
       var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
 
-      if (acct) acct.value = 'WB-' + randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
+      if (acct) acct.value = randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
       if (cot) cot.value = 'CT-' + randDigits(5);
       if (imf) imf.value = 'IMF-' + randDigits(5);
       if (tax) tax.value = 'TX-' + randDigits(5);
@@ -94,7 +94,7 @@
         return s;
       }
       var acct = document.getElementById('adminNewUserAccountNum') || document.getElementById('adminNewUserAccountNumber');
-      if (acct) acct.value = 'WB-' + randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
+      if (acct) acct.value = randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
     };
 
     window.wbGenAllCodes = function() {
@@ -740,7 +740,7 @@
                       <tr data-wire-id="WB-SWIFT-99201">
                         <td>
                           <div class="font-bold text-white queue-member-name">Miz Brymo</div>
-                          <div class="text-xs text-muted" style="color:#94a3b8;">WB-9482-1049-55</div>
+                          <div class="text-xs text-muted" style="color:#94a3b8;">9482-1049-55</div>
                         </td>
                         <td>
                           <div class="text-white">BNP Paribas Paris</div>
@@ -759,7 +759,7 @@
                       <tr data-wire-id="WB-SWIFT-99202">
                         <td>
                           <div class="font-bold text-white">Vanguard Logistics Corp</div>
-                          <div class="text-xs text-muted" style="color:#94a3b8;">WB-1102-8849-01</div>
+                          <div class="text-xs text-muted" style="color:#94a3b8;">1102-8849-01</div>
                         </td>
                         <td>
                           <div class="text-white">Sumitomo Mitsui Tokyo</div>
@@ -778,7 +778,7 @@
                       <tr data-wire-id="WB-SWIFT-99203">
                         <td>
                           <div class="font-bold text-white">Sterling Merchant Trading</div>
-                          <div class="text-xs text-muted" style="color:#94a3b8;">WB-7738-9921-44</div>
+                          <div class="text-xs text-muted" style="color:#94a3b8;">7738-9921-44</div>
                         </td>
                         <td>
                           <div class="text-white">First Bank of Nigeria</div>
@@ -878,7 +878,7 @@
                         <span class="admin-alert-icon">🔒</span>
                         <div>
                           <div class="admin-alert-text">1 Suspended Account (AML Flag)</div>
-                          <div class="admin-alert-sub">WB-7738-9921-44 locked pending OFAC clearing review</div>
+                          <div class="admin-alert-sub">7738-9921-44 locked pending OFAC clearing review</div>
                         </div>
                       </div>
                       <button class="admin-btn admin-btn-danger admin-btn-sm" id="btnInspectSuspended">Details</button>
@@ -3592,7 +3592,7 @@
         <div class="admin-modal-body">
           <div class="admin-form-group">
             <label class="admin-form-label">Target Member / Account Number</label>
-            <input type="text" id="ledgerAccountInput" class="admin-form-control" placeholder="e.g. WB-9482-1049-55 or member email" required />
+            <input type="text" id="ledgerAccountInput" class="admin-form-control" placeholder="e.g. 9482-1049-55 or member email" required />
           </div>
 
           <div class="d-grid grid-cols-2 gap-3 mb-3">
@@ -4061,9 +4061,9 @@
             <div>
               <div class="d-flex items-center justify-between mb-1">
                 <label class="admin-form-label m-0">Account Number *</label>
-                <button type="button" id="btnAdminGenAccountNum" onclick="if(window.wbGenAccountNumber){window.wbGenAccountNumber();}else{var s='WB-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(10+Math.random()*90);var el=document.getElementById('adminNewUserAccountNum');if(el)el.value=s;} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
+                <button type="button" id="btnAdminGenAccountNum" onclick="if(window.wbGenAccountNumber){window.wbGenAccountNumber();}else{var s=''+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(1000+Math.random()*9000)+'-'+Math.floor(10+Math.random()*90);var el=document.getElementById('adminNewUserAccountNum');if(el)el.value=s;} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #34d399; border-color: rgba(52,211,153,0.4);" title="Generate new random account number">🎲 Randomize</button>
               </div>
-              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" value="WB-9104-8263-51" placeholder="Auto-generated unique number" required />
+              <input type="text" id="adminNewUserAccountNum" class="admin-form-control font-mono" value="9104-8263-51" placeholder="Auto-generated unique number" required />
             </div>
             <div>
               <label class="admin-form-label">Initial Account Balance ($) *</label>

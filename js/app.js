@@ -322,7 +322,7 @@ export function getUserAccounts() {
   const normalizeAccounts = (accts) => {
     if (!Array.isArray(accts)) return [];
     return accts.map((a) => {
-      const acctNum = a.accountNumber || a.account_number || `WB-${a.currency || 'USD'}-1001`;
+      const acctNum = a.accountNumber || a.account_number || `${a.currency || 'USD'}-1001`;
       const acctId = a.id || `acct-${(a.currency || 'usd').toLowerCase()}-${acctNum.replace(/\s+/g, '')}`;
       const bal = typeof a.balance === 'number' ? a.balance : parseFloat(a.balance) || 0;
       const avail = a.available !== undefined && a.available !== null ? (typeof a.available === 'number' ? a.available : parseFloat(a.available) || 0) : bal;
@@ -7374,7 +7374,7 @@ export function renderGrantsSection() {
           <span class="font-numeric font-bold text-xs text-navy">${amtStr}</span>
         </td>
         <td>
-          <span class="text-xs font-mono text-muted">${g.accountNumber || 'WB-9482-1049-55'}</span>
+          <span class="text-xs font-mono text-muted">${g.accountNumber || '9482-1049-55'}</span>
         </td>
         <td>
           <span class="text-xs text-muted">${g.date || new Date().toISOString().split('T')[0]}</span>
@@ -7637,7 +7637,7 @@ export function setupGrantsAndLoansInteractions() {
       const progVal = progSelect?.value || 'Swiss Sovereign Clean Energy Transition Grant';
       const category = progSelect?.selectedOptions[0]?.getAttribute('data-cat') || 'Renewable Technology';
       const amount = parseFloat(document.getElementById('grantAmountInput')?.value) || 350000;
-      const account = document.getElementById('grantAccountSelect')?.value || 'WB-9482-1049-55';
+      const account = document.getElementById('grantAccountSelect')?.value || '9482-1049-55';
       const title = document.getElementById('grantProjectTitleInput')?.value.trim() || 'Sovereign Innovation Project';
       const purpose = document.getElementById('grantPurposeInput')?.value.trim() || 'Strategic development and infrastructure.';
 
@@ -7710,7 +7710,7 @@ export function setupGrantsAndLoansInteractions() {
       const newLoan = {
         id: `LN-ZUR-2026-${Math.floor(100 + Math.random() * 900)}`,
         borrowerName,
-        accountNumber: 'WB-9482-1049-55',
+        accountNumber: '9482-1049-55',
         facilityType,
         principal,
         interestRate: 3.25,
@@ -8143,7 +8143,7 @@ function getUserCards() {
     pin: '1234',
     status: currentUser?.status === 'inactive' ? 'pending_approval' : 'active',
     is_frozen: false,
-    linked_account: currentUser?.accountNumber ? `Primary Checking (${currentUser.accountNumber})` : 'Primary Checking (WB-9482-1049-55)',
+    linked_account: currentUser?.accountNumber ? `Primary Checking (${currentUser.accountNumber})` : 'Primary Checking (9482-1049-55)',
     daily_limit: 10000,
     atm_limit: 3000,
     monthly_limit: 50000,
@@ -8167,7 +8167,7 @@ function getUserCards() {
         cardHolder: userCard.cardholder_name,
         userId: currentUser?.id || 'usr-101',
         userEmail: userCard.userEmail,
-        accountNumber: currentUser?.accountNumber || 'WB-9482-1049-55',
+        accountNumber: currentUser?.accountNumber || '9482-1049-55',
         cardType: 'Sovereign Visa Platinum Debit',
         theme: 'card-theme-corporate',
         status: userCard.status,
@@ -10028,7 +10028,7 @@ export function setupCardsController() {
     }
     if (!memberName) memberName = 'MIZ BRYMO';
     const holderName = (document.getElementById('reqCardHolderName')?.value?.trim() || memberName).toUpperCase();
-    const linkedAccount = document.getElementById('reqCardLinkedAccount')?.value || (currentUser?.accountNumber ? `Primary Checking (${currentUser.accountNumber})` : 'Primary Checking (WB-9482-1049-55)');
+    const linkedAccount = document.getElementById('reqCardLinkedAccount')?.value || (currentUser?.accountNumber ? `Primary Checking (${currentUser.accountNumber})` : 'Primary Checking (9482-1049-55)');
     const daily = parseInt(document.getElementById('reqCardDailyLimit')?.value || '5000');
     const atm = parseInt(document.getElementById('reqCardAtmLimit')?.value || '2000');
     const monthly = parseInt(document.getElementById('reqCardMonthlyLimit')?.value || '25000');
@@ -10098,7 +10098,7 @@ export function setupCardsController() {
         cardHolder: newCard.cardholder_name,
         userId: currentUser?.id || 'wb-usr-demo-01',
         userEmail: currentUser?.email || 'mizbrymo@gmail.com',
-        accountNumber: currentUser?.accountNumber || 'WB-9482-1049-55',
+        accountNumber: currentUser?.accountNumber || '9482-1049-55',
         cardType: cfg.name,
         theme: selectedTheme !== 'default' ? `card-theme-${selectedTheme}` : (cfg.network === 'Mastercard' ? 'card-theme-elite' : 'card-theme-corporate'),
         status: 'pending_approval',
@@ -11680,7 +11680,7 @@ export function setupEmailPreviewModalController() {
   let activeTemplate = 'welcome';
   let activeHtml = '';
 
-  const user = getDemoStorageUser() || { fullName: 'Miz Brymo', email: 'mizbrymo@gmail.com', accountNumber: 'WB-9482-1049-55' };
+  const user = getDemoStorageUser() || { fullName: 'Miz Brymo', email: 'mizbrymo@gmail.com', accountNumber: '9482-1049-55' };
   if (metaRecipient) metaRecipient.textContent = user.email || 'mizbrymo@gmail.com';
 
   function renderTemplate(tmplKey) {
