@@ -971,47 +971,64 @@ function setupWireApprovals() {
 /* ----------------------------------------------------------------------------
  * 9. MODALS & QUICK ACTIONS
  * ---------------------------------------------------------------------------- */
-  // Global delegated click handler for all modal close & cancel triggers
-  document.addEventListener('click', (e) => {
-    // 1. Check for close buttons or data-close-modal attributes
-    const closeBtn = e.target.closest('[data-close-modal], .admin-modal-close, .admin-form-modal-close, button[data-close], .btn-close');
-    if (closeBtn) {
-      const modalId = closeBtn.getAttribute('data-close-modal');
-      if (modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-          modal.classList.remove('show');
-          modal.style.display = 'none';
-        }
+// Global delegated click handler for all modal close & cancel triggers
+document.addEventListener('click', (e) => {
+  // Handle drawer close button specifically
+  const drawerCloseBtn = e.target.closest('#closeUserDrawerBtn, [data-close-drawer]');
+  if (drawerCloseBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window.closeUserDetailDrawer === 'function') {
+      window.closeUserDetailDrawer();
+    } else {
+      const overlay = document.getElementById('adminDrawerOverlay');
+      const panel = document.getElementById('adminDrawerPanel');
+      if (overlay) { overlay.classList.remove('show'); overlay.style.display = 'none'; }
+      if (panel) { panel.classList.remove('open'); }
+    }
+    return;
+  }
+
+  // 1. Check for modal close buttons or data-close-modal attributes
+  const closeBtn = e.target.closest('[data-close-modal], .admin-modal-close, .admin-form-modal-close, button[data-close], .btn-close');
+  if (closeBtn) {
+    const modalId = closeBtn.getAttribute('data-close-modal');
+    if (modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
       }
-      const parentModal = closeBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal, .admin-drawer-panel');
+    }
+    const parentModal = closeBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal');
+    if (parentModal) {
+      parentModal.classList.remove('show');
+      parentModal.style.display = 'none';
+    }
+  }
+
+  // 2. Check for Cancel / Close button clicks inside any modal overlay
+  const targetBtn = e.target.tagName === 'BUTTON' ? e.target : e.target.closest('button');
+  if (targetBtn && targetBtn.type !== 'submit') {
+    const btnText = (targetBtn.textContent || '').trim().toLowerCase();
+    if (btnText === 'cancel' || btnText === 'close' || btnText === 'close diagnostics' || btnText === 'close preview') {
+      const parentModal = targetBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal');
       if (parentModal) {
+        e.preventDefault();
         parentModal.classList.remove('show');
         parentModal.style.display = 'none';
       }
     }
+  }
 
-    // 2. Check for Cancel / Close button clicks inside any modal overlay
-    const targetBtn = e.target.tagName === 'BUTTON' ? e.target : e.target.closest('button');
-    if (targetBtn && targetBtn.type !== 'submit') {
-      const btnText = (targetBtn.textContent || '').trim().toLowerCase();
-      if (btnText === 'cancel' || btnText === 'close' || btnText === 'close diagnostics' || btnText === 'close preview') {
-        const parentModal = targetBtn.closest('.admin-modal-overlay, .modal-overlay, .modal, .admin-form-modal');
-        if (parentModal) {
-          e.preventDefault();
-          parentModal.classList.remove('show');
-          parentModal.style.display = 'none';
-        }
-      }
-    }
+  // 3. Close when clicking directly on backdrop overlay
+  if (e.target.classList && (e.target.classList.contains('admin-modal-overlay') || e.target.classList.contains('modal-overlay') || e.target.classList.contains('admin-form-modal-backdrop'))) {
+    e.target.classList.remove('show');
+    e.target.style.display = 'none';
+  }
+});
 
-    // 3. Close when clicking directly on backdrop overlay
-    if (e.target.classList && (e.target.classList.contains('admin-modal-overlay') || e.target.classList.contains('modal-overlay') || e.target.classList.contains('admin-form-modal-backdrop'))) {
-      e.target.classList.remove('show');
-      e.target.style.display = 'none';
-    }
-  });
-
+export function setupModals() {
   // Generic modal open handlers
   document.querySelectorAll('[data-open-modal]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -1033,6 +1050,7 @@ function setupWireApprovals() {
       }
     });
   });
+}
 
 function setupQuickActions() {
   // 1. Full Create User Modal Trigger

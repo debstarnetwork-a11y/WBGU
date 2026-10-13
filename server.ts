@@ -464,12 +464,77 @@ Respond concisely, politely, professionally, and in the language specified (${la
       activityLog: []
     },
     {
+      id: 'usr-34400',
+      fullName: 'Kristin Willis',
+      firstName: 'Kristin',
+      lastName: 'Willis',
+      username: 'kwillis',
+      email: 'debstarnetwork@gmail.com',
+      password: 'MemberPass123!',
+      pin: '8869',
+      transactionPin: '8869',
+      role: 'Member',
+      is_admin: false,
+      phone: '9377334076',
+      avatar: 'KW',
+      avatarColor: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      dob: '1988-03-24',
+      nationality: 'United States',
+      address: '742 Evergreen Terrace, Springfield, OR 97477',
+      status: 'active',
+      account_status: 'active',
+      accountStatus: 'active',
+      statusReason: 'Account Active & Verified',
+      kycStatus: 'verified',
+      kyc_status: 'verified',
+      createdAt: '2026-10-13T10:00:00Z',
+      accounts: [
+        {
+          accountNumber: '09331164041',
+          type: 'Checking',
+          name: 'Premier Checking Account',
+          currency: 'USD',
+          balance: 0.00,
+          status: 'active',
+          routingNumber: '021000089',
+          isPrimary: true,
+        }
+      ],
+      transactions: [],
+      cards: [
+        {
+          id: 'crd-34400',
+          cardNumber: '4532 9918 2041 3310',
+          cardHolder: 'KRISTIN WILLIS',
+          type: 'Visa Platinum Debit',
+          expiry: '09/31',
+          cvv: '884',
+          pin: '8869',
+          status: 'active',
+          dailyAtmLimit: 10000,
+          onlineLimit: 50000,
+        }
+      ],
+      cryptoWallets: [
+        { currency: 'BTC', balance: 0.00, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' }
+      ],
+      wireTransferCodes: {
+        COT: { code: '0467799', active: true, notes: 'Cost of Transfer clearance token' },
+        TAX: { code: 'TX-88392', active: true, notes: 'Tax Clearance certificate' },
+        IMF: { code: '9498779', active: true, notes: 'IMF Clearance signoff' },
+        AML: { code: 'AML-86902', active: true, notes: 'Anti-Money Laundering verification key' },
+        PAP: { code: 'PAP-70216', active: true, notes: 'Proof of Anti-Piracy clearance' },
+        OTP: '806158'
+      },
+      activityLog: []
+    },
+    {
       id: 'usr-659',
       fullName: 'Olle Robert Christer Råström',
       firstName: 'Olle Robert Christer',
       lastName: 'Råström',
       username: 'ollerobertrstrm52',
-      email: 'debstarnetwork@gmail.com',
+      email: 'olle.rastrom@swissprivatevault.ch',
       password: 'Password123!',
       pin: '8869',
       transactionPin: '8869',

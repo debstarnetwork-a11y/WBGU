@@ -3766,7 +3766,7 @@
   <!-- =========================================================================
        4. USER DETAIL SLIDE-IN DRAWER PANEL (From Right)
        ========================================================================= -->
-  <div class="admin-drawer-overlay" id="adminDrawerOverlay"></div>
+  <div class="admin-drawer-overlay" id="adminDrawerOverlay" onclick="if(window.closeUserDetailDrawer){window.closeUserDetailDrawer();}else{var o=document.getElementById('adminDrawerOverlay');var p=document.getElementById('adminDrawerPanel');if(o){o.classList.remove('show');o.style.display='none';}if(p){p.classList.remove('open');}}"></div>
   <aside class="admin-drawer-panel" id="adminDrawerPanel">
     
     <!-- Drawer Header -->
@@ -3785,7 +3785,7 @@
           </div>
         </div>
       </div>
-      <button type="button" class="admin-modal-close" id="closeUserDrawerBtn" aria-label="Close detail drawer">&times;</button>
+      <button type="button" class="admin-modal-close" id="closeUserDrawerBtn" data-close-drawer="true" aria-label="Close detail drawer" onclick="if(window.closeUserDetailDrawer){window.closeUserDetailDrawer();}else{var o=document.getElementById('adminDrawerOverlay');var p=document.getElementById('adminDrawerPanel');if(o){o.classList.remove('show');o.style.display='none';}if(p){p.classList.remove('open');}}">&times;</button>
     </div>
 
     <!-- Drawer Navigation Tabs -->
