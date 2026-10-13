@@ -73,10 +73,7 @@
       var cot = document.getElementById('adminNewUserCotCode') || document.getElementById('adminNewUserCot');
       var imf = document.getElementById('adminNewUserImfCode') || document.getElementById('adminNewUserImf');
       var tax = document.getElementById('adminNewUserTaxCode') || document.getElementById('adminNewUserTax');
-      var pin = document.getElementById('adminNewUserTxPin') || document.getElementById('adminNewUserPin');
-      var pwd = document.getElementById('adminNewUserPassword');
-      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
-
+      var un = document.getElementById('adminNewUserUsername');
       if (acct) acct.value = randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
       if (cot) cot.value = 'CT-' + randDigits(5);
       if (imf) imf.value = 'IMF-' + randDigits(5);
@@ -85,6 +82,21 @@
       var newPwd = 'MemberPass' + randDigits(3) + '!';
       if (pwd) pwd.value = newPwd;
       if (pwdConfirm) pwdConfirm.value = newPwd;
+      if (typeof window.wbGenUsername === 'function') window.wbGenUsername();
+    };
+
+    window.wbGenUsername = function() {
+      function randDigits(n) {
+        var s = '';
+        for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+        return s;
+      }
+      var fn = (document.getElementById('adminNewUserFirstName')?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      var ln = (document.getElementById('adminNewUserLastName')?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      var em = (document.getElementById('adminNewUserEmail')?.value || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      var base = (fn + ln) || em || 'mbrymo';
+      var un = document.getElementById('adminNewUserUsername');
+      if (un) un.value = base + randDigits(2);
     };
 
     window.wbGenAccountNumber = function() {
@@ -3830,12 +3842,15 @@
 
           <div class="d-grid grid-cols-1 grid-md-3 gap-3 mb-3">
             <div>
-              <label class="admin-form-label">Username *</label>
-              <input type="text" id="adminNewUserUsername" class="admin-form-control" placeholder="e.g. mbrymo88" required />
+              <div class="d-flex items-center justify-between mb-1">
+                <label class="admin-form-label m-0">Username *</label>
+                <button type="button" id="btnAdminGenUsername" onclick="if(window.wbGenUsername){window.wbGenUsername();} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #60a5fa; border-color: rgba(96,165,250,0.4);" title="Auto-generate username">🎲 Randomize</button>
+              </div>
+              <input type="text" id="adminNewUserUsername" class="admin-form-control font-mono" value="mbrymo88" placeholder="e.g. mbrymo88" required />
             </div>
             <div>
               <label class="admin-form-label">Email *</label>
-              <input type="email" id="adminNewUserEmail" class="admin-form-control" value="admin@wbcu.net" placeholder="admin@wbcu.net" required />
+              <input type="email" id="adminNewUserEmail" class="admin-form-control" placeholder="e.g. member@domain.com" required />
             </div>
             <div>
               <label class="admin-form-label">Phone Number *</label>

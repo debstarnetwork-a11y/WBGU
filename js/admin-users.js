@@ -1082,6 +1082,10 @@ export function renderUsersTable() {
     const userStatus = u.status || 'active';
     const isKycVer = (u.kycStatus || u.kyc_status || '').toLowerCase() === 'verified';
     const isKycPend = (u.kycStatus || u.kyc_status || '').toLowerCase() === 'pending';
+    const fn = (u.fullName || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Member').trim();
+    const initials = (u.avatar || fn.slice(0, 2)).toUpperCase();
+    const userEmail = u.email || 'N/A';
+    const userPhone = u.phone || u.phoneNumber || 'N/A';
 
     return `
       <tr class="admin-user-row" data-user-id="${u.id}">
@@ -1091,17 +1095,17 @@ export function renderUsersTable() {
         <td>
           <div class="d-flex items-center gap-2">
             <div class="admin-user-avatar" style="background:${u.avatarColor || '#3b82f6'}; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-              ${(u.profilePhoto || u.avatarUrl) ? `<img src="${escapeHtml(u.profilePhoto || u.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='${escapeHtml(u.avatar || u.fullName.slice(0, 2).toUpperCase())}';" />` : (u.avatar || u.fullName.slice(0, 2).toUpperCase())}
+              ${(u.profilePhoto || u.avatarUrl) ? `<img src="${escapeHtml(u.profilePhoto || u.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='${escapeHtml(initials)}';" />` : escapeHtml(initials)}
             </div>
             <div>
-              <div class="font-bold text-white">${escapeHtml(u.fullName)}</div>
-              <div class="text-xs text-muted font-mono">${u.id}</div>
+              <div class="font-bold text-white">${escapeHtml(fn)}</div>
+              <div class="text-xs text-muted font-mono">${u.id || ''}</div>
             </div>
           </div>
         </td>
         <td>
-          <div class="text-white text-xs font-mono">${escapeHtml(u.email)}</div>
-          <div class="text-xs text-muted">${escapeHtml(u.phone)}</div>
+          <div class="text-white text-xs font-mono">${escapeHtml(userEmail)}</div>
+          <div class="text-xs text-muted">${escapeHtml(userPhone)}</div>
         </td>
         <td>
           <span class="font-mono text-xs font-semibold text-white">${primaryAcct.accountNumber}</span>
@@ -3596,24 +3600,37 @@ function setupCreateUserModal() {
     });
   }
 
-  // Auto-suggest username as user types name
+  // Auto-suggest username as user types name or email
   const fnInput = document.getElementById('adminNewUserFirstName');
   const lnInput = document.getElementById('adminNewUserLastName');
+  const emailInput = document.getElementById('adminNewUserEmail');
   const unInput = document.getElementById('adminNewUserUsername');
 
-  function updateSuggestedUsername() {
-    if (unInput && (!unInput.value || unInput.hasAttribute('data-auto'))) {
+  function updateSuggestedUsername(force = false) {
+    if (!unInput) return;
+    if (force || !unInput.value || unInput.getAttribute('data-auto') === 'true' || unInput.value === 'mbrymo88') {
       const fn = (fnInput?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const ln = (lnInput?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (fn || ln) {
-        unInput.value = `${fn}${ln}${Math.floor(10 + Math.random() * 90)}`;
-        unInput.setAttribute('data-auto', 'true');
-      }
+      const em = (emailInput?.value || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const base = (fn + ln) || em || 'mbrymo';
+      unInput.value = `${base}${Math.floor(10 + Math.random() * 90)}`;
+      unInput.setAttribute('data-auto', 'true');
     }
   }
 
-  if (fnInput) fnInput.addEventListener('input', updateSuggestedUsername);
-  if (lnInput) lnInput.addEventListener('input', updateSuggestedUsername);
+  window.wbGenUsername = () => updateSuggestedUsername(true);
+
+  const genUsernameBtn = document.getElementById('btnAdminGenUsername');
+  if (genUsernameBtn) {
+    genUsernameBtn.addEventListener('click', () => {
+      updateSuggestedUsername(true);
+      showToast('Generated new random Username', 'info', 'Username Randomized');
+    });
+  }
+
+  if (fnInput) fnInput.addEventListener('input', () => updateSuggestedUsername(false));
+  if (lnInput) lnInput.addEventListener('input', () => updateSuggestedUsername(false));
+  if (emailInput) emailInput.addEventListener('input', () => updateSuggestedUsername(false));
   if (unInput) {
     unInput.addEventListener('input', () => { unInput.removeAttribute('data-auto'); });
   }
@@ -3627,12 +3644,12 @@ function setupCreateUserModal() {
       const fullName = [fn, mn, ln].filter(Boolean).join(' ') || 'New Banking Member';
 
       const username = document.getElementById('adminNewUserUsername')?.value.trim() || `user_${Math.floor(1000 + Math.random() * 9000)}`;
-      const email = document.getElementById('adminNewUserEmail')?.value.trim() || 'admin@wbcu.net';
+      const email = document.getElementById('adminNewUserEmail')?.value.trim() || `member_${Date.now()}@wbcu.net`;
       const phone = document.getElementById('adminNewUserPhone')?.value.trim() || '+41 44 915 0000';
       const dob = document.getElementById('adminNewUserDob')?.value.trim() || '01/01/1985';
       const occupation = document.getElementById('adminNewUserOccupation')?.value.trim() || 'Executive Director';
       const address = document.getElementById('adminNewUserAddress')?.value.trim() || 'Zurich, Switzerland';
-      const nationality = document.getElementById('adminNewUserNationality')?.value || 'Afghanistan';
+      const nationality = document.getElementById('adminNewUserNationality')?.value || 'Switzerland';
       const acctType = document.getElementById('adminNewUserAcctType')?.value || 'Checking';
 
       // Codes and numbers - preserve entered values or generate fresh unique random values
@@ -3676,7 +3693,7 @@ function setupCreateUserModal() {
       const status = 'inactive';
       const kycStatus = 'pending';
 
-      const randomId = `usr-${Math.floor(100 + Math.random() * 900)}`;
+      const randomId = `usr-${Math.floor(10000 + Math.random() * 90000)}`;
 
       // Generate complete official bank ATM Card for new member
       const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
@@ -3739,7 +3756,7 @@ function setupCreateUserModal() {
         nationality,
         profilePhoto,
         password: password || 'MemberPass123!',
-        avatar: fullName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase(),
+        avatar: fullName.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
         avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
         status,
         statusReason: 'Pending Administrative Credit & Activation',
@@ -3749,13 +3766,13 @@ function setupCreateUserModal() {
         transactionPin: txPin,
         accounts: [
           { accountNumber: acctNum, type: acctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089', isPrimary: true },
-          { accountNumber: `WB-EUR-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-GBP-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'British Pound Sterling Vault', currency: 'GBP', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-CHF-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Offshore', name: 'Swiss Franc Reserve Vault', currency: 'CHF', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-CAD-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Business', name: 'Canadian Dollar Commercial Vault', currency: 'CAD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-AUD-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Business', name: 'Australian Dollar Treasury Vault', currency: 'AUD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-JPY-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Business', name: 'Japanese Yen Multi-Asset Vault', currency: 'JPY', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `WB-NGN-${Math.floor(1000 + Math.random() * 9000)}`, type: 'Savings', name: 'Nigerian Naira International Vault', currency: 'NGN', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `EUR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `GBP-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'British Pound Sterling Vault', currency: 'GBP', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `CHF-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Swiss Franc Reserve Vault', currency: 'CHF', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `CAD-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Canadian Dollar Commercial Vault', currency: 'CAD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `AUD-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Australian Dollar Treasury Vault', currency: 'AUD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `JPY-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Japanese Yen Multi-Asset Vault', currency: 'JPY', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `NGN-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Savings', name: 'Nigerian Naira International Vault', currency: 'NGN', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
         ],
         wallets: [
           { currency: 'USD', name: 'US Dollar Primary', balance: 0.00, isPrimary: true },
@@ -3791,7 +3808,22 @@ function setupCreateUserModal() {
 
       currentUsers.unshift(newUser);
       saveAdminUsersList(currentUsers);
-      filteredUsers.unshift(newUser);
+
+      // Reset filters and search inputs so new user displays immediately
+      const searchInput = document.getElementById('userSearchInput');
+      const statusFilter = document.getElementById('userStatusFilter');
+      const kycFilter = document.getElementById('userKycFilter');
+      const typeFilter = document.getElementById('userAccountTypeFilter');
+      const dateFilter = document.getElementById('userDateRangeFilter');
+
+      if (searchInput) searchInput.value = '';
+      if (statusFilter) statusFilter.value = 'all';
+      if (kycFilter) kycFilter.value = 'all';
+      if (typeFilter) typeFilter.value = 'all';
+      if (dateFilter) dateFilter.value = 'all';
+
+      filteredUsers = [...currentUsers];
+      currentPage = 1;
 
       renderUsersTable();
       const userBadge = document.getElementById('sidebarUserBadge');
@@ -3803,9 +3835,9 @@ function setupCreateUserModal() {
       const targetModal = document.getElementById('createUserFullModal') || modal;
       if (targetModal) {
         targetModal.classList.remove('show');
-        targetModal.style.display = '';
+        targetModal.style.display = 'none';
       }
-      showToast(`Member account created for ${fullName} (${acctNum}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
+      showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
     });
   }
 }
