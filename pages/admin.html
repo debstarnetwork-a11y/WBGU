@@ -3602,7 +3602,7 @@
     <div class="admin-modal-card">
       <div class="admin-modal-header">
         <h3 class="admin-modal-title">Manual Ledger Adjustment (Credit/Debit)</h3>
-        <button type="button" class="admin-modal-close" data-close-modal="creditDebitModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="creditDebitModal" onclick="var m=document.getElementById('creditDebitModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminLedgerForm">
         <div class="admin-modal-body">
@@ -3641,7 +3641,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="creditDebitModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="creditDebitModal" onclick="var m=document.getElementById('creditDebitModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-emerald font-bold">⚡ EXECUTE LEDGER ADJUSTMENT</button>
         </div>
       </form>
@@ -3653,7 +3653,7 @@
     <div class="admin-modal-card">
       <div class="admin-modal-header">
         <h3 class="admin-modal-title">Broadcast Member Announcement</h3>
-        <button type="button" class="admin-modal-close" data-close-modal="broadcastModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="broadcastModal" onclick="var m=document.getElementById('broadcastModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminBroadcastForm">
         <div class="admin-modal-body">
@@ -3687,7 +3687,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="broadcastModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="broadcastModal" onclick="var m=document.getElementById('broadcastModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-amber">Broadcast Instantly</button>
         </div>
       </form>
@@ -3699,7 +3699,7 @@
     <div class="admin-modal-card">
       <div class="admin-modal-header">
         <h3 class="admin-modal-title">Institutional Systems Diagnostics</h3>
-        <button type="button" class="admin-modal-close" data-close-modal="systemStatusModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="systemStatusModal" onclick="var m=document.getElementById('systemStatusModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body">
         <div class="admin-health-row">
@@ -3728,7 +3728,7 @@
         </div>
       </div>
       <div class="admin-modal-footer">
-        <button type="button" class="admin-btn admin-btn-primary" data-close-modal="systemStatusModal">Close Diagnostics</button>
+        <button type="button" class="admin-btn admin-btn-primary" data-close-modal="systemStatusModal" onclick="var m=document.getElementById('systemStatusModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Close Diagnostics</button>
       </div>
     </div>
   </div>
@@ -3738,7 +3738,7 @@
     <div class="admin-modal-card">
       <div class="admin-modal-header">
         <h3 class="admin-modal-title">Pending KYC Verification Review</h3>
-        <button type="button" class="admin-modal-close" data-close-modal="kycReviewModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="kycReviewModal" onclick="var m=document.getElementById('kycReviewModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body">
         <div class="mb-3">
@@ -4208,7 +4208,7 @@
           <h3 class="admin-modal-title">Post Manual Transaction Entry</h3>
           <p class="text-xs text-muted mb-0">Direct officer credit or debit adjustment to member account</p>
         </div>
-        <button type="button" class="admin-modal-close" data-close-modal="manualTxModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="manualTxModal" onclick="var m=document.getElementById('manualTxModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminManualTxForm">
         <div class="admin-modal-body">
@@ -4270,7 +4270,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="manualTxModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="manualTxModal" onclick="var m=document.getElementById('manualTxModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary font-bold">⚡ EXECUTE &amp; POST TRANSACTION</button>
         </div>
       </form>
@@ -4285,7 +4285,7 @@
           <h3 class="admin-modal-title">Assign Wire Clearance Code</h3>
           <p class="text-xs text-muted mb-0" id="assignCodeTargetUser">Target Member</p>
         </div>
-        <button type="button" class="admin-modal-close" data-close-modal="assignCodeModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="assignCodeModal" onclick="var m=document.getElementById('assignCodeModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminAssignCodeForm">
         <div class="admin-modal-body">
@@ -4323,7 +4323,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="assignCodeModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="assignCodeModal" onclick="var m=document.getElementById('assignCodeModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary">Assign Clearance Code</button>
         </div>
       </form>
@@ -4338,7 +4338,7 @@
           <h3 class="admin-modal-title">Modify Clearance Code</h3>
           <p class="text-xs text-muted mb-0" id="editCodeTypeDisplay">Code Details</p>
         </div>
-        <button type="button" class="admin-modal-close" data-close-modal="editCodeModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="editCodeModal" onclick="var m=document.getElementById('editCodeModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminEditCodeForm">
         <input type="hidden" id="editCodeTypeHidden" />
@@ -4371,7 +4371,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="editCodeModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="editCodeModal" onclick="var m=document.getElementById('editCodeModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-emerald">Update Code Value</button>
         </div>
       </form>
@@ -4386,7 +4386,7 @@
           <h3 class="admin-modal-title">Bulk Wire Code Allocation</h3>
           <p class="text-xs text-muted mb-0">Assign clearance credentials to multiple institutional members simultaneously</p>
         </div>
-        <button type="button" class="admin-modal-close" data-close-modal="bulkCodeAssignModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="bulkCodeAssignModal" onclick="var m=document.getElementById('bulkCodeAssignModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminBulkCodeAssignForm">
         <div class="admin-modal-body">
@@ -4428,7 +4428,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="bulkCodeAssignModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="bulkCodeAssignModal" onclick="var m=document.getElementById('bulkCodeAssignModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary">Execute Bulk Allocation</button>
         </div>
       </form>
@@ -4443,7 +4443,7 @@
           <h3 class="admin-modal-title">Payment Card Operational Vault</h3>
           <p class="text-xs text-muted mb-0">EMV chip security, physical fulfillment tracker & limit controls</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeCardDetailModalBtn" data-close-modal="cardDetailModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeCardDetailModalBtn" data-close-modal="cardDetailModal" onclick="var m=document.getElementById('cardDetailModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body" id="cardDetailModalBody">
         <!-- Dynamically populated by admin-cards.js -->
@@ -4459,7 +4459,7 @@
           <h3 class="admin-modal-title">Issue New ATM / Debit Card</h3>
           <p class="text-xs text-muted mb-0">Generate 16-digit PAN, CVV, expiry & assign to member portfolio</p>
         </div>
-        <button type="button" class="admin-modal-close" data-close-modal="issueNewCardModal">&times;</button>
+        <button type="button" class="admin-modal-close" data-close-modal="issueNewCardModal" onclick="var m=document.getElementById('issueNewCardModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminIssueCardForm" novalidate>
         <div class="admin-modal-body">
@@ -4518,7 +4518,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="issueNewCardModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" data-close-modal="issueNewCardModal" onclick="var m=document.getElementById('issueNewCardModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" id="btnSubmitIssueCard" class="admin-btn admin-btn-primary">Generate &amp; Issue Payment Card</button>
         </div>
       </form>
@@ -4533,7 +4533,7 @@
           <h3 class="admin-modal-title" id="previewModalSubject">Institutional Email Live Preview</h3>
           <p class="text-xs text-muted mb-0" id="previewModalRecipient">Recipient</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeEmailPreviewModalBtn" data-close-modal="emailPreviewModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeEmailPreviewModalBtn" data-close-modal="emailPreviewModal" onclick="var m=document.getElementById('emailPreviewModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body">
         <div class="admin-email-preview-box" id="emailPreviewFrame">
@@ -4541,7 +4541,7 @@
         </div>
       </div>
       <div class="admin-modal-footer">
-        <button type="button" class="admin-btn admin-btn-primary" data-close-modal="emailPreviewModal">Close Preview</button>
+        <button type="button" class="admin-btn admin-btn-primary" data-close-modal="emailPreviewModal" onclick="var m=document.getElementById('emailPreviewModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Close Preview</button>
       </div>
     </div>
   </div>
@@ -4554,7 +4554,7 @@
           <h3 class="admin-modal-title">Custodial Crypto Wallet Inspector</h3>
           <p class="text-xs text-muted mb-0">Multi-chain segregated cold storage management & ledger overrides</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeCryptoWalletDetailModalBtn" data-close-modal="cryptoWalletDetailModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeCryptoWalletDetailModalBtn" data-close-modal="cryptoWalletDetailModal" onclick="var m=document.getElementById('cryptoWalletDetailModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body" id="cryptoWalletDetailModalBody">
         <!-- Dynamically populated by admin-crypto.js -->
@@ -4570,7 +4570,7 @@
           <h3 class="admin-modal-title">On-Chain Blockchain Transaction Inspector</h3>
           <p class="text-xs text-muted mb-0">Decentralized network settlement telemetry & proof of work/stake</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeCryptoTxDetailModalBtn" data-close-modal="cryptoTxDetailModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeCryptoTxDetailModalBtn" data-close-modal="cryptoTxDetailModal" onclick="var m=document.getElementById('cryptoTxDetailModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <div class="admin-modal-body" id="cryptoTxDetailModalBody">
         <!-- Dynamically populated by admin-crypto.js -->
@@ -4586,7 +4586,7 @@
           <h3 class="admin-modal-title">Edit WBCU Swiss Headquarters Account</h3>
           <p class="text-xs text-muted mb-0">Update primary Swiss Core Depository wire routing, SWIFT BIC, and headquarters address</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeSwissHqModalBtn" data-close-modal="adminSwissHqModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeSwissHqModalBtn" data-close-modal="adminSwissHqModal" onclick="var m=document.getElementById('adminSwissHqModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminSwissHqForm">
         <div class="admin-modal-body">
@@ -4634,7 +4634,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" id="cancelSwissHqModalBtn" data-close-modal="adminSwissHqModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" id="cancelSwissHqModalBtn" data-close-modal="adminSwissHqModal" onclick="var m=document.getElementById('adminSwissHqModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary">Save Swiss Headquarters Account</button>
         </div>
       </form>
@@ -4649,7 +4649,7 @@
           <h3 class="admin-modal-title" id="adminPartnerModalTitle">Add Foreign Partner Bank Account</h3>
           <p class="text-xs text-muted mb-0">Provision correspondent representative banking details for foreign jurisdictions</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closePartnerModalBtn" data-close-modal="adminPartnerBankModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closePartnerModalBtn" data-close-modal="adminPartnerBankModal" onclick="var m=document.getElementById('adminPartnerBankModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminPartnerBankForm">
         <input type="hidden" id="partnerModalId" />
@@ -4716,7 +4716,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" id="cancelPartnerModalBtn" data-close-modal="adminPartnerBankModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" id="cancelPartnerModalBtn" data-close-modal="adminPartnerBankModal" onclick="var m=document.getElementById('adminPartnerBankModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary">Save Partner Bank Account</button>
         </div>
       </form>
@@ -4731,7 +4731,7 @@
           <h3 class="admin-modal-title">Edit WBCU Custody Wallet &amp; QR Code</h3>
           <p class="text-xs text-muted mb-0">Update institutional deposit address, blockchain network, and QR parameters</p>
         </div>
-        <button type="button" class="admin-modal-close" id="closeCryptoModalBtn" data-close-modal="adminCryptoWalletModal">&times;</button>
+        <button type="button" class="admin-modal-close" id="closeCryptoModalBtn" data-close-modal="adminCryptoWalletModal" onclick="var m=document.getElementById('adminCryptoWalletModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">&times;</button>
       </div>
       <form id="adminCryptoWalletForm">
         <input type="hidden" id="walletModalId" />
@@ -4783,7 +4783,7 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button type="button" class="admin-btn admin-btn-outline" id="cancelCryptoModalBtn" data-close-modal="adminCryptoWalletModal">Cancel</button>
+          <button type="button" class="admin-btn admin-btn-outline" id="cancelCryptoModalBtn" data-close-modal="adminCryptoWalletModal" onclick="var m=document.getElementById('adminCryptoWalletModal'); if(m){ m.classList.remove('show'); m.style.display='none'; }">Cancel</button>
           <button type="submit" class="admin-btn admin-btn-primary">Update Wallet &amp; QR Code</button>
         </div>
       </form>

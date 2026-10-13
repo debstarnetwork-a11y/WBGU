@@ -992,13 +992,19 @@ function setupModals() {
 
   // Generic modal close handlers
   document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      if (e && e.preventDefault) e.preventDefault();
       const modalId = btn.getAttribute('data-close-modal');
       const modal = document.getElementById(modalId);
-      if (modal) modal.classList.remove('show');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
       if (modalId === 'createUserFullModal' || modalId === 'createUserModal') {
-        document.getElementById('createUserFullModal')?.classList.remove('show');
-        document.getElementById('createUserModal')?.classList.remove('show');
+        const m1 = document.getElementById('createUserFullModal');
+        const m2 = document.getElementById('createUserModal');
+        if (m1) { m1.classList.remove('show'); m1.style.display = 'none'; }
+        if (m2) { m2.classList.remove('show'); m2.style.display = 'none'; }
       }
     });
   });
@@ -1008,6 +1014,7 @@ function setupModals() {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         overlay.classList.remove('show');
+        overlay.style.display = 'none';
       }
     });
   });
