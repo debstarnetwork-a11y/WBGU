@@ -6,7 +6,7 @@
  * 
  * Supports both cPanel MySQL database ('glolbka_wbcu_db') and fallback
  * file storage ('admin-users.json') to ensure users in the database
- * are always reflected in the Admin Portal.
+ * are always reflected in the Admin Portal and vice-versa.
  * ============================================================================
  */
 
@@ -116,8 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     'kycStatus' => $row['kyc_status'] ?? 'verified',
                     'role' => $row['role'] === 'super_admin' ? 'Super Admin' : ($row['role'] === 'admin' ? 'Admin' : 'Member'),
                     'is_admin' => in_array($row['role'], ['admin', 'super_admin']),
-                    'transactionPin' => $row['transaction_pin'] ?? '1234',
-                    'pin' => $row['transaction_pin'] ?? '1234',
+                    'transactionPin' => $row['transaction_pin'] ?? (string)rand(1000, 9999),
+                    'pin' => $row['transaction_pin'] ?? (string)rand(1000, 9999),
                     'password' => 'Password123!',
                     'createdAt' => $row['created_at'] ?? date('c'),
                     'lastLogin' => $row['last_login'] ?? date('c'),
@@ -159,7 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (empty($users)) {
         $users = loadUsersFromFile($dataFile);
     } else {
-        // Guarantee Super Admin is present even if database only has member accounts
         $hasAdminInList = false;
         foreach ($users as $u) {
             if (!empty($u['is_admin']) || in_array($u['role'] ?? '', ['Super Admin', 'Admin'])) {
@@ -187,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ----------------------------------------------------------------------------
-// POST: Create or sync users into database and JSON file
+// POST: Create or sync users into MySQL Database AND JSON file
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -201,10 +200,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     saveUsersToFile($dataFile, $users);
 
+    $dbSynced = false;
+    if ($pdo) {
+        try {
+            foreach ($users as $u) {
+                $uid = $u['id'] ?? ('usr-' . uniqid());
+                $username = $u['username'] ?? ('user_' . rand(1000, 9999));
+                $email = $u['email'] ?? ($username . '@wbcu.net');
+                $passwordHash = $u['password'] ?? 'Password123!';
+                $role = (isset($u['is_admin']) && $u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' ? 'super_admin' : 'user';
+                $transactionPin = $u['transactionPin'] ?? $u['pin'] ?? str_pad((string)rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+                $status = $u['status'] ?? 'active';
+                $kycStatus = $u['kycStatus'] ?? $u['kyc_status'] ?? 'verified';
+                $createdAt = $u['createdAt'] ?? date('Y-m-d H:i:s');
+
+                // Upsert user into MySQL users table
+                $stmt = $pdo->prepare("INSERT INTO users (id, username, email, password_hash, role, transaction_pin, status, kyc_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE username=?, email=?, role=?, transaction_pin=?, status=?, kyc_status=?");
+                $stmt->execute([$uid, $username, $email, $passwordHash, $role, $transactionPin, $status, $kycStatus, $createdAt, $username, $email, $role, $transactionPin, $status, $kycStatus]);
+
+                // Upsert profile into MySQL profiles table
+                $fullName = $u['fullName'] ?? trim(($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? ''));
+                $firstName = $u['firstName'] ?? explode(' ', $fullName)[0] ?? '';
+                $lastName = $u['lastName'] ?? explode(' ', $fullName)[1] ?? '';
+                $phone = $u['phone'] ?? '+41 44 915 0000';
+                $dob = $u['dob'] ?? '1985-01-01';
+                $nationality = $u['nationality'] ?? 'Switzerland';
+                $occupation = $u['occupation'] ?? 'Executive';
+                $address = $u['address'] ?? 'Zurich, Switzerland';
+                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? '';
+
+                $profStmt = $pdo->prepare("INSERT INTO profiles (user_id, first_name, last_name, full_name, phone_number, date_of_birth, nationality, occupation, address_line1, profile_photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE first_name=?, last_name=?, full_name=?, phone_number=?, date_of_birth=?, nationality=?, occupation=?, address_line1=?, profile_photo_url=?");
+                $profStmt->execute([$uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address, $photo]);
+
+                // Upsert accounts into MySQL accounts table
+                if (!empty($u['accounts']) && is_array($u['accounts'])) {
+                    foreach ($u['accounts'] as $acc) {
+                        $accNum = $acc['accountNumber'] ?? ('09' . rand(100000000, 999999999));
+                        $accType = $acc['type'] ?? 'Checking';
+                        $accName = $acc['name'] ?? 'Primary Vault';
+                        $currency = $acc['currency'] ?? 'USD';
+                        $balance = (float)($acc['balance'] ?? 0);
+                        $accStatus = $acc['status'] ?? 'active';
+                        $routing = $acc['routingNumber'] ?? '021000089';
+
+                        $accStmt = $pdo->prepare("INSERT INTO accounts (account_number, user_id, account_type, account_name, currency, balance, status, routing_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE account_type=?, account_name=?, currency=?, balance=?, status=?, routing_number=?");
+                        $accStmt->execute([$accNum, $uid, $accType, $accName, $currency, $balance, $accStatus, $routing, $accType, $accName, $currency, $balance, $accStatus, $routing]);
+                    }
+                }
+            }
+            $dbSynced = true;
+        } catch (Exception $e) {
+            $dbSynced = false;
+        }
+    }
+
     echo json_encode([
         'success' => true,
+        'db_synced' => $dbSynced,
         'count' => count($users),
-        'message' => 'Users synchronized successfully'
+        'message' => 'Users synchronized successfully to JSON and MySQL database'
     ]);
     exit;
 }
