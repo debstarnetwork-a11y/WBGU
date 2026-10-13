@@ -218,18 +218,24 @@
           }
 
           if (validatedAdmin) {
-            var finalSession = Object.assign({}, validatedAdmin, {
-              authMethod: 'Password_And_Biometric_2FA',
-              biometricVerifiedAt: new Date().toISOString()
-            });
-            sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
-            localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
+            window.pendingAdminSession = validatedAdmin;
             
-            if (submitBtn) submitBtn.innerHTML = '✓ Clearance Granted! Opening Portal...';
-            setTimeout(function() {
-              var dest = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
-              window.location.replace(dest);
-            }, 250);
+            var modal2FA = document.getElementById('admin2FAModal');
+            var subtext = document.getElementById('admin2FASubtext');
+            var statusText = document.getElementById('biometricStatusText');
+            var laser = document.getElementById('scannerLaser');
+            var btn = document.getElementById('btnAdminBiometricLogin');
+
+            if (subtext) subtext.textContent = 'Welcome ' + (validatedAdmin.fullName || 'Officer') + '. Scan registered administrator fingerprint for Step 2 clearance.';
+            if (statusText) { statusText.textContent = 'Touch sensor or click button to scan fingerprint'; statusText.style.color = '#6ee7b7'; }
+            if (laser) laser.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.textContent = 'Scan & Authorize Clearance'; }
+
+            if (modal2FA) modal2FA.style.display = 'flex';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = 'Step 2: Biometrics Required';
+            }
           } else {
             if (submitBtn) {
               submitBtn.disabled = false;
@@ -246,6 +252,71 @@
           }
 
           return false;
+        };
+
+        window.handleBiometricScan = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          var laser = document.getElementById('scannerLaser');
+          var statusText = document.getElementById('biometricStatusText');
+          var icon = document.getElementById('fingerprintIcon');
+          var btn = document.getElementById('btnAdminBiometricLogin');
+
+          if (laser) laser.style.display = 'block';
+          if (icon) {
+            icon.style.transform = 'scale(1.15)';
+            icon.style.borderColor = '#10b981';
+            icon.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.8)';
+          }
+          if (statusText) {
+            statusText.textContent = 'Scanning registered officer thumbprint... [Verifying]';
+            statusText.style.color = '#34d399';
+          }
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Verifying Biometric Scan...';
+          }
+
+          setTimeout(function() {
+            if (statusText) {
+              statusText.textContent = '✓ Thumbprint Match Confirmed: Clearance Granted';
+              statusText.style.color = '#10b981';
+            }
+            if (laser) laser.style.display = 'none';
+
+            var admin = window.pendingAdminSession || {
+              id: 'wb-adm-001',
+              email: 'mizbrymo@gmail.com',
+              fullName: 'Miz Brymo',
+              role: 'Super Admin',
+              badgeNumber: 'WB-TREASURY-01',
+              is_admin: true
+            };
+
+            var finalSession = Object.assign({}, admin, {
+              authMethod: 'Password_And_Biometric_2FA',
+              biometricVerifiedAt: new Date().toISOString()
+            });
+
+            sessionStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
+            localStorage.setItem('wb_credit_union_admin_session', JSON.stringify(finalSession));
+
+            setTimeout(function() {
+              var dest = new URLSearchParams(window.location.search).get('redirect') || '/pages/admin-dashboard.html';
+              window.location.replace(dest);
+            }, 500);
+          }, 1000);
+        };
+
+        window.cancel2FA = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          var modal2FA = document.getElementById('admin2FAModal');
+          if (modal2FA) modal2FA.style.display = 'none';
+          window.pendingAdminSession = null;
+          var submitBtn = document.getElementById('btnAdminSubmit');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Authenticate Officer Clearance';
+          }
         };
       </script>
 
@@ -267,7 +338,7 @@
           </p>
 
           <!-- Interactive Fingerprint Sensor Box -->
-          <div class="biometric-scanner-box mb-4" id="biometricBox" style="background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(2,132,199,0.08) 100%); border: 1.5px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; cursor: pointer;">
+          <div class="biometric-scanner-box mb-4" id="biometricBox" onclick="window.handleBiometricScan(event)" style="background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(2,132,199,0.08) 100%); border: 1.5px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; cursor: pointer;">
             <div class="scanner-laser-line" id="scannerLaser" style="display:none; position: absolute; left: 0; width: 100%; height: 2px; background: #10b981; box-shadow: 0 0 12px #10b981, 0 0 24px #34d399; animation: scanAnim 1.4s infinite ease-in-out;"></div>
             
             <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 2rem; margin: 0 auto 0.875rem; transition: transform 0.2s;" id="fingerprintIcon">
@@ -293,11 +364,11 @@
             }
           </style>
 
-          <button type="button" class="btn btn-block btn-lg mb-2" id="btnAdminBiometricLogin" style="background: #10b981; color: #042f2e; font-weight: 700; border: none; border-radius: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+          <button type="button" class="btn btn-block btn-lg mb-2" id="btnAdminBiometricLogin" onclick="window.handleBiometricScan(event)" style="background: #10b981; color: #042f2e; font-weight: 700; border: none; border-radius: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
             Scan & Authorize Clearance
           </button>
 
-          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2" id="btnCancel2FA" style="border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; background: transparent;">
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2" id="btnCancel2FA" onclick="window.cancel2FA(event)" style="border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; background: transparent;">
             Cancel & Return
           </button>
         </div>

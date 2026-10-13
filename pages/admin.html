@@ -62,11 +62,34 @@
       window.location.replace('/pages/admin-login.html');
     };
 
+    window.wbRandomizeCreateUserModalFields = function() {
+      var acct = document.getElementById('adminNewUserAccountNum');
+      var cot = document.getElementById('adminNewUserCotCode');
+      var imf = document.getElementById('adminNewUserImfCode');
+      var tax = document.getElementById('adminNewUserTaxCode');
+      var pin = document.getElementById('adminNewUserTxPin');
+      var pwd = document.getElementById('adminNewUserPassword');
+      var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
+
+      function randDigits(n) {
+        var s = '';
+        for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+        return s;
+      }
+
+      if (acct) acct.value = 'WB-' + randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
+      if (cot) cot.value = 'CT-' + randDigits(5);
+      if (imf) imf.value = 'IMF-' + randDigits(5);
+      if (tax) tax.value = 'TX-' + randDigits(5);
+      if (pin) pin.value = randDigits(4);
+      var newPwd = 'MemberPass' + randDigits(3) + '!';
+      if (pwd) pwd.value = newPwd;
+      if (pwdConfirm) pwdConfirm.value = newPwd;
+    };
+
     window.openCreateUserModal = function(e) {
       if (e && e.preventDefault) e.preventDefault();
-      if (typeof window.wbRandomizeCreateUserModalFields === 'function') {
-        try { window.wbRandomizeCreateUserModalFields(); } catch (err) {}
-      }
+      try { window.wbRandomizeCreateUserModalFields(); } catch (err) {}
       var modal = document.getElementById('createUserFullModal');
       if (modal) {
         modal.classList.add('show');
