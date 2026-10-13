@@ -1390,7 +1390,7 @@ export function renderUsersTable() {
     const userPhone = u.phone || u.phoneNumber || 'N/A';
 
     return `
-      <tr class="admin-user-row" data-user-id="${u.id}">
+      <tr class="admin-user-row" data-user-id="${u.id}" onclick="if(window.openUserDetailDrawer){window.openUserDetailDrawer('${u.id}');}">
         <td onclick="event.stopPropagation()">
           <input type="checkbox" class="user-select-checkbox" data-user-id="${u.id}" ${isChecked ? 'checked' : ''} />
         </td>
@@ -1434,14 +1434,14 @@ export function renderUsersTable() {
         <td class="text-right" onclick="event.stopPropagation()">
           <div class="d-flex items-center justify-end gap-1 flex-nowrap">
             ${(u.status === 'inactive' || u.status === 'dormant' || u.status === 'pending') ? `
-              <button class="admin-btn admin-btn-emerald admin-btn-sm btn-approve-user" data-user-id="${u.id}" title="Approve and Activate Account">
+              <button type="button" class="admin-btn admin-btn-emerald admin-btn-sm btn-approve-user" data-user-id="${u.id}" title="Approve and Activate Account" onclick="event.stopPropagation(); if(window.approveUserAccount){window.approveUserAccount('${u.id}');}">
                 ✓ Approve
               </button>
             ` : ''}
-            <button class="admin-btn admin-btn-outline admin-btn-sm btn-copy-user-details" data-user-id="${u.id}" title="Copy full member profile & transaction codes to clipboard" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.45); white-space: nowrap; font-weight: 600;">
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-user-details" data-user-id="${u.id}" title="Copy full member profile & transaction codes to clipboard" onclick="event.stopPropagation(); if(window.copyUserDossierToClipboard){window.copyUserDossierToClipboard('${u.id}', this);}" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.45); white-space: nowrap; font-weight: 600;">
               📋 Copy Info
             </button>
-            <button class="admin-btn admin-btn-outline admin-btn-sm btn-view-user" data-user-id="${u.id}">
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-view-user" data-user-id="${u.id}" onclick="event.stopPropagation(); if(window.openUserDetailDrawer){window.openUserDetailDrawer('${u.id}');}">
               Manage &rarr;
             </button>
           </div>
@@ -1459,7 +1459,8 @@ export function renderUsersTable() {
   });
 
   tbody.querySelectorAll('.btn-view-user').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const uId = btn.getAttribute('data-user-id');
       if (uId) openUserDetailDrawer(uId);
     });
@@ -1470,25 +1471,7 @@ export function renderUsersTable() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const uId = btn.getAttribute('data-user-id');
-      const user = getUserById(uId);
-      if (user) {
-        const text = formatUserDossier(user);
-        navigator.clipboard?.writeText(text).then(() => {
-          showToast(`Full details & transaction codes for ${user.fullName} copied to clipboard!`, 'success', 'Dossier Copied');
-        }).catch(() => {
-          showToast(`User Details for ${user.fullName} Copied.`, 'info');
-        });
-
-        const origHtml = btn.innerHTML;
-        btn.innerHTML = '✓ Copied!';
-        btn.style.color = '#34d399';
-        btn.style.borderColor = '#10b981';
-        setTimeout(() => {
-          btn.innerHTML = origHtml;
-          btn.style.color = '#38bdf8';
-          btn.style.borderColor = 'rgba(56, 189, 248, 0.45)';
-        }, 2000);
-      }
+      if (uId) copyUserDossierToClipboard(uId, btn);
     });
   });
 
@@ -1497,55 +1480,7 @@ export function renderUsersTable() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const uId = btn.getAttribute('data-user-id');
-      const user = getUserById(uId);
-      if (user) {
-        user.status = 'active';
-        user.account_status = 'active';
-        user.accountStatus = 'active';
-        user.kycStatus = 'verified';
-        user.kyc_status = 'verified';
-        user.statusReason = 'Account Active & Verified';
-        if (Array.isArray(user.accounts)) {
-          user.accounts.forEach((a) => { a.status = 'active'; });
-        }
-        if (Array.isArray(user.cards)) {
-          user.cards.forEach((c) => { c.status = 'active'; c.is_frozen = false; });
-        }
-        user.activityLog.unshift({
-          date: new Date().toISOString().replace('T', ' ').slice(0, 19),
-          action: 'Account approved & activated by Chief Treasury Auditor',
-          ip: 'Admin Console',
-          officer: 'Chief Treasury Auditor'
-        });
-        updateUser(user);
-
-        // Also activate demo user session if it matches
-        const cur = getDemoStorageUser();
-        if (cur && (cur.id === user.id || cur.email === user.email)) {
-          cur.status = 'active';
-          cur.account_status = 'active';
-          cur.accountStatus = 'active';
-          cur.kycStatus = 'verified';
-          cur.kyc_status = 'verified';
-          cur.statusReason = 'Account Active & Verified';
-          setDemoStorageUser(cur);
-        }
-
-        // Also activate cards in DEFAULT_CARDS_STORAGE_KEY
-        try {
-          const rawCards = localStorage.getItem('wb_credit_union_atm_cards');
-          if (rawCards) {
-            const uCards = JSON.parse(rawCards);
-            if (Array.isArray(uCards)) {
-              uCards.forEach((c) => { c.status = 'active'; c.is_frozen = false; });
-              localStorage.setItem('wb_credit_union_atm_cards', JSON.stringify(uCards));
-            }
-          }
-        } catch (err) {}
-
-        renderUsersTable();
-        showToast(`Account for ${user.fullName} has been approved and activated.`, 'success', 'Account Activated');
-      }
+      if (uId) approveUserAccount(uId);
     });
   });
 
@@ -1695,6 +1630,124 @@ function updateBulkToolbar() {
   }
 }
 
+export function copyTextToClipboard(text) {
+  return new Promise((resolve) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => resolve(true))
+        .catch(() => {
+          fallbackCopyText(text);
+          resolve(true);
+        });
+    } else {
+      fallbackCopyText(text);
+      resolve(true);
+    }
+  });
+}
+
+function fallbackCopyText(text) {
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    document.execCommand('copy');
+    textArea.remove();
+  } catch (err) {
+    console.warn('Fallback copy failed:', err);
+  }
+}
+
+export function copyUserDossierToClipboard(userId, btnEl) {
+  const user = getUserById(userId);
+  if (!user) return;
+
+  const text = formatUserDossier(user);
+  copyTextToClipboard(text).then(() => {
+    showToast(`Full member details & wire codes for ${user.fullName} copied to clipboard!`, 'success', 'Dossier Copied');
+    alert(`📋 MEMBER DOSSIER COPIED TO CLIPBOARD:\n\n` + text);
+  });
+
+  if (btnEl) {
+    const origHtml = btnEl.innerHTML;
+    btnEl.innerHTML = '✓ Copied!';
+    btnEl.style.color = '#34d399';
+    btnEl.style.borderColor = '#10b981';
+    setTimeout(() => {
+      btnEl.innerHTML = origHtml;
+      btnEl.style.color = '#38bdf8';
+      btnEl.style.borderColor = 'rgba(56, 189, 248, 0.45)';
+    }, 2000);
+  }
+}
+
+export function approveUserAccount(userId) {
+  const user = getUserById(userId);
+  if (!user) return;
+
+  user.status = 'active';
+  user.account_status = 'active';
+  user.accountStatus = 'active';
+  user.kycStatus = 'verified';
+  user.kyc_status = 'verified';
+  user.statusReason = 'Account Active & Verified';
+  if (Array.isArray(user.accounts)) {
+    user.accounts.forEach((a) => { a.status = 'active'; });
+  }
+  if (Array.isArray(user.cards)) {
+    user.cards.forEach((c) => { c.status = 'active'; c.is_frozen = false; });
+  }
+  user.activityLog = user.activityLog || [];
+  user.activityLog.unshift({
+    date: new Date().toISOString().replace('T', ' ').slice(0, 19),
+    action: 'Account approved & activated by Chief Treasury Auditor',
+    ip: 'Admin Console',
+    officer: 'Chief Treasury Auditor'
+  });
+  updateUser(user);
+
+  currentUsers = currentUsers.map((u) => u.id === user.id ? { ...user } : u);
+  filteredUsers = filteredUsers.map((u) => u.id === user.id ? { ...user } : u);
+
+  try {
+    const cur = getDemoStorageUser();
+    if (cur && (cur.id === user.id || cur.email === user.email)) {
+      cur.status = 'active';
+      cur.account_status = 'active';
+      cur.accountStatus = 'active';
+      cur.kycStatus = 'verified';
+      cur.kyc_status = 'verified';
+      cur.statusReason = 'Account Active & Verified';
+      setDemoStorageUser(cur);
+    }
+  } catch (e) {}
+
+  try {
+    const rawCards = localStorage.getItem('wb_credit_union_atm_cards');
+    if (rawCards) {
+      const uCards = JSON.parse(rawCards);
+      if (Array.isArray(uCards)) {
+        uCards.forEach((c) => {
+          if (c.userId === user.id || c.userEmail === user.email) {
+            c.status = 'active';
+            c.is_frozen = false;
+          }
+        });
+        localStorage.setItem('wb_credit_union_atm_cards', JSON.stringify(uCards));
+      }
+    }
+  } catch (err) {}
+
+  renderUsersTable();
+  showToast(`Account for ${user.fullName} has been approved and activated.`, 'success', 'Account Activated');
+  alert(`✓ ACCOUNT APPROVED & ACTIVATED!\n\nMember Name: ${user.fullName}\nStatus: ACTIVE\nKYC Tier: Level 3 Verified\nAccount Number: ${user.accounts?.[0]?.accountNumber || 'N/A'}\n\nThe member account is now fully active.`);
+}
+
 /* ----------------------------------------------------------------------------
  * 8. USER DETAIL DRAWER CONTROLLER
  * ---------------------------------------------------------------------------- */
@@ -1726,6 +1779,8 @@ function setupUserDetailDrawer() {
   setupDrawerActionButtons();
   if (typeof window !== 'undefined') {
     window.openUserDetailDrawer = openUserDetailDrawer;
+    window.approveUserAccount = approveUserAccount;
+    window.copyUserDossierToClipboard = copyUserDossierToClipboard;
   }
 }
 
