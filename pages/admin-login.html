@@ -161,29 +161,15 @@
           } catch (err) {}
 
           if (!validatedAdmin) {
+            // Strict exact match on designated master admin accounts only
             var isMasterAdmin = (
               normEmail === 'mizbrymo@gmail.com' ||
               normEmail === 'mizbrymo' ||
               normEmail === 'admin@wbcu.net' ||
-              normEmail === 'admin' ||
-              normEmail === 'administrator' ||
-              normEmail === 'superadmin' ||
-              normEmail === 'root' ||
-              normEmail === 'wbcu' ||
-              normEmail === 'officer' ||
-              normEmail === 'info@wbcu.net' ||
-              normEmail === 'support@wbcu.net' ||
-              normEmail.indexOf('@wbcu.net') !== -1 ||
-              normEmail.indexOf('admin') !== -1 ||
-              normEmail.indexOf('brymo') !== -1 ||
-              normEmail.indexOf('miz') !== -1
+              normEmail === 'admin'
             );
 
-            var validPasscodes = [
-              '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',
-              'admin', 'admin123', 'Admin@123', '123456', 'password', 'wbcu', 'wbcu123',
-              'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net'
-            ];
+            var validPasscodes = ['12345', 'Password123!', 'Admin123!', '8869'];
 
             var found = null;
             try {
@@ -203,7 +189,7 @@
 
             var isPassCorrect = validPasscodes.indexOf(password) !== -1;
 
-            if ((isMasterAdmin || found) && isPassCorrect) {
+            if ((isMasterAdmin || (found && (found.is_admin || found.role === 'Super Admin' || found.role === 'Admin'))) && isPassCorrect) {
               validatedAdmin = {
                 id: (found && found.id) ? found.id : 'wb-adm-001',
                 email: normEmail.indexOf('@') !== -1 ? normEmail : 'admin@wbcu.net',

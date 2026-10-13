@@ -2738,24 +2738,9 @@ export function initAdminLoginForm() {
           normalizedEmail === 'mizbrymo@gmail.com' ||
           normalizedEmail === 'mizbrymo' ||
           normalizedEmail === 'admin@wbcu.net' ||
-          normalizedEmail === 'admin' ||
-          normalizedEmail === 'administrator' ||
-          normalizedEmail === 'superadmin' ||
-          normalizedEmail === 'root' ||
-          normalizedEmail === 'wbcu' ||
-          normalizedEmail === 'officer' ||
-          normalizedEmail === 'info@wbcu.net' ||
-          normalizedEmail === 'support@wbcu.net' ||
-          normalizedEmail.endsWith('@wbcu.net') ||
-          normalizedEmail.includes('admin') ||
-          normalizedEmail.includes('brymo') ||
-          normalizedEmail.includes('miz');
+          normalizedEmail === 'admin';
 
-        const validPasscodes = [
-          '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',
-          'admin', 'admin123', 'Admin@123', '123456', 'password', 'wbcu', 'wbcu123',
-          'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net'
-        ];
+        const validPasscodes = ['12345', 'Password123!', 'Admin123!', '8869'];
 
         let dbUsers = [];
         try {
