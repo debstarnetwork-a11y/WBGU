@@ -1,37 +1,134 @@
 [
   {
+    "id": "usr-101",
+    "fullName": "Miz Brymo",
+    "email": "mizbrymo@gmail.com",
+    "password": "12345",
+    "pin": "1234",
+    "transactionPin": "8869",
+    "role": "Super Admin",
+    "is_admin": true,
+    "phone": "+41 44 915 8901",
+    "avatar": "MB",
+    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+    "dob": "1984-06-14",
+    "address": "109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland",
+    "nationality": "Switzerland",
+    "status": "active",
+    "statusReason": "Super Admin Clearance",
+    "kycStatus": "verified",
+    "createdAt": "2025-01-15T09:30:00Z",
+    "lastLogin": "2026-10-13T19:33:01.216Z",
+    "accounts": [
+      {
+        "accountNumber": "9482-1049-55",
+        "type": "Checking",
+        "name": "Premier Checking Account",
+        "currency": "USD",
+        "balance": 248500,
+        "status": "active",
+        "routingNumber": "021000089",
+        "isPrimary": true
+      },
+      {
+        "accountNumber": "9482-1049-56",
+        "type": "Savings",
+        "name": "Swiss High-Yield Wealth Reserve",
+        "currency": "CHF",
+        "balance": 1450000,
+        "status": "active",
+        "routingNumber": "021000089"
+      }
+    ],
+    "transactions": [],
+    "cards": [
+      {
+        "id": "crd-1",
+        "cardNumber": "•••• •••• •••• 1234",
+        "cardHolder": "MIZ BRYMO",
+        "type": "Black Metal Premier",
+        "expiry": "09/29",
+        "status": "active",
+        "dailyAtmLimit": 10000,
+        "onlineLimit": 50000
+      }
+    ],
+    "cryptoWallets": [
+      {
+        "currency": "BTC",
+        "balance": 4.85,
+        "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9",
+        "status": "active"
+      }
+    ],
+    "wireTransferCodes": {
+      "COT": {
+        "code": "CT-78234",
+        "active": true,
+        "notes": "Cost of Transfer clearance token for Swiss SWIFT"
+      },
+      "TAX": {
+        "code": "TX-99120",
+        "active": true,
+        "notes": "Federal Tax Clearance certificate"
+      },
+      "IMF": {
+        "code": "IMF-44912",
+        "active": true,
+        "notes": "International Monetary Fund regulatory signoff"
+      },
+      "AML": {
+        "code": "AML-00821",
+        "active": true,
+        "notes": "Anti-Money Laundering verification key"
+      },
+      "PAP": {
+        "code": "PAP-33810",
+        "active": true,
+        "notes": "Proof of Anti-Piracy / Source of Wealth code"
+      }
+    },
+    "activityLog": []
+  },
+  {
     "id": "usr-34400",
     "fullName": "Kristin Willis",
     "firstName": "Kristin",
     "lastName": "Willis",
     "username": "kwillis",
-    "email": "debstarnetwork@gmail.com",
-    "phone": "9377334076",
+    "email": "kwillis.member@wbcu-reserve.ch",
     "password": "MemberPass123!",
     "pin": "8869",
     "transactionPin": "8869",
     "role": "Member",
+    "is_admin": false,
+    "phone": "9377334076",
     "avatar": "KW",
     "avatarColor": "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    "status": "active",
-    "account_status": "active",
-    "accountStatus": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "kyc_status": "verified",
+    "dob": "1988-03-24",
+    "nationality": "United States",
+    "address": "742 Evergreen Terrace, Springfield, OR 97477",
+    "status": "inactive",
+    "account_status": "inactive",
+    "accountStatus": "dormant",
+    "statusReason": "Pending Administrative Approval",
+    "kycStatus": "pending",
+    "kyc_status": "pending",
     "createdAt": "2026-10-13T10:00:00Z",
+    "lastLogin": "2026-10-13T19:33:01.217Z",
     "accounts": [
       {
         "accountNumber": "09331164041",
         "type": "Checking",
         "name": "Premier Checking Account",
         "currency": "USD",
-        "balance": 0.0,
+        "balance": 0,
         "status": "active",
         "routingNumber": "021000089",
         "isPrimary": true
       }
     ],
+    "transactions": [],
     "cards": [
       {
         "id": "crd-34400",
@@ -49,7 +146,7 @@
     "cryptoWallets": [
       {
         "currency": "BTC",
-        "balance": 0.0,
+        "balance": 0,
         "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9",
         "status": "active"
       }
@@ -86,18 +183,22 @@
   },
   {
     "id": "usr-659",
-    "fullName": "Olle Robert Christer R\u00e5str\u00f6m",
+    "fullName": "Olle Robert Christer Råström",
     "firstName": "Olle Robert Christer",
-    "lastName": "R\u00e5str\u00f6m",
+    "lastName": "Råström",
     "username": "ollerobertrstrm52",
     "email": "olle.rastrom@swissprivatevault.ch",
-    "phone": "+46702813441",
     "password": "Password123!",
     "pin": "8869",
     "transactionPin": "8869",
     "role": "Member",
+    "is_admin": false,
+    "phone": "+46702813441",
     "avatar": "OR",
     "avatarColor": "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+    "dob": "1982-05-18",
+    "nationality": "Sweden",
+    "address": "Korgmakargatan 32 621 53 Visby",
     "status": "active",
     "account_status": "active",
     "accountStatus": "active",
@@ -105,23 +206,25 @@
     "kycStatus": "verified",
     "kyc_status": "verified",
     "createdAt": "2026-10-07T10:00:00Z",
+    "lastLogin": "2026-10-13T19:33:01.217Z",
     "accounts": [
       {
         "accountNumber": "09372996993",
         "type": "Checking",
         "name": "Checking Primary Vault",
         "currency": "USD",
-        "balance": 100000.0,
+        "balance": 100000,
         "status": "active",
         "routingNumber": "021000089",
         "isPrimary": true
       }
     ],
+    "transactions": [],
     "cards": [
       {
         "id": "crd-659",
         "cardNumber": "4532 7140 3114 3230",
-        "cardHolder": "OLLE ROBERT CHRISTER R\u00c5STR\u00d6M",
+        "cardHolder": "OLLE ROBERT CHRISTER RÅSTRÖM",
         "type": "Visa Platinum Debit",
         "expiry": "09/31",
         "cvv": "775",
@@ -134,7 +237,7 @@
     "cryptoWallets": [
       {
         "currency": "BTC",
-        "balance": 0.0,
+        "balance": 0,
         "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9",
         "status": "active"
       }
@@ -158,7 +261,7 @@
       "AML": {
         "code": "AML-86902",
         "active": true,
-        "notes": "Anti-Money Laundering key"
+        "notes": "Anti-Money Laundering verification key"
       },
       "PAP": {
         "code": "PAP-70216",
@@ -168,2288 +271,6 @@
       "OTP": "806158"
     },
     "activityLog": []
-  },
-  {
-    "id": "usr-272",
-    "firstName": "Carlos",
-    "middleName": "Enrique Rivas",
-    "lastName": "Angulo",
-    "fullName": "Carlos Enrique Rivas Angulo",
-    "username": "carlosenriqueangulo29",
-    "email": "admin@wbcu.net",
-    "phone": "3043567934",
-    "dob": "05/18/1983",
-    "occupation": "Self-employed",
-    "address": "Calle 56 #4B-145, San Francisco condominium, house 10C, Cali",
-    "nationality": "Colombia",
-    "profilePhoto": "",
-    "password": "MemberPass123!",
-    "avatar": "CE",
-    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-    "status": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "createdAt": "2026-10-09T20:04:57.546Z",
-    "lastLogin": "2026-10-09T20:04:57.546Z",
-    "transactionPin": "7011",
-    "accounts": [
-      {
-        "accountNumber": "09626526761",
-        "type": "Checking",
-        "name": "US Dollar Primary Vault",
-        "currency": "USD",
-        "balance": 2500000,
-        "available": 2500000,
-        "status": "active",
-        "routingNumber": "021000089",
-        "isPrimary": true
-      },
-      {
-        "accountNumber": "WB-EUR-4229",
-        "type": "Offshore",
-        "name": "Euro Global Holding Vault",
-        "currency": "EUR",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-GBP-7802",
-        "type": "Offshore",
-        "name": "British Pound Sterling Vault",
-        "currency": "GBP",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CHF-6923",
-        "type": "Offshore",
-        "name": "Swiss Franc Reserve Vault",
-        "currency": "CHF",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CAD-9745",
-        "type": "Business",
-        "name": "Canadian Dollar Commercial Vault",
-        "currency": "CAD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-AUD-9419",
-        "type": "Business",
-        "name": "Australian Dollar Treasury Vault",
-        "currency": "AUD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-JPY-8133",
-        "type": "Business",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "currency": "JPY",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-NGN-1148",
-        "type": "Savings",
-        "name": "Nigerian Naira International Vault",
-        "currency": "NGN",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      }
-    ],
-    "wallets": [
-      {
-        "currency": "USD",
-        "name": "US Dollar Primary",
-        "balance": 2500000,
-        "isPrimary": true
-      },
-      {
-        "currency": "EUR",
-        "name": "Euro Global Holding",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "GBP",
-        "name": "British Pound Sterling",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CHF",
-        "name": "Swiss Franc Vault Reserve",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CAD",
-        "name": "Canadian Dollar Commercial",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "AUD",
-        "name": "Australian Dollar Treasury",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "JPY",
-        "name": "Japanese Yen Multi-Asset",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "NGN",
-        "name": "Nigerian Naira International",
-        "balance": 0,
-        "isPrimary": false
-      }
-    ],
-    "transactions": [],
-    "grants": [],
-    "loans": [],
-    "cards": [
-      {
-        "id": "crd-1791576297545",
-        "cardNumber": "4532 8291 8011 6287",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 6287",
-        "card_number": "4532829180116287",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09626526761",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "462",
-        "pin": "7011",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-66859505-SWISS",
-        "shippingAddress": "Calle 56 #4B-145, San Francisco condominium, house 10C, Cali",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-09T20:04:57.545Z",
-        "recentTransactions": [],
-        "userId": "usr-272"
-      },
-      {
-        "id": "crd-1791556836730",
-        "userId": "usr-272",
-        "cardNumber": "4532 3796 3296 2204",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2204",
-        "card_number": "4532379632962204",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Visa Platinum Premier",
-        "cardType": "Visa Platinum Premier",
-        "expiry": "10/30",
-        "cvv": "840",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791556816088",
-        "userId": "usr-272",
-        "cardNumber": "4532 4728 1542 7080",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 7080",
-        "card_number": "4532472815427080",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Visa Standard Debit",
-        "cardType": "Visa Standard Debit",
-        "expiry": "10/30",
-        "cvv": "684",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791556790365",
-        "userId": "usr-272",
-        "cardNumber": "4532 5997 8301 2626",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2626",
-        "card_number": "4532599783012626",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Mastercard World Global Elite Black Metal",
-        "cardType": "Mastercard World Global Elite Black Metal",
-        "expiry": "10/30",
-        "cvv": "543",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791556758646",
-        "cardNumber": "4532 6564 5862 2750",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2750",
-        "cvv": "869",
-        "pin": "1438",
-        "expiry": "10/30",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userId": "usr-272",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "cardType": "Mastercard Corporate Executive",
-        "theme": "card-theme-corporate",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "not_requested",
-        "trackingNumber": "CH-POST-89758707-SWISS",
-        "shippingAddress": "Zurich, Switzerland",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-09T14:39:18.738Z",
-        "recentTransactions": [],
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "card_number": "4532656458622750",
-        "type": "Mastercard Corporate Executive",
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791556692200",
-        "cardNumber": "4532 8088 5992 4683",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4683",
-        "card_number": "4532808859924683",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "415",
-        "pin": "1438",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-38368681-SWISS",
-        "shippingAddress": "500 NW 2nd Ave unit1 2591",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-09T14:38:12.200Z",
-        "recentTransactions": [],
-        "userId": "usr-272"
-      },
-      {
-        "id": "crd-1791576462334",
-        "userId": "usr-272",
-        "cardNumber": "4532 7430 2338 3673",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 3673",
-        "card_number": "4532743023383673",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09626526761",
-        "type": "Mastercard Gold Preferred",
-        "cardType": "Mastercard Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "964",
-        "pin": "7011",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791576476571",
-        "userId": "usr-272",
-        "cardNumber": "4532 9416 1531 2745",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2745",
-        "card_number": "4532941615312745",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09626526761",
-        "type": "Visa Infinite Global Elite Black Metal",
-        "cardType": "Visa Infinite Global Elite Black Metal",
-        "expiry": "10/30",
-        "cvv": "557",
-        "pin": "7011",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791576489836",
-        "userId": "usr-272",
-        "cardNumber": "4532 3400 3690 4386",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4386",
-        "card_number": "4532340036904386",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09626526761",
-        "type": "Visa Corporate Executive",
-        "cardType": "Visa Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "216",
-        "pin": "7011",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791576512527",
-        "userId": "usr-272",
-        "cardNumber": "4532 2681 9811 8428",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 8428",
-        "card_number": "4532268198118428",
-        "cardHolder": "CARLOS ENRIQUE RIVAS ANGULO",
-        "cardholder_name": "CARLOS ENRIQUE RIVAS ANGULO",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09626526761",
-        "type": "Visa Corporate Executive",
-        "cardType": "Visa Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "224",
-        "pin": "7011",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      }
-    ],
-    "cryptoWallets": [
-      {
-        "id": "cw-btc",
-        "symbol": "BTC",
-        "name": "Bitcoin Vault",
-        "address": "bc1qmrpja1yg5c",
-        "balance": 0,
-        "priceUSD": 64516.12,
-        "network": "Bitcoin Mainnet"
-      },
-      {
-        "id": "cw-eth",
-        "symbol": "ETH",
-        "name": "Ethereum Vault",
-        "address": "0x5d7743f157",
-        "balance": 0,
-        "priceUSD": 3480.5,
-        "network": "ERC-20"
-      },
-      {
-        "id": "cw-usdt",
-        "symbol": "USDT",
-        "name": "Tether USD Vault",
-        "address": "0x592f734b65",
-        "balance": 0,
-        "priceUSD": 1,
-        "network": "TRC-20"
-      }
-    ],
-    "wireTransferCodes": {
-      "COT": {
-        "code": "0951023",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "TAX": {
-        "code": "TX-58050",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "IMF": {
-        "code": "7456787",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "AML": {
-        "code": "AML-14095",
-        "active": true,
-        "notes": "Automated Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-83111",
-        "active": true,
-        "notes": "Automated Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "745095",
-        "active": true,
-        "notes": "Automated One-Time Passcode clearance"
-      }
-    },
-    "activityLog": [
-      {
-        "date": "2026-10-09 20:05:41",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-09 20:05:16",
-        "action": "Account approved & activated by Chief Treasury Auditor",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-09 20:04:57",
-        "action": "Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      }
-    ],
-    "account_status": "active",
-    "accountStatus": "active",
-    "kyc_status": "verified",
-    "avatarUrl": ""
-  },
-  {
-    "id": "usr-668",
-    "firstName": "Knight",
-    "middleName": "",
-    "lastName": "Adriane",
-    "fullName": "Knight Adriane",
-    "username": "knightadriane47",
-    "email": "admin@wbcu.net",
-    "phone": "(786)510-6882",
-    "dob": "05/18/1982",
-    "occupation": "Tax Advisor",
-    "address": "500 NW 2nd Ave unit1 2591",
-    "nationality": "United States",
-    "profilePhoto": "",
-    "password": "MemberPass123!",
-    "avatar": "KA",
-    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-    "status": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "createdAt": "2026-10-09T14:38:12.204Z",
-    "lastLogin": "2026-10-09T14:38:12.204Z",
-    "transactionPin": "1438",
-    "accounts": [
-      {
-        "accountNumber": "09334424641",
-        "type": "Checking",
-        "name": "US Dollar Primary Vault",
-        "currency": "USD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "isPrimary": true
-      },
-      {
-        "accountNumber": "WB-EUR-8646",
-        "type": "Offshore",
-        "name": "Euro Global Holding Vault",
-        "currency": "EUR",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-GBP-6804",
-        "type": "Offshore",
-        "name": "British Pound Sterling Vault",
-        "currency": "GBP",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CHF-3870",
-        "type": "Offshore",
-        "name": "Swiss Franc Reserve Vault",
-        "currency": "CHF",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CAD-8533",
-        "type": "Business",
-        "name": "Canadian Dollar Commercial Vault",
-        "currency": "CAD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-AUD-3371",
-        "type": "Business",
-        "name": "Australian Dollar Treasury Vault",
-        "currency": "AUD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-JPY-2666",
-        "type": "Business",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "currency": "JPY",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-NGN-7925",
-        "type": "Savings",
-        "name": "Nigerian Naira International Vault",
-        "currency": "NGN",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      }
-    ],
-    "wallets": [
-      {
-        "currency": "USD",
-        "name": "US Dollar Primary",
-        "balance": 0,
-        "isPrimary": true
-      },
-      {
-        "currency": "EUR",
-        "name": "Euro Global Holding",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "GBP",
-        "name": "British Pound Sterling",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CHF",
-        "name": "Swiss Franc Vault Reserve",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CAD",
-        "name": "Canadian Dollar Commercial",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "AUD",
-        "name": "Australian Dollar Treasury",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "JPY",
-        "name": "Japanese Yen Multi-Asset",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "NGN",
-        "name": "Nigerian Naira International",
-        "balance": 0,
-        "isPrimary": false
-      }
-    ],
-    "transactions": [],
-    "grants": [],
-    "loans": [],
-    "cards": [
-      {
-        "id": "crd-1791556692200",
-        "cardNumber": "4532 8088 5992 4683",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4683",
-        "card_number": "4532808859924683",
-        "cardHolder": "KNIGHT ADRIANE",
-        "cardholder_name": "KNIGHT ADRIANE",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "415",
-        "pin": "1438",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-38368681-SWISS",
-        "shippingAddress": "500 NW 2nd Ave unit1 2591",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-09T14:38:12.200Z",
-        "recentTransactions": [],
-        "userId": "usr-668"
-      },
-      {
-        "id": "crd-1791556758646",
-        "userId": "usr-668",
-        "cardNumber": "4532 6564 5862 2750",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2750",
-        "card_number": "4532656458622750",
-        "cardHolder": "KNIGHT ADRIANE",
-        "cardholder_name": "KNIGHT ADRIANE",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Mastercard Corporate Executive",
-        "cardType": "Mastercard Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "869",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "theme": "card-theme-corporate",
-        "is_frozen": false,
-        "printStatus": "not_requested",
-        "trackingNumber": "CH-POST-89758707-SWISS",
-        "shippingAddress": "Zurich, Switzerland",
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-09T14:39:18.738Z",
-        "recentTransactions": []
-      },
-      {
-        "id": "crd-1791556790365",
-        "userId": "usr-668",
-        "cardNumber": "4532 5997 8301 2626",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2626",
-        "card_number": "4532599783012626",
-        "cardHolder": "KNIGHT ADRIANE",
-        "cardholder_name": "KNIGHT ADRIANE",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Mastercard World Global Elite Black Metal",
-        "cardType": "Mastercard World Global Elite Black Metal",
-        "expiry": "10/30",
-        "cvv": "543",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791556816088",
-        "userId": "usr-668",
-        "cardNumber": "4532 4728 1542 7080",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 7080",
-        "card_number": "4532472815427080",
-        "cardHolder": "KNIGHT ADRIANE",
-        "cardholder_name": "KNIGHT ADRIANE",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Visa Standard Debit",
-        "cardType": "Visa Standard Debit",
-        "expiry": "10/30",
-        "cvv": "684",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791556836730",
-        "userId": "usr-668",
-        "cardNumber": "4532 3796 3296 2204",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2204",
-        "card_number": "4532379632962204",
-        "cardHolder": "KNIGHT ADRIANE",
-        "cardholder_name": "KNIGHT ADRIANE",
-        "userEmail": "admin@wbcu.net",
-        "accountNumber": "09334424641",
-        "type": "Visa Platinum Premier",
-        "cardType": "Visa Platinum Premier",
-        "expiry": "10/30",
-        "cvv": "840",
-        "pin": "1438",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      }
-    ],
-    "cryptoWallets": [
-      {
-        "id": "cw-btc",
-        "symbol": "BTC",
-        "name": "Bitcoin Vault",
-        "address": "bc1qqk9a5n10ym",
-        "balance": 0,
-        "priceUSD": 64516.12,
-        "network": "Bitcoin Mainnet"
-      },
-      {
-        "id": "cw-eth",
-        "symbol": "ETH",
-        "name": "Ethereum Vault",
-        "address": "0xe34cb34d74",
-        "balance": 0,
-        "priceUSD": 3480.5,
-        "network": "ERC-20"
-      },
-      {
-        "id": "cw-usdt",
-        "symbol": "USDT",
-        "name": "Tether USD Vault",
-        "address": "0x292b5aed08",
-        "balance": 0,
-        "priceUSD": 1,
-        "network": "TRC-20"
-      }
-    ],
-    "wireTransferCodes": {
-      "COT": {
-        "code": "0758852",
-        "active": true,
-        "notes": "Automated Cost of Transfer clearance token"
-      },
-      "TAX": {
-        "code": "TX-42622",
-        "active": true,
-        "notes": "Automated Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "3141286",
-        "active": true,
-        "notes": "Automated IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-54097",
-        "active": true,
-        "notes": "Automated Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-87044",
-        "active": true,
-        "notes": "Automated Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "294970",
-        "active": true,
-        "notes": "Automated One-Time Passcode clearance"
-      }
-    },
-    "activityLog": [
-      {
-        "date": "2026-10-09 14:38:33",
-        "action": "Account approved & activated by Chief Treasury Auditor",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-09 14:38:12",
-        "action": "Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      }
-    ],
-    "account_status": "active",
-    "accountStatus": "active",
-    "kyc_status": "verified"
-  },
-  {
-    "id": "usr-667",
-    "firstName": "Eduardo",
-    "middleName": "",
-    "lastName": "Blaza",
-    "fullName": "Eduardo Blaza",
-    "username": "eduardoblaza68",
-    "email": "debstarnet@glo.com",
-    "phone": "639983916715",
-    "dob": "05/18/1982",
-    "occupation": "Retired",
-    "address": "115 Alagao Bauan",
-    "nationality": "Philippines",
-    "profilePhoto": "data:image/jpeg;base64,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",
-    "password": "12345",
-    "avatar": "EB",
-    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-    "status": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "createdAt": "2026-10-08T20:38:19.381Z",
-    "lastLogin": "2026-10-08T20:38:19.382Z",
-    "transactionPin": "9782",
-    "accounts": [
-      {
-        "accountNumber": "09970412193",
-        "type": "Checking",
-        "name": "US Dollar Primary Vault",
-        "currency": "USD",
-        "balance": 100000,
-        "available": 100000,
-        "status": "active",
-        "routingNumber": "021000089",
-        "isPrimary": true
-      },
-      {
-        "accountNumber": "WB-EUR-4804",
-        "type": "Offshore",
-        "name": "Euro Global Holding Vault",
-        "currency": "EUR",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-GBP-1300",
-        "type": "Offshore",
-        "name": "British Pound Sterling Vault",
-        "currency": "GBP",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CHF-5130",
-        "type": "Offshore",
-        "name": "Swiss Franc Reserve Vault",
-        "currency": "CHF",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CAD-9648",
-        "type": "Business",
-        "name": "Canadian Dollar Commercial Vault",
-        "currency": "CAD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-AUD-8876",
-        "type": "Business",
-        "name": "Australian Dollar Treasury Vault",
-        "currency": "AUD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-JPY-1132",
-        "type": "Business",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "currency": "JPY",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-NGN-1531",
-        "type": "Savings",
-        "name": "Nigerian Naira International Vault",
-        "currency": "NGN",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      }
-    ],
-    "wallets": [
-      {
-        "currency": "USD",
-        "name": "US Dollar Primary",
-        "balance": 100000,
-        "isPrimary": true
-      },
-      {
-        "currency": "EUR",
-        "name": "Euro Global Holding",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "GBP",
-        "name": "British Pound Sterling",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CHF",
-        "name": "Swiss Franc Vault Reserve",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CAD",
-        "name": "Canadian Dollar Commercial",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "AUD",
-        "name": "Australian Dollar Treasury",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "JPY",
-        "name": "Japanese Yen Multi-Asset",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "NGN",
-        "name": "Nigerian Naira International",
-        "balance": 0,
-        "isPrimary": false
-      }
-    ],
-    "transactions": [],
-    "grants": [],
-    "loans": [],
-    "cards": [
-      {
-        "id": "crd-1791491899380",
-        "cardNumber": "4532 1376 1663 5531",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5531",
-        "card_number": "4532137616635531",
-        "cardHolder": "EDUARDO BLAZA",
-        "cardholder_name": "EDUARDO BLAZA",
-        "userEmail": "debstarnet@glo.com",
-        "accountNumber": "09970412193",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "418",
-        "pin": "9782",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-42720568-SWISS",
-        "shippingAddress": "115 Alagao Bauan",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-08T20:38:19.380Z",
-        "recentTransactions": [],
-        "userId": "usr-667"
-      },
-      {
-        "id": "crd-1791492154335",
-        "userId": "usr-667",
-        "cardNumber": "4532 5149 9318 7534",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 7534",
-        "card_number": "4532514993187534",
-        "cardHolder": "EDUARDO BLAZA",
-        "cardholder_name": "EDUARDO BLAZA",
-        "userEmail": "debstarnet@glo.com",
-        "accountNumber": "09970412193",
-        "type": "Mastercard Gold Preferred",
-        "cardType": "Mastercard Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "464",
-        "pin": "9782",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "theme": "card-theme-corporate",
-        "is_frozen": false,
-        "printStatus": "not_requested",
-        "trackingNumber": "CH-POST-35123329-SWISS",
-        "shippingAddress": "Zurich, Switzerland",
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-08T20:42:34.422Z",
-        "recentTransactions": []
-      },
-      {
-        "id": "crd-1791492170664",
-        "userId": "usr-667",
-        "cardNumber": "4532 4841 5389 7992",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 7992",
-        "card_number": "4532484153897992",
-        "cardHolder": "EDUARDO BLAZA",
-        "cardholder_name": "EDUARDO BLAZA",
-        "userEmail": "debstarnet@glo.com",
-        "accountNumber": "09970412193",
-        "type": "Mastercard Corporate Executive",
-        "cardType": "Mastercard Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "548",
-        "pin": "9782",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791492201825",
-        "userId": "usr-667",
-        "cardNumber": "4532 5153 6445 6022",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 6022",
-        "card_number": "4532515364456022",
-        "cardHolder": "EDUARDO BLAZA",
-        "cardholder_name": "EDUARDO BLAZA",
-        "userEmail": "debstarnet@glo.com",
-        "accountNumber": "09970412193",
-        "type": "Mastercard World Global Elite Black Metal",
-        "cardType": "Mastercard World Global Elite Black Metal",
-        "expiry": "10/30",
-        "cvv": "867",
-        "pin": "9782",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      }
-    ],
-    "cryptoWallets": [
-      {
-        "id": "cw-btc",
-        "symbol": "BTC",
-        "name": "Bitcoin Vault",
-        "address": "bc1qlnjdsfs1dp",
-        "balance": 0,
-        "priceUSD": 64516.12,
-        "network": "Bitcoin Mainnet"
-      },
-      {
-        "id": "cw-eth",
-        "symbol": "ETH",
-        "name": "Ethereum Vault",
-        "address": "0x48346bbda7",
-        "balance": 0,
-        "priceUSD": 3480.5,
-        "network": "ERC-20"
-      },
-      {
-        "id": "cw-usdt",
-        "symbol": "USDT",
-        "name": "Tether USD Vault",
-        "address": "0x495f293121",
-        "balance": 0,
-        "priceUSD": 1,
-        "network": "TRC-20"
-      }
-    ],
-    "wireTransferCodes": {
-      "COT": {
-        "code": "0954803",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "TAX": {
-        "code": "TX-78155",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "IMF": {
-        "code": "4948531",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "AML": {
-        "code": "AML-22308",
-        "active": true,
-        "notes": "Automated Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-21989",
-        "active": true,
-        "notes": "Automated Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "885030",
-        "active": true,
-        "notes": "Automated One-Time Passcode clearance"
-      }
-    },
-    "activityLog": [
-      {
-        "date": "2026-10-08 20:39:34",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-08 20:38:19",
-        "action": "Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      }
-    ],
-    "avatarUrl": "data:image/jpeg;base64,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",
-    "account_status": "active",
-    "accountStatus": "active",
-    "kyc_status": "verified"
-  },
-  {
-    "id": "usr-700",
-    "firstName": "Shaun",
-    "middleName": "",
-    "lastName": "McElwee",
-    "fullName": "Shaun McElwee",
-    "username": "shaunmcelwee67",
-    "email": "shaun_victor@outlook.com",
-    "phone": "0863863446",
-    "dob": "05/18/1982",
-    "occupation": "IT Consultant",
-    "address": "47 Manor View Park Letterkenny",
-    "nationality": "Ireland",
-    "profilePhoto": "",
-    "password": "shaunmcelwee67",
-    "avatar": "SM",
-    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-    "status": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "createdAt": "2026-10-07T15:34:03.567Z",
-    "lastLogin": "2026-10-07T15:34:03.567Z",
-    "transactionPin": "8869",
-    "accounts": [
-      {
-        "accountNumber": "09372996993",
-        "type": "Savings",
-        "name": "US Dollar Primary Vault",
-        "currency": "USD",
-        "balance": 199000,
-        "available": 199000,
-        "status": "active",
-        "routingNumber": "021000089",
-        "isPrimary": true,
-        "id": "acct-usd-09372996993"
-      },
-      {
-        "accountNumber": "WB-EUR-1929",
-        "type": "Offshore",
-        "name": "Euro Global Holding Vault",
-        "currency": "EUR",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-eur-WB-EUR-1929"
-      },
-      {
-        "accountNumber": "WB-GBP-1235",
-        "type": "Offshore",
-        "name": "British Pound Sterling Vault",
-        "currency": "GBP",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-gbp-WB-GBP-1235"
-      },
-      {
-        "accountNumber": "WB-CHF-4372",
-        "type": "Offshore",
-        "name": "Swiss Franc Reserve Vault",
-        "currency": "CHF",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-chf-WB-CHF-4372"
-      },
-      {
-        "accountNumber": "WB-CAD-5144",
-        "type": "Business",
-        "name": "Canadian Dollar Commercial Vault",
-        "currency": "CAD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-cad-WB-CAD-5144"
-      },
-      {
-        "accountNumber": "WB-AUD-3787",
-        "type": "Business",
-        "name": "Australian Dollar Treasury Vault",
-        "currency": "AUD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-aud-WB-AUD-3787"
-      },
-      {
-        "accountNumber": "WB-JPY-5459",
-        "type": "Business",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "currency": "JPY",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-jpy-WB-JPY-5459"
-      },
-      {
-        "accountNumber": "WB-NGN-6119",
-        "type": "Savings",
-        "name": "Nigerian Naira International Vault",
-        "currency": "NGN",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089",
-        "id": "acct-ngn-WB-NGN-6119"
-      }
-    ],
-    "wallets": [
-      {
-        "currency": "USD",
-        "name": "US Dollar Primary Vault",
-        "balance": 199000,
-        "isPrimary": true
-      },
-      {
-        "currency": "EUR",
-        "name": "Euro Global Holding Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "GBP",
-        "name": "British Pound Sterling Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CHF",
-        "name": "Swiss Franc Reserve Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CAD",
-        "name": "Canadian Dollar Commercial Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "AUD",
-        "name": "Australian Dollar Treasury Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "JPY",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "NGN",
-        "name": "Nigerian Naira International Vault",
-        "balance": 0,
-        "isPrimary": false
-      }
-    ],
-    "transactions": [
-      {
-        "id": "TX-3604",
-        "date": "Just now",
-        "type": "International Wire",
-        "recipient": "Adam Blaze (Chase Bank)",
-        "category": "wire",
-        "currency": "USD",
-        "amount": -1000,
-        "status": "pending",
-        "ref": "WB-WIRE-20261007-90NMFX",
-        "notes": "SWIFT: 600279 &middot; IBAN: 90693029030 &middot; Purpose: Business",
-        "detail": "Chase Bank, United Kingdom",
-        "timestamp": "2026-10-07T18:33:29.549Z"
-      }
-    ],
-    "grants": [],
-    "loans": [],
-    "cards": [
-      {
-        "id": "crd-1791387243566",
-        "cardNumber": "4532 1466 4207 5155",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5155",
-        "card_number": "4532146642075155",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "810",
-        "pin": "8869",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-95714508-SWISS",
-        "shippingAddress": "47 Manor View Park Letterkenny",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-07T15:34:03.566Z",
-        "recentTransactions": [],
-        "userId": "usr-700"
-      },
-      {
-        "id": "crd-1791226207218",
-        "userId": "usr-700",
-        "cardNumber": "4532 6987 9818 3246",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 3246",
-        "card_number": "4532698798183246",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Corporate Executive",
-        "cardType": "Mastercard Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "819",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791226194277",
-        "userId": "usr-700",
-        "cardNumber": "4532 9804 2127 3777",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 3777",
-        "card_number": "4532980421273777",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Gold Preferred",
-        "cardType": "Mastercard Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "663",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791225441651",
-        "userId": "usr-700",
-        "cardNumber": "4532 3202 1906 4364",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4364",
-        "card_number": "4532320219064364",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Visa Gold Preferred",
-        "cardType": "Visa Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "722",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791218279166",
-        "cardNumber": "4532 5168 7281 5397",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5397",
-        "card_number": "4532516872815397",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "cvv": "856",
-        "pin": "8869",
-        "expiry": "10/31",
-        "expiry_month": "10",
-        "expiry_year": "31",
-        "userId": "usr-700",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Platinum Premier",
-        "card_type": "visa_infinite",
-        "card_network": "Visa",
-        "card_form": "physical",
-        "theme": "card-theme-platinum",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-92522518-SWISS",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "daily_limit": 50000,
-        "atm_limit": 10000,
-        "monthlyLimit": 100000,
-        "monthly_limit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:37:59.166Z",
-        "recentTransactions": []
-      },
-      {
-        "id": "crd-4983",
-        "cardNumber": "4532 8812 7075 1361",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1361",
-        "cvv": "640",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SHAUN MCELWEE",
-        "userId": "usr-700",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "active",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:14.983Z",
-        "recentTransactions": [],
-        "cardholder_name": "SHAUN MCELWEE",
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1608",
-        "cardNumber": "4532 8812 8322 2086",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2086",
-        "cvv": "643",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SHAUN MCELWEE",
-        "userId": "usr-700",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "active",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:11.608Z",
-        "recentTransactions": [],
-        "cardholder_name": "SHAUN MCELWEE",
-        "is_frozen": false
-      },
-      {
-        "id": "crd-5752",
-        "cardNumber": "4532 8812 6536 6363",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 6363",
-        "cvv": "427",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SHAUN MCELWEE",
-        "userId": "usr-700",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "active",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:05.752Z",
-        "recentTransactions": [],
-        "is_frozen": false,
-        "cardholder_name": "SHAUN MCELWEE"
-      },
-      {
-        "id": "crd-1791214948106",
-        "cardNumber": "4532 5643 3300 5175",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5175",
-        "card_number": "4532564333005175",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "205",
-        "pin": "8869",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-35334696-SWISS",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T15:42:28.106Z",
-        "recentTransactions": [],
-        "userId": "usr-700"
-      },
-      {
-        "id": "crd-1791387719694",
-        "userId": "usr-700",
-        "cardNumber": "4532 1188 8598 6378",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 6378",
-        "card_number": "4532118885986378",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard World Global Elite Black Metal",
-        "cardType": "Mastercard World Global Elite Black Metal",
-        "expiry": "10/30",
-        "cvv": "335",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791387746562",
-        "userId": "usr-700",
-        "cardNumber": "4532 3672 1608 8710",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 8710",
-        "card_number": "4532367216088710",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Gold Preferred",
-        "cardType": "Mastercard Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "266",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      },
-      {
-        "id": "crd-1791387776744",
-        "userId": "usr-700",
-        "cardNumber": "4532 8907 1569 1664",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1664",
-        "card_number": "4532890715691664",
-        "cardHolder": "SHAUN MCELWEE",
-        "cardholder_name": "SHAUN MCELWEE",
-        "userEmail": "shaun_victor@outlook.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Standard Debit",
-        "cardType": "Mastercard Standard Debit",
-        "expiry": "10/30",
-        "cvv": "512",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "is_frozen": false
-      }
-    ],
-    "cryptoWallets": [
-      {
-        "id": "cw-btc",
-        "symbol": "BTC",
-        "name": "Bitcoin Vault",
-        "address": "bc1qdeap4i777c",
-        "balance": 0,
-        "priceUSD": 64516.12,
-        "network": "Bitcoin Mainnet"
-      },
-      {
-        "id": "cw-eth",
-        "symbol": "ETH",
-        "name": "Ethereum Vault",
-        "address": "0xa23d38d9b0",
-        "balance": 0,
-        "priceUSD": 3480.5,
-        "network": "ERC-20"
-      },
-      {
-        "id": "cw-usdt",
-        "symbol": "USDT",
-        "name": "Tether USD Vault",
-        "address": "0x00b1f5fb90",
-        "balance": 0,
-        "priceUSD": 1,
-        "network": "TRC-20"
-      }
-    ],
-    "wireTransferCodes": {
-      "COT": {
-        "code": "0467799",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "TAX": {
-        "code": "TX-88392",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "IMF": {
-        "code": "9498779",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "AML": {
-        "code": "AML-89532",
-        "active": true,
-        "notes": "Automated Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-76950",
-        "active": true,
-        "notes": "Automated Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "326970",
-        "active": true,
-        "notes": "Automated One-Time Passcode clearance"
-      }
-    },
-    "activityLog": [
-      {
-        "date": "2026-10-07 16:02:44",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-07 15:40:32",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-07 15:40:32",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-07 15:34:03",
-        "action": "Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      }
-    ],
-    "avatarUrl": "",
-    "account_status": "active",
-    "accountStatus": "active",
-    "kyc_status": "verified"
-  },
-  {
-    "id": "usr-802",
-    "firstName": "Sune",
-    "middleName": "Gunnar",
-    "lastName": "Bergkvist",
-    "fullName": "Sune Gunnar Bergkvist",
-    "username": "sunegunnarberg",
-    "email": "slipsen8@gmail.com",
-    "phone": "+46704590214",
-    "dob": "11/29/1943",
-    "occupation": "Employee",
-    "address": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-    "nationality": "Sweden",
-    "profilePhoto": "data:image/jpeg;base64,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",
-    "password": "yeshuah.com",
-    "avatar": "SG",
-    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-    "status": "active",
-    "statusReason": "Account Active & Verified",
-    "kycStatus": "verified",
-    "createdAt": "2026-10-05T15:42:28.106Z",
-    "lastLogin": "2026-10-05T15:42:28.106Z",
-    "transactionPin": "8869",
-    "accounts": [
-      {
-        "accountNumber": "09372996993",
-        "type": "Checking",
-        "name": "US Dollar Primary Vault",
-        "currency": "USD",
-        "balance": 100000,
-        "available": 100000,
-        "status": "active",
-        "routingNumber": "021000089",
-        "isPrimary": true
-      },
-      {
-        "accountNumber": "WB-EUR-2397",
-        "type": "Offshore",
-        "name": "Euro Global Holding Vault",
-        "currency": "EUR",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-GBP-5836",
-        "type": "Offshore",
-        "name": "British Pound Sterling Vault",
-        "currency": "GBP",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CHF-3111",
-        "type": "Offshore",
-        "name": "Swiss Franc Reserve Vault",
-        "currency": "CHF",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-CAD-9925",
-        "type": "Business",
-        "name": "Canadian Dollar Commercial Vault",
-        "currency": "CAD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-AUD-4594",
-        "type": "Business",
-        "name": "Australian Dollar Treasury Vault",
-        "currency": "AUD",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-JPY-2292",
-        "type": "Business",
-        "name": "Japanese Yen Multi-Asset Vault",
-        "currency": "JPY",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      },
-      {
-        "accountNumber": "WB-NGN-6294",
-        "type": "Savings",
-        "name": "Nigerian Naira International Vault",
-        "currency": "NGN",
-        "balance": 0,
-        "available": 0,
-        "status": "active",
-        "routingNumber": "021000089"
-      }
-    ],
-    "wallets": [
-      {
-        "currency": "USD",
-        "name": "US Dollar Primary",
-        "balance": 100000,
-        "isPrimary": true
-      },
-      {
-        "currency": "EUR",
-        "name": "Euro Global Holding",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "GBP",
-        "name": "British Pound Sterling",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CHF",
-        "name": "Swiss Franc Vault Reserve",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "CAD",
-        "name": "Canadian Dollar Commercial",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "AUD",
-        "name": "Australian Dollar Treasury",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "JPY",
-        "name": "Japanese Yen Multi-Asset",
-        "balance": 0,
-        "isPrimary": false
-      },
-      {
-        "currency": "NGN",
-        "name": "Nigerian Naira International",
-        "balance": 0,
-        "isPrimary": false
-      }
-    ],
-    "transactions": [],
-    "grants": [],
-    "loans": [],
-    "cards": [
-      {
-        "id": "crd-1791218279166",
-        "cardNumber": "4532 5168 7281 5397",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5397",
-        "card_number": "4532516872815397",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "cvv": "856",
-        "pin": "8869",
-        "expiry": "10/31",
-        "expiry_month": "10",
-        "expiry_year": "31",
-        "userId": "usr-802",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Platinum Premier",
-        "card_type": "visa_infinite",
-        "card_network": "Visa",
-        "card_form": "physical",
-        "theme": "card-theme-platinum",
-        "status": "active",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-92522518-SWISS",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "daily_limit": 50000,
-        "atm_limit": 10000,
-        "monthlyLimit": 100000,
-        "monthly_limit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:37:59.166Z",
-        "recentTransactions": []
-      },
-      {
-        "id": "crd-1791214948106",
-        "cardNumber": "4532 5643 3300 5175",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5175",
-        "card_number": "4532564333005175",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "cardType": "Sovereign Visa Platinum Debit",
-        "theme": "card-theme-corporate",
-        "expiry": "09/31",
-        "expiry_month": "09",
-        "expiry_year": "31",
-        "cvv": "205",
-        "pin": "8869",
-        "status": "rejected",
-        "is_frozen": false,
-        "printStatus": "requested",
-        "trackingNumber": "CH-POST-35334696-SWISS",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 5000,
-        "dailyPosLimit": 25000,
-        "monthlyLimit": 50000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T15:42:28.106Z",
-        "recentTransactions": [],
-        "userId": "usr-802"
-      },
-      {
-        "id": "crd-5752",
-        "cardNumber": "4532 8812 6536 6363",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 6363",
-        "cvv": "427",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "userId": "usr-802",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "blocked",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:05.752Z",
-        "recentTransactions": [],
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "is_frozen": true
-      },
-      {
-        "id": "crd-1608",
-        "cardNumber": "4532 8812 8322 2086",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 2086",
-        "cvv": "643",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "userId": "usr-802",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "active",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:11.608Z",
-        "recentTransactions": [],
-        "cardholder_name": "SUNE GUNNAR BERGKVIST"
-      },
-      {
-        "id": "crd-4983",
-        "cardNumber": "4532 8812 7075 1361",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1361",
-        "cvv": "640",
-        "pin": "1234",
-        "expiry": "10/30",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "userId": "usr-802",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "cardType": "Visa Infinite Global Elite",
-        "theme": "card-theme-black",
-        "status": "active",
-        "printStatus": "requested",
-        "trackingNumber": "",
-        "shippingAddress": "Skebr\u00e4cke 1, Fj\u00e4llbacka 45743, Sweden, Tanum Municipality.",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "monthlyLimit": 100000,
-        "allowOnline": true,
-        "allowInternational": true,
-        "allowContactless": true,
-        "createdAt": "2026-10-05T16:06:14.983Z",
-        "recentTransactions": [],
-        "cardholder_name": "SUNE GUNNAR BERGKVIST"
-      },
-      {
-        "id": "crd-1791218436486",
-        "cardNumber": "4532 6580 9398 5005",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 5005",
-        "card_number": "4532658093985005",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Platinum Premier",
-        "cardType": "Mastercard Platinum Premier",
-        "expiry": "10/30",
-        "cvv": "451",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "userId": "usr-802"
-      },
-      {
-        "id": "crd-1791218706109",
-        "cardNumber": "4532 3850 6045 9944",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 9944",
-        "card_number": "4532385060459944",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Platinum Premier",
-        "cardType": "Mastercard Platinum Premier",
-        "expiry": "10/30",
-        "cvv": "738",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000,
-        "userId": "usr-802"
-      },
-      {
-        "id": "crd-1791225441651",
-        "userId": "usr-802",
-        "cardNumber": "4532 3202 1906 4364",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4364",
-        "card_number": "4532320219064364",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "type": "Visa Gold Preferred",
-        "cardType": "Visa Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "722",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791226194277",
-        "userId": "usr-802",
-        "cardNumber": "4532 9804 2127 3777",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 3777",
-        "card_number": "4532980421273777",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Gold Preferred",
-        "cardType": "Mastercard Gold Preferred",
-        "expiry": "10/30",
-        "cvv": "663",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      },
-      {
-        "id": "crd-1791226207218",
-        "userId": "usr-802",
-        "cardNumber": "4532 6987 9818 3246",
-        "cardMasked": "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 3246",
-        "card_number": "4532698798183246",
-        "cardHolder": "SUNE GUNNAR BERGKVIST",
-        "cardholder_name": "SUNE GUNNAR BERGKVIST",
-        "userEmail": "slipsen8@gmail.com",
-        "accountNumber": "09372996993",
-        "type": "Mastercard Corporate Executive",
-        "cardType": "Mastercard Corporate Executive",
-        "expiry": "10/30",
-        "cvv": "819",
-        "pin": "8869",
-        "status": "active",
-        "dailyAtmLimit": 10000,
-        "dailyPosLimit": 50000,
-        "onlineLimit": 50000
-      }
-    ],
-    "cryptoWallets": [
-      {
-        "id": "cw-btc",
-        "symbol": "BTC",
-        "name": "Bitcoin Vault",
-        "address": "bc1q7w9y8r3204",
-        "balance": 0,
-        "priceUSD": 64516.12,
-        "network": "Bitcoin Mainnet"
-      },
-      {
-        "id": "cw-eth",
-        "symbol": "ETH",
-        "name": "Ethereum Vault",
-        "address": "0xe220a0993a",
-        "balance": 0,
-        "priceUSD": 3480.5,
-        "network": "ERC-20"
-      },
-      {
-        "id": "cw-usdt",
-        "symbol": "USDT",
-        "name": "Tether USD Vault",
-        "address": "0x869568b925",
-        "balance": 0,
-        "priceUSD": 1,
-        "network": "TRC-20"
-      }
-    ],
-    "wireTransferCodes": {
-      "COT": {
-        "code": "0467799",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "TAX": {
-        "code": "TX-88392",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "IMF": {
-        "code": "9498779",
-        "active": true,
-        "notes": "Updated in Admin Drawer"
-      },
-      "AML": {
-        "code": "AML-18190",
-        "active": true,
-        "notes": "Automated Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-13227",
-        "active": true,
-        "notes": "Automated Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "603555",
-        "active": true,
-        "notes": "Automated One-Time Passcode clearance"
-      }
-    },
-    "activityLog": [
-      {
-        "date": "2026-10-05 16:04:25",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-05 16:04:25",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-05 15:44:59",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-05 15:43:52",
-        "action": "Updated member profile details & credentials",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      },
-      {
-        "date": "2026-10-05 15:42:28",
-        "action": "Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card",
-        "ip": "Admin Console",
-        "officer": "Chief Treasury Auditor"
-      }
-    ],
-    "avatarUrl": "data:image/jpeg;base64,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",
-    "account_status": "active",
-    "accountStatus": "active",
-    "kyc_status": "verified"
   },
   {
     "id": "usr-102",
@@ -2471,7 +292,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-09-12T14:20:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "9104-3381-19",
@@ -2501,21 +322,6 @@
         "code": "901248",
         "active": true,
         "notes": "IMF Clearance signoff"
-      },
-      "AML": {
-        "code": "AML-11974",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-60905",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "118523",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2540,7 +346,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-08-25T11:00:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "8810-9234-71",
@@ -2570,21 +376,6 @@
         "code": "881042",
         "active": true,
         "notes": "IMF Signoff"
-      },
-      "AML": {
-        "code": "AML-80657",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-12431",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "224438",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2609,7 +400,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-09-01T08:15:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "7721-4091-88",
@@ -2634,26 +425,6 @@
         "code": "TX-66910",
         "active": true,
         "notes": "IRAS Tax Clearance"
-      },
-      "IMF": {
-        "code": "2198487",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-74603",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-35588",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "169662",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2678,7 +449,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-07-19T16:30:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "5510-8829-14",
@@ -2698,31 +469,6 @@
         "code": "882014",
         "active": true,
         "notes": "Banque de France Clearance"
-      },
-      "TAX": {
-        "code": "TX-75660",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "3905844",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-36911",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-85299",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "885723",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2747,7 +493,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-08-10T10:45:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "6619-3012-90",
@@ -2767,31 +513,6 @@
         "code": "991048",
         "active": true,
         "notes": "Target2 SWIFT Token"
-      },
-      "TAX": {
-        "code": "TX-70513",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "8393753",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-23517",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-15876",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "933405",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2816,7 +537,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-09-18T13:10:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "4410-8839-21",
@@ -2836,31 +557,6 @@
         "code": "339102",
         "active": true,
         "notes": "Dutch National Bank Token"
-      },
-      "TAX": {
-        "code": "TX-24556",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "3189926",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-99980",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-68449",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "705437",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2885,7 +581,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-08-04T09:00:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "3310-9920-45",
@@ -2905,31 +601,6 @@
         "code": "772910",
         "active": true,
         "notes": "RBA Clearance Key"
-      },
-      "TAX": {
-        "code": "TX-16335",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "3827050",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-18546",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-31808",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "882165",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -2954,7 +625,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-06-15T15:00:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "1109-8830-41",
@@ -2974,31 +645,6 @@
         "code": "992014",
         "active": true,
         "notes": "Fedwire Clearing Key"
-      },
-      "TAX": {
-        "code": "TX-75769",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "1971721",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-38376",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-58334",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "326142",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -3019,11 +665,11 @@
     "avatarColor": "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
     "dob": "1972-10-30",
     "nationality": "Switzerland",
-    "address": "Rue du Rh\u00f4ne 42, 1204 Geneva, Switzerland",
+    "address": "Rue du Rhône 42, 1204 Geneva, Switzerland",
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-05-10T12:00:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "9920-1149-80",
@@ -3043,31 +689,6 @@
         "code": "881029",
         "active": true,
         "notes": "SNB Swiss SWIFT Token"
-      },
-      "TAX": {
-        "code": "TX-19168",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "8302971",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-82336",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-87758",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "241673",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -3092,7 +713,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-07-02T11:30:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "4481-9920-12",
@@ -3112,31 +733,6 @@
         "code": "661092",
         "active": true,
         "notes": "CBUAE Clearance Key"
-      },
-      "TAX": {
-        "code": "TX-49946",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "2366921",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-89002",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-48314",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "922745",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []
@@ -3161,7 +757,7 @@
     "status": "active",
     "kycStatus": "verified",
     "createdAt": "2026-08-14T07:40:00Z",
-    "lastLogin": "2026-10-13T17:52:45.531Z",
+    "lastLogin": "2026-10-13T19:33:01.221Z",
     "accounts": [
       {
         "accountNumber": "8820-3391-04",
@@ -3181,31 +777,6 @@
         "code": "448012",
         "active": true,
         "notes": "BOJ Clearance Token"
-      },
-      "TAX": {
-        "code": "TX-38541",
-        "active": true,
-        "notes": "Federal Tax clearance token"
-      },
-      "IMF": {
-        "code": "7157940",
-        "active": true,
-        "notes": "IMF regulatory signoff token"
-      },
-      "AML": {
-        "code": "AML-34540",
-        "active": true,
-        "notes": "Anti-Money Laundering verification key"
-      },
-      "PAP": {
-        "code": "PAP-40989",
-        "active": true,
-        "notes": "Proof of Anti-Piracy clearance token"
-      },
-      "OTP": {
-        "code": "982515",
-        "active": true,
-        "notes": "One-Time Passcode clearance"
       }
     },
     "activityLog": []

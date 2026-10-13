@@ -469,7 +469,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       firstName: 'Kristin',
       lastName: 'Willis',
       username: 'kwillis',
-      email: 'debstarnetwork@gmail.com',
+      email: 'kwillis.member@wbcu-reserve.ch',
       password: 'MemberPass123!',
       pin: '8869',
       transactionPin: '8869',

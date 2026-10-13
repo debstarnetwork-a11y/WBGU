@@ -1407,14 +1407,17 @@ body#adminRoot,
   display: none;
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(4px);
-  z-index: 900;
+  z-index: 9998;
   transition: opacity 0.3s ease;
 }
 
 .admin-drawer-overlay.show {
-  display: block;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .admin-drawer-panel {
@@ -1427,7 +1430,7 @@ body#adminRoot,
   background-color: #0f172a;
   border-left: 1px solid var(--admin-border);
   box-shadow: -15px 0 35px rgba(0, 0, 0, 0.75);
-  z-index: 950;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -1436,7 +1439,11 @@ body#adminRoot,
 }
 
 .admin-drawer-panel.open {
-  transform: translateX(0);
+  transform: translateX(0) !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .admin-drawer-header {

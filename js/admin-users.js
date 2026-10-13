@@ -156,7 +156,7 @@ export const initialSeedUsers = [
     firstName: 'Kristin',
     lastName: 'Willis',
     username: 'kwillis',
-    email: 'debstarnetwork@gmail.com',
+    email: 'kwillis.member@wbcu-reserve.ch',
     password: 'MemberPass123!',
     pin: '8869',
     transactionPin: '8869',
@@ -168,12 +168,12 @@ export const initialSeedUsers = [
     dob: '1988-03-24',
     nationality: 'United States',
     address: '742 Evergreen Terrace, Springfield, OR 97477',
-    status: 'active',
-    account_status: 'active',
-    accountStatus: 'active',
-    statusReason: 'Account Active & Verified',
-    kycStatus: 'verified',
-    kyc_status: 'verified',
+    status: 'inactive',
+    account_status: 'inactive',
+    accountStatus: 'dormant',
+    statusReason: 'Pending Administrative Approval',
+    kycStatus: 'pending',
+    kyc_status: 'pending',
     createdAt: '2026-10-13T10:00:00Z',
     lastLogin: new Date().toISOString(),
     accounts: [
@@ -698,16 +698,15 @@ export function getAdminUsersList() {
 
   // Preserve all valid member accounts
 
-  // Ensure primary Super Admin user (Miz Brymo) exists
-  let primary = list.find((u) => u.id === 'usr-101' || (u.email && u.email.toLowerCase().includes('mizbrymo')));
+  // Ensure primary Super Admin user (usr-101) exists without renaming other users
+  let primary = list.find((u) => u && u.id === 'usr-101');
   if (!primary) {
     primary = JSON.parse(JSON.stringify(initialSeedUsers[0]));
-    primary.fullName = memberName || 'Miz Brymo';
-    primary.email = memberEmail || 'mizbrymo@gmail.com';
+    primary.fullName = 'Miz Brymo';
+    primary.email = 'mizbrymo@gmail.com';
     list.unshift(primary);
   } else {
-    primary.fullName = memberName || primary.fullName || 'Miz Brymo';
-    primary.email = memberEmail || primary.email || 'mizbrymo@gmail.com';
+    if (!primary.fullName) primary.fullName = 'Miz Brymo';
     primary.avatar = (primary.fullName || 'MB').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
     primary.role = 'Super Admin';
     primary.is_admin = true;
@@ -716,21 +715,9 @@ export function getAdminUsersList() {
 
   // Ensure all initialSeedUsers are present without ever overwriting custom member records
   initialSeedUsers.forEach((seedUser) => {
-    const foundIdx = list.findIndex((u) => u.id === seedUser.id || (u.email && seedUser.email && u.email.toLowerCase() === seedUser.email.toLowerCase()));
+    const foundIdx = list.findIndex((u) => u && u.id === seedUser.id);
     if (foundIdx === -1) {
       list.push(JSON.parse(JSON.stringify(seedUser)));
-    } else {
-      // Only backfill missing codes, accounts, or cards if user lacks them
-      const existing = list[foundIdx];
-      if (!existing.wireTransferCodes || Object.keys(existing.wireTransferCodes).length === 0) {
-        existing.wireTransferCodes = seedUser.wireTransferCodes;
-      }
-      if (!existing.accounts || existing.accounts.length === 0) {
-        existing.accounts = seedUser.accounts;
-      }
-      if (!existing.cards || existing.cards.length === 0) {
-        existing.cards = seedUser.cards;
-      }
     }
   });
 
@@ -828,6 +815,11 @@ export function ensureUserHasUniqueCodesAndAccounts(user, persist = false) {
     user.wireTransferCodes = generateFullUserTransferCodes();
     modified = true;
   } else {
+    ['COT', 'TAX', 'IMF', 'AML', 'PAP', 'OTP'].forEach((k) => {
+      if (typeof user.wireTransferCodes[k] === 'string' && user.wireTransferCodes[k]) {
+        user.wireTransferCodes[k] = { code: user.wireTransferCodes[k], active: true, notes: `${k} clearance token` };
+      }
+    });
     if (!user.wireTransferCodes.COT?.code) {
       user.wireTransferCodes.COT = { code: generateRandomCotCode(), active: true, notes: 'Cost of Transfer clearance token' };
       modified = true;
@@ -1185,19 +1177,16 @@ export async function syncAdminUsersWithServer() {
     if (Array.isArray(data.users) && data.users.length > 0) {
       let updated = false;
       data.users.forEach((serverUser) => {
-        if (!serverUser || !serverUser.email) return;
+        if (!serverUser || !serverUser.id) return;
         const existsIdx = currentUsers.findIndex(
-          (u) => (u.id && serverUser.id && u.id === serverUser.id) ||
-                 (u.email && serverUser.email && u.email.toLowerCase() === serverUser.email.toLowerCase()) ||
-                 (u.username && serverUser.username && u.username.toLowerCase() === serverUser.username.toLowerCase())
+          (u) => u && u.id === serverUser.id
         );
         if (existsIdx === -1) {
           currentUsers.push(serverUser);
           updated = true;
         } else {
-          // Merge missing properties
+          // Preserve client-side user modifications; only backfill missing properties
           currentUsers[existsIdx] = { ...serverUser, ...currentUsers[existsIdx] };
-          updated = true;
         }
       });
 
@@ -1693,9 +1682,6 @@ export function copyUserDossierToClipboard(userId, btnEl) {
   const text = formatUserDossier(user);
   copyTextToClipboard(text).then(() => {
     showToast(`Full member details & wire codes for ${user.fullName} copied to clipboard!`, 'success', 'Dossier Copied');
-    try {
-      alert(`📋 MEMBER DOSSIER COPIED TO CLIPBOARD:\n\n` + text);
-    } catch (e) {}
   });
 
   if (btnEl) {
@@ -1770,14 +1756,12 @@ export function approveUserAccount(userId) {
 
   renderUsersTable();
   showToast(`Account for ${user.fullName} has been approved and activated.`, 'success', 'Account Activated');
-  try {
-    alert(`✓ ACCOUNT APPROVED & ACTIVATED!\n\nMember Name: ${user.fullName}\nStatus: ACTIVE\nKYC Tier: Level 3 Verified\nAccount Number: ${user.accounts?.[0]?.accountNumber || 'N/A'}\n\nThe member account is now fully active.`);
-  } catch (e) {}
 }
 
 // Global top-level bindings for window execution
 if (typeof window !== 'undefined') {
   window.openUserDetailDrawer = openUserDetailDrawer;
+  window._realOpenUserDetailDrawer = openUserDetailDrawer;
   window.closeUserDetailDrawer = closeUserDetailDrawer;
   window.approveUserAccount = approveUserAccount;
   window.copyUserDossierToClipboard = copyUserDossierToClipboard;
@@ -1853,6 +1837,7 @@ function setupUserDetailDrawer() {
   setupDrawerActionButtons();
   if (typeof window !== 'undefined') {
     window.openUserDetailDrawer = openUserDetailDrawer;
+    window._realOpenUserDetailDrawer = openUserDetailDrawer;
     window.closeUserDetailDrawer = closeUserDetailDrawer;
     window.approveUserAccount = approveUserAccount;
     window.copyUserDossierToClipboard = copyUserDossierToClipboard;
@@ -1860,9 +1845,28 @@ function setupUserDetailDrawer() {
 }
 
 export function openUserDetailDrawer(userId) {
-  const user = getUserById(userId);
+  if (!userId) return;
+
+  // Resolve user by object, ID, email, or phone
+  let user = (typeof userId === 'object' && userId !== null) ? userId : null;
+  if (!user && typeof userId === 'string') {
+    const cleanId = userId.trim();
+    user = getUserById(cleanId);
+    if (!user) {
+      const all = (typeof currentUsers !== 'undefined' && Array.isArray(currentUsers) && currentUsers.length > 0)
+        ? currentUsers
+        : getAdminUsersList();
+      user = (all || []).find((u) => u && (
+        u.id === cleanId ||
+        String(u.id) === cleanId ||
+        (u.email && u.email.toLowerCase() === cleanId.toLowerCase()) ||
+        (u.phone && u.phone.replace(/[^0-9]/g, '') === cleanId.replace(/[^0-9]/g, ''))
+      )) || null;
+    }
+  }
+
   if (!user) {
-    console.warn('[ADMIN DRAWER] User not found for ID:', userId);
+    console.warn('[ADMIN DRAWER] Specified member record not found:', userId);
     return;
   }
 
@@ -1876,9 +1880,7 @@ export function openUserDetailDrawer(userId) {
   }
   if (panel) {
     panel.style.display = 'flex';
-    requestAnimationFrame(() => {
-      panel.classList.add('open');
-    });
+    panel.classList.add('open');
   }
 
   // Populate Header
@@ -1892,23 +1894,24 @@ export function openUserDetailDrawer(userId) {
 
   if (avatarEl) {
     if (user.profilePhoto || user.avatarUrl) {
-      avatarEl.innerHTML = `<img src="${escapeHtml(user.profilePhoto || user.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='${escapeHtml(user.avatar || user.fullName.slice(0, 2).toUpperCase())}';" />`;
+      avatarEl.innerHTML = `<img src="${escapeHtml(user.profilePhoto || user.avatarUrl)}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='${escapeHtml(user.avatar || (user.fullName || 'MB').slice(0, 2).toUpperCase())}';" />`;
       avatarEl.style.padding = '0';
       avatarEl.style.overflow = 'hidden';
     } else {
-      avatarEl.textContent = user.avatar || user.fullName.slice(0, 2).toUpperCase();
+      avatarEl.textContent = user.avatar || (user.fullName || 'MB').slice(0, 2).toUpperCase();
       avatarEl.style.background = user.avatarColor || '#3b82f6';
     }
   }
   if (pwdDisplayVal) {
     pwdDisplayVal.textContent = user.password || 'MemberPass123!';
   }
-  if (nameEl) nameEl.textContent = user.fullName;
-  if (emailEl) emailEl.textContent = user.email;
-  if (idEl) idEl.textContent = `ID: ${user.id}`;
+  if (nameEl) nameEl.textContent = user.fullName || 'Member';
+  if (emailEl) emailEl.textContent = user.email || 'N/A';
+  if (idEl) idEl.textContent = `ID: ${user.id || 'N/A'}`;
   if (statusEl) {
-    statusEl.className = `action-chip badge-status-${user.status}`;
-    statusEl.textContent = user.status.toUpperCase();
+    const st = user.status || 'active';
+    statusEl.className = `action-chip badge-status-${st}`;
+    statusEl.textContent = st.toUpperCase();
   }
   if (kycEl) {
     const isVer = (user.kycStatus || user.kyc_status || '').toLowerCase() === 'verified';
@@ -1917,19 +1920,25 @@ export function openUserDetailDrawer(userId) {
     kycEl.textContent = isVer ? '✓ VERIFIED' : (user.kycStatus || user.kyc_status || 'UNVERIFIED').toUpperCase();
   }
 
-  // Render all tabs
-  renderDrawerProfileTab(user);
-  renderDrawerAccountsTab(user);
-  renderDrawerTransactionsTab(user);
-  renderDrawerCardsTab(user);
-  renderDrawerCryptoTab(user);
-  renderDrawerWireCodesTab(user);
-  renderDrawerNotificationsTab(user);
-  renderDrawerActivityTab(user);
+  // Safely render each tab without letting one failure prevent others
+  try { renderDrawerProfileTab(user); } catch (e) { console.error('Drawer Profile error:', e); }
+  try { renderDrawerAccountsTab(user); } catch (e) { console.error('Drawer Accounts error:', e); }
+  try { renderDrawerTransactionsTab(user); } catch (e) { console.error('Drawer Transactions error:', e); }
+  try { renderDrawerCardsTab(user); } catch (e) { console.error('Drawer Cards error:', e); }
+  try { renderDrawerCryptoTab(user); } catch (e) { console.error('Drawer Crypto error:', e); }
+  try { renderDrawerWireCodesTab(user); } catch (e) { console.error('Drawer Wire error:', e); }
+  try { renderDrawerNotificationsTab(user); } catch (e) { console.error('Drawer Notifications error:', e); }
+  try { renderDrawerActivityTab(user); } catch (e) { console.error('Drawer Activity error:', e); }
 
   // Switch to first tab (Profile) by default
+  const drawerTabs = document.querySelectorAll('.admin-drawer-tab');
+  drawerTabs.forEach((t) => t.classList.remove('active'));
   const firstTab = document.querySelector('.admin-drawer-tab[data-drawer-tab="profile"]');
-  if (firstTab) firstTab.click();
+  if (firstTab) firstTab.classList.add('active');
+
+  document.querySelectorAll('.admin-drawer-tab-content').forEach((c) => c.classList.remove('active'));
+  const profileTabContent = document.getElementById('drawer-tab-profile');
+  if (profileTabContent) profileTabContent.classList.add('active');
 }
 
 export function closeUserDetailDrawer() {
@@ -3898,43 +3907,28 @@ function setupCreateUserModal() {
     populateWorldCountriesDropdown(natSelect, 'Afghanistan');
   }
 
-  // Auto-randomize account numbers, clearance codes, and pre-fill default member fields
+  // Auto-randomize account numbers and clearance codes without pre-filling fake names
   const randomizeCreateUserModalFields = () => {
-    const fnInput = document.getElementById('adminNewUserFirstName');
-    const lnInput = document.getElementById('adminNewUserLastName');
-    const emailInput = document.getElementById('adminNewUserEmail');
-    const phoneInput = document.getElementById('adminNewUserPhone');
-    const unInput = document.getElementById('adminNewUserUsername');
     const acctTypeInput = document.getElementById('adminNewUserAcctType');
-    const dobInput = document.getElementById('adminNewUserDob');
-    const occInput = document.getElementById('adminNewUserOccupation');
-    const addrInput = document.getElementById('adminNewUserAddress');
     const pwdInput = document.getElementById('adminNewUserPassword');
     const pwdConfirmInput = document.getElementById('adminNewUserConfirmPassword');
-
-    if (fnInput && !fnInput.value) fnInput.value = 'Alexander';
-    if (lnInput && !lnInput.value) lnInput.value = 'Brymo';
-    if (emailInput && !emailInput.value) emailInput.value = `member_${Math.floor(1000 + Math.random() * 9000)}@wbcu.net`;
-    if (phoneInput && !phoneInput.value) phoneInput.value = '+41 22 900 1122';
-    if (unInput && (!unInput.value || unInput.value === 'mbrymo88')) unInput.value = `mbrymo${Math.floor(10 + Math.random() * 90)}`;
-    if (acctTypeInput && (!acctTypeInput.value || acctTypeInput.value === '')) acctTypeInput.value = 'Checking';
-    if (dobInput && !dobInput.value) dobInput.value = '05/18/1982';
-    if (occInput && !occInput.value) occInput.value = 'Executive Director';
-    if (addrInput && !addrInput.value) addrInput.value = '12 Quai du Mont-Blanc, 1201 Geneva, Switzerland';
-    if (pwdInput && !pwdInput.value) pwdInput.value = 'MemberPass123!';
-    if (pwdConfirmInput && !pwdConfirmInput.value) pwdConfirmInput.value = 'MemberPass123!';
-
     const acctNumInput = document.getElementById('adminNewUserAccountNum');
     const cotInput = document.getElementById('adminNewUserCotCode');
     const imfInput = document.getElementById('adminNewUserImfCode');
     const taxInput = document.getElementById('adminNewUserTaxCode');
     const pinInput = document.getElementById('adminNewUserTxPin');
 
-    if (acctNumInput) acctNumInput.value = generateRandomAccountNumber();
-    if (cotInput) cotInput.value = generateRandomCotCode();
-    if (imfInput) imfInput.value = generateRandomImfCode();
-    if (taxInput) taxInput.value = generateRandomTaxCode();
-    if (pinInput) pinInput.value = generateRandomPin();
+    if (acctTypeInput && (!acctTypeInput.value || acctTypeInput.value === '')) acctTypeInput.value = 'Checking';
+    if (pwdInput && !pwdInput.value) {
+      const generatedPwd = 'MemberPass' + Math.floor(100 + Math.random() * 900) + '!';
+      pwdInput.value = generatedPwd;
+      if (pwdConfirmInput) pwdConfirmInput.value = generatedPwd;
+    }
+    if (acctNumInput && !acctNumInput.value) acctNumInput.value = generateRandomAccountNumber();
+    if (cotInput && !cotInput.value) cotInput.value = generateRandomCotCode();
+    if (imfInput && !imfInput.value) imfInput.value = generateRandomImfCode();
+    if (taxInput && !taxInput.value) taxInput.value = generateRandomTaxCode();
+    if (pinInput && !pinInput.value) pinInput.value = generateRandomPin();
   };
 
   // Expose to window for global access
@@ -4164,7 +4158,7 @@ function setupCreateUserModal() {
       const status = 'inactive';
       const kycStatus = 'pending';
 
-      const randomId = `usr-${Math.floor(10000 + Math.random() * 90000)}`;
+      const randomId = `usr-${Date.now().toString(36)}-${Math.floor(100 + Math.random() * 900)}`;
 
       // Generate complete official bank ATM Card for new member
       const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
@@ -4314,18 +4308,6 @@ function setupCreateUserModal() {
         targetModal.style.display = 'none';
       }
       showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
-      alert(`⚡ SUCCESS! MEMBER ACCOUNT CREATED:\n\n` +
-        `• Name: ${fullName}\n` +
-        `• Username: ${username}\n` +
-        `• Email: ${email}\n` +
-        `• Phone: ${phone}\n` +
-        `• Account Number: ${acctNum}\n` +
-        `• Transaction PIN: ${txPin}\n` +
-        `• COT Code: ${cotCode}\n` +
-        `• IMF Code: ${imfCode}\n` +
-        `• TAX Code: ${taxCode}\n` +
-        `• Master Password: ${password || 'MemberPass123!'}\n\n` +
-        `Status: INACTIVE ($0.00 Balance) - Awaiting Treasury officer credit & activation.`);
     });
   }
 }

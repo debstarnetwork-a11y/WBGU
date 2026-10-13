@@ -1546,6 +1546,7 @@ export function openCardDetailModal(cardId) {
 
   renderModalContent();
   modal.classList.add('show');
+  modal.style.display = 'flex';
 }
 
 /* ----------------------------------------------------------------------------

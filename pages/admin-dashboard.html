@@ -76,7 +76,6 @@
       var pin = document.getElementById('adminNewUserTxPin') || document.getElementById('adminNewUserPin');
       var pwd = document.getElementById('adminNewUserPassword');
       var pwdConfirm = document.getElementById('adminNewUserConfirmPassword');
-      var un = document.getElementById('adminNewUserUsername');
 
       if (acct) acct.value = randDigits(4) + '-' + randDigits(4) + '-' + randDigits(2);
       if (cot) cot.value = 'CT-' + randDigits(5);
@@ -86,7 +85,6 @@
       var newPwd = 'MemberPass' + randDigits(3) + '!';
       if (pwd) pwd.value = newPwd;
       if (pwdConfirm) pwdConfirm.value = newPwd;
-      if (typeof window.wbGenUsername === 'function') window.wbGenUsername();
     };
 
     window.wbGenUsername = function() {
@@ -98,9 +96,9 @@
       var fn = (document.getElementById('adminNewUserFirstName')?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       var ln = (document.getElementById('adminNewUserLastName')?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       var em = (document.getElementById('adminNewUserEmail')?.value || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-      var base = (fn + ln) || em || 'mbrymo';
+      var base = (fn + ln) || em;
       var un = document.getElementById('adminNewUserUsername');
-      if (un) un.value = base + randDigits(2);
+      if (un && base) un.value = base + randDigits(2);
     };
 
     window.wbGenAccountNumber = function() {
@@ -167,13 +165,23 @@
       }
     };
 
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        if (typeof window.wbRandomizeCreateUserModalFields === 'function') {
-          window.wbRandomizeCreateUserModalFields();
-        }
-      } catch (err) {}
-    });
+    window.openUserDetailDrawer = function(uId) {
+      if (typeof window._realOpenUserDetailDrawer === 'function') {
+        window._realOpenUserDetailDrawer(uId);
+        return;
+      }
+      var overlay = document.getElementById('adminDrawerOverlay');
+      var panel = document.getElementById('adminDrawerPanel');
+      if (overlay) { overlay.style.display = 'block'; overlay.classList.add('show'); }
+      if (panel) { panel.style.display = 'flex'; panel.classList.add('open'); }
+    };
+
+    window.closeUserDetailDrawer = function() {
+      var overlay = document.getElementById('adminDrawerOverlay');
+      var panel = document.getElementById('adminDrawerPanel');
+      if (overlay) { overlay.classList.remove('show'); overlay.style.display = 'none'; }
+      if (panel) { panel.classList.remove('open'); }
+    };
 
     window.switchAdminView = function(view) {
       if (!view) return;
@@ -3850,7 +3858,7 @@
                 <label class="admin-form-label m-0">Username *</label>
                 <button type="button" id="btnAdminGenUsername" onclick="if(window.wbGenUsername){window.wbGenUsername();} return false;" class="admin-btn admin-btn-outline admin-btn-sm" style="padding: 1px 6px; font-size: 0.7rem; color: #60a5fa; border-color: rgba(96,165,250,0.4);" title="Auto-generate username">🎲 Randomize</button>
               </div>
-              <input type="text" id="adminNewUserUsername" class="admin-form-control font-mono" value="mbrymo88" placeholder="e.g. mbrymo88" required />
+              <input type="text" id="adminNewUserUsername" class="admin-form-control font-mono" placeholder="e.g. jsmith24" required />
             </div>
             <div>
               <label class="admin-form-label">Email *</label>
@@ -3865,7 +3873,7 @@
           <div class="d-grid grid-cols-1 grid-md-3 gap-3 mb-3">
             <div>
               <label class="admin-form-label">Date of birth (mm/dd/yyyy) *</label>
-              <input type="text" id="adminNewUserDob" class="admin-form-control" placeholder="mm/dd/yyyy" value="05/18/1982" required />
+              <input type="text" id="adminNewUserDob" class="admin-form-control" placeholder="mm/dd/yyyy" required />
             </div>
             <div>
               <label class="admin-form-label">Occupation *</label>

@@ -278,12 +278,6 @@ export function syncAdminMemberNames() {
   // Update KYC Review Modal
   const kycMemberEl = document.getElementById('kycMemberName');
   if (kycMemberEl) kycMemberEl.textContent = memberName;
-
-  // Update User Drawer
-  const drawerUserEl = document.getElementById('drawerUserName');
-  if (drawerUserEl && drawerUserEl.textContent.includes('Alexander')) {
-    drawerUserEl.textContent = memberName;
-  }
 }
 
 /* ----------------------------------------------------------------------------
