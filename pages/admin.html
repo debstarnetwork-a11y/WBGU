@@ -984,7 +984,29 @@
               <p class="admin-page-desc">Comprehensive member roster, ledger balances, identity clearance, wire codes, and account overrides.</p>
             </div>
 
+            <!-- Database Synchronization Alert -->
+            <div id="adminSyncRequiredAlert" class="d-none" style="flex-basis: 100%; margin-top: 1rem;">
+              <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                <div style="background: #2563eb; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                </div>
+                <div style="flex-grow: 1;">
+                  <div style="color: #f8fafc; font-size: 0.8125rem; font-weight: 600;">Synchronization Required</div>
+                  <div style="color: #94a3b8; font-size: 0.75rem;">Local member cache (<span id="localUserCountText">...</span>) has data not yet in the live database (<span id="dbUserCountText">...</span>).</div>
+                </div>
+                <button type="button" class="admin-btn admin-btn-sm admin-btn-primary" onclick="document.getElementById('btnForceSyncToServer').click()">Sync Now</button>
+              </div>
+            </div>
+
             <div class="admin-quick-actions-bar">
+              <button type="button" class="admin-btn admin-btn-outline" id="btnResetAdminCache" title="Clear local browser storage and reload from server">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6"></path>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                Reset Cache
+              </button>
+
               <button type="button" class="admin-btn admin-btn-outline" id="btnExportUsersCsv">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1013,6 +1035,14 @@
                   <line x1="23" y1="11" x2="17" y2="11"></line>
                 </svg>
                 Create New User
+              </button>
+
+              <button type="button" class="admin-btn admin-btn-primary" id="btnForceSyncToServer" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                PUSH TO LIVE DB
               </button>
             </div>
           </div>

@@ -4500,6 +4500,8 @@ function setupCreateUserModal() {
 function setupSystemSyncButtons() {
   const resetBtn = document.getElementById('btnResetAdminCache');
   const syncBtn = document.getElementById('btnForceSyncToServer');
+  
+  console.log('[ADMIN SYNC] setupSystemSyncButtons called. SyncBtn found:', !!syncBtn);
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
