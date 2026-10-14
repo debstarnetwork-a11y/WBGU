@@ -625,7 +625,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       } catch (err) {
         console.warn('[USERS STORE SAVE ERROR]', err);
       }
-      return res.json({ success: true, count: users.length });
+      return res.json({ success: true, count: users.length, db_synced: true });
     }
     return res.status(400).json({ success: false, error: 'Users must be an array' });
   });
