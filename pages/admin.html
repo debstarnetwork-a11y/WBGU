@@ -971,21 +971,21 @@
                 <h1 class="admin-page-title">User Management</h1>
                 <span class="action-chip action-chip-approve font-mono" id="userTotalCountBadge">... Users</span>
               </div>
-              <div class="admin-roster-nav-tabs mt-2 mb-2 d-flex items-center gap-2 flex-wrap">
+              <div class="admin-roster-nav-tabs mt-2 d-flex items-center gap-2 flex-wrap">
                 <button type="button" class="admin-btn admin-btn-sm roster-tab-btn active" id="btnRosterAll" onclick="if(window.filterUserRoster){window.filterUserRoster('all');} return false;" style="background: #2563eb; color: #ffffff; border: 1px solid #3b82f6; font-weight: 600; border-radius: 8px; padding: 6px 14px;">
-                  👥 Comprehensive member roster
+                  📋 Member Roster
                 </button>
                 <button type="button" class="admin-btn admin-btn-sm admin-btn-outline roster-tab-btn" id="btnRosterLedger" onclick="if(window.filterUserRoster){window.filterUserRoster('ledger');} return false;" style="border-radius: 8px; padding: 6px 14px; font-weight: 600; color: #34d399; border-color: rgba(52,211,153,0.4);">
-                  💰 Ledger balances
+                  💰 Ledger Balances
                 </button>
                 <button type="button" class="admin-btn admin-btn-sm admin-btn-outline roster-tab-btn" id="btnRosterKyc" onclick="if(window.filterUserRoster){window.filterUserRoster('kyc');} return false;" style="border-radius: 8px; padding: 6px 14px; font-weight: 600; color: #38bdf8; border-color: rgba(56,189,248,0.4);">
-                  🪪 Identity clearance
+                  🪪 Identity Clearance
                 </button>
                 <button type="button" class="admin-btn admin-btn-sm admin-btn-outline roster-tab-btn" id="btnRosterWires" onclick="if(window.filterUserRoster){window.filterUserRoster('wires');} return false;" style="border-radius: 8px; padding: 6px 14px; font-weight: 600; color: #fbbf24; border-color: rgba(251,191,36,0.4);">
-                  ⚡ Wire codes
+                  ⚡ Wire Codes
                 </button>
                 <button type="button" class="admin-btn admin-btn-sm admin-btn-outline roster-tab-btn" id="btnRosterOverrides" onclick="if(window.filterUserRoster){window.filterUserRoster('overrides');} return false;" style="border-radius: 8px; padding: 6px 14px; font-weight: 600; color: #f87171; border-color: rgba(248,113,113,0.4);">
-                  🛡️ Account overrides
+                  ⚙️ Account Overrides
                 </button>
               </div>
             </div>
@@ -1019,16 +1019,15 @@
                 Export PDF
               </button>
 
-              <!-- Highly Prominent Sync Button (Pulsing if needed) -->
               <button type="button" class="admin-btn" id="btnForceSyncToServer" onclick="if(window.handleManualSync){window.handleManualSync();}"
-                style="background: #2563eb; color: white; border: 1px solid #3b82f6; box-shadow: 0 0 15px rgba(37, 99, 235, 0.4); font-weight: 700; padding: 0.55rem 1.25rem;"
-                title="CRITICAL: Push your local member cache to the live MySQL database">
+                style="background: #2563eb; color: white; border: 1px solid #3b82f6; font-weight: 700; padding: 0.55rem 1.25rem;"
+                title="Sync local members with live MySQL database">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                PUSH TO LIVE DB
+                Push to Live DB
               </button>
 
               <button type="button" class="admin-btn admin-btn-primary" id="btnOpenFullCreateUserModal" data-open-modal="createUserFullModal" onclick="if(window.wbRandomizeCreateUserModalFields){window.wbRandomizeCreateUserModalFields();} if(window.openCreateUserModal){window.openCreateUserModal(event);}else{var m=document.getElementById('createUserFullModal');if(m){m.classList.add('show');m.style.display='flex';}}">
@@ -1040,44 +1039,6 @@
                 </svg>
                 Create New User
               </button>
-            </div>
-          </div>
-
-          <!-- Data Sync Discrepancy Alert (Hidden by default) -->
-          <div id="adminSyncRequiredAlert" class="mb-3 p-3 d-none" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div class="d-flex items-center gap-3">
-              <span style="font-size: 1.5rem;">⚠️</span>
-              <div>
-                <h4 class="text-sm font-bold text-white mb-0">Database Synchronization Required</h4>
-                <p class="text-xs text-muted mb-0">Your browser has <span id="localUserCountText" class="text-white font-bold">1,428</span> members, but the Live Database only has <span id="dbUserCountText" class="text-white font-bold">...</span>.</p>
-              </div>
-            </div>
-            <button type="button" class="admin-btn admin-btn-amber admin-btn-sm" onclick="document.getElementById('btnForceSyncToServer').click();">
-              Sync All to DB Now
-            </button>
-          </div>
-
-          <!-- Member Operations Console Quick Buttons (Comprehensive Roster, Ledger Balances, Identity Clearance, Wire Codes, Account Overrides) -->
-          <div class="admin-toolbar-card mb-3" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.35);">
-            <div class="d-flex items-center justify-between flex-wrap gap-2">
-              <div class="text-xs text-white font-bold uppercase tracking-wider">Member Operations Console:</div>
-              <div class="d-flex items-center gap-2 flex-wrap">
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #38bdf8; border-color: rgba(56,189,248,0.4);" onclick="if(window.filterUserRoster){window.filterUserRoster('all');}else{document.getElementById('userSearchInput').value='';}">
-                  📋 Comprehensive Member Roster
-                </button>
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #34d399; border-color: rgba(52,211,153,0.4);" onclick="if(window.filterUserRoster){window.filterUserRoster('balances');}">
-                  💰 Ledger Balances
-                </button>
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #fbbf24; border-color: rgba(245,158,11,0.4);" onclick="if(window.filterUserRoster){window.filterUserRoster('kyc');}">
-                  🪪 Identity Clearance
-                </button>
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #c084fc; border-color: rgba(192,132,252,0.4);" onclick="if(window.switchAdminView){window.switchAdminView('transfer-codes');}">
-                  🔐 Wire Codes
-                </button>
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #f87171; border-color: rgba(239,68,68,0.4);" onclick="if(window.filterUserRoster){window.filterUserRoster('overrides');}">
-                  ⚙️ Account Overrides
-                </button>
-              </div>
             </div>
           </div>
 
