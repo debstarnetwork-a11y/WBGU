@@ -4118,55 +4118,39 @@ function setupCreateUserModal() {
     el.addEventListener('click', openFullModal);
   });
 
-  // Handle Photo File Upload & URL input (using document delegation to ensure 100% reliability)
+  // Handle Photo & Passport/ID File Uploads (Universal Delegation)
   if (!window._wbPhotoUploadDelegated) {
     window._wbPhotoUploadDelegated = true;
     document.addEventListener('change', (e) => {
-      if (!e.target) return;
-      const targetId = e.target.id;
-      
-      // Handle Profile Photo Uploads (Create & Edit)
-      if (targetId === 'adminNewUserProfilePhotoFile' || targetId === 'editUserProfilePhotoFile') {
-        const file = e.target.files?.[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            const dataUrl = evt.target?.result;
-            const targetUrlInput = (targetId === 'editUserProfilePhotoFile') ? 'editUserProfilePhoto' : 'adminNewUserProfilePhotoUrl';
-            const targetPreview = (targetId === 'editUserProfilePhotoFile') ? 'editUserPhotoPreview' : 'adminNewUserPhotoPreview';
-            
-            const urlEl = document.getElementById(targetUrlInput);
-            const previewEl = document.getElementById(targetPreview);
-            if (urlEl) urlEl.value = dataUrl;
-            if (previewEl) {
-              previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-            }
-          };
-          reader.readAsDataURL(file);
-        }
-      }
+      if (!e.target || e.target.type !== 'file') return;
+      const targetId = e.target.id || '';
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-      // Handle Passport / ID Uploads (Create & Edit)
-      if (targetId === 'adminNewUserPassportFile' || targetId === 'editUserPassportFile') {
-        const file = e.target.files?.[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            const dataUrl = evt.target?.result;
-            const targetUrlInput = (targetId === 'editUserPassportFile') ? 'editUserPassport' : 'adminNewUserPassportUrl';
-            const targetPreview = (targetId === 'editUserPassportFile') ? 'editUserPassportPreview' : 'adminNewUserPassportPreview';
-            
-            const urlEl = document.getElementById(targetUrlInput);
-            const previewEl = document.getElementById(targetPreview);
-            if (urlEl) urlEl.value = dataUrl;
-            if (previewEl) {
-              previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
-            }
-            showToast('Biometric ID document captured.', 'success', 'ID Uploaded');
-          };
-          reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const dataUrl = evt.target?.result;
+        if (!dataUrl) return;
+
+        if (targetId.includes('Passport') || targetId.includes('Id') || targetId.includes('Kyc')) {
+          const urlEl = document.getElementById('adminNewUserPassportUrl') || document.getElementById('editUserPassport') || e.target.form?.querySelector('input[type="text"]');
+          const previewEl = document.getElementById('adminNewUserPassportPreview') || document.getElementById('editUserPassportPreview');
+          if (urlEl) urlEl.value = dataUrl;
+          if (previewEl) {
+            previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport/ID" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
+          }
+          showToast('SUCCESS! Biometric ID / Passport document uploaded successfully.', 'success', 'ID Uploaded');
+        } else {
+          const urlEl = document.getElementById('adminNewUserProfilePhotoUrl') || document.getElementById('editUserProfilePhoto') || e.target.form?.querySelector('input[type="text"]');
+          const previewEl = document.getElementById('adminNewUserPhotoPreview') || document.getElementById('editUserPhotoPreview');
+          if (urlEl) urlEl.value = dataUrl;
+          if (previewEl) {
+            previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
+          }
+          showToast('SUCCESS! Profile photo uploaded successfully.', 'success', 'Photo Uploaded');
         }
-      }
+      };
+      reader.readAsDataURL(file);
     });
   }
 
