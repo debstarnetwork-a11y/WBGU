@@ -5015,6 +5015,11 @@ if (typeof window !== 'undefined') {
   window.exportUsersCsv = exportUsersCsv;
   window.exportUsersPdf = exportUsersPdf;
   window.filterUserRoster = filterUserRoster;
+  window.approveUserAccount = approveUserAccount;
+  window.copyUserDossierToClipboard = copyUserDossierToClipboard;
+  window.openUserDetailDrawer = openUserDetailDrawer;
+  window.getAdminUsersList = getAdminUsersList;
+  window.updateUser = updateUser;
 }
 
 
