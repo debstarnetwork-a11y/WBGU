@@ -3,17 +3,21 @@
  * ============================================================================
  * WB CREDIT UNION - DATABASE CONNECTION DIAGNOSTIC TOOL
  * ============================================================================
- * 
- * Usage: 
- * 1. Deploy this file to your cPanel server.
- * 2. Visit: https://www.wbcu.net/api/test-db.php in your browser.
- * 3. It will tell you exactly if the database is connected and what's wrong.
- * ============================================================================
  */
 
 header('Content-Type: application/json; charset=utf-8');
 
-// --- CONFIGURATION ---
+// --- 0. PHP ENVIRONMENT DIAGNOSTICS ---
+$envInfo = [
+    'php_version' => PHP_VERSION,
+    'memory_limit' => ini_get('memory_limit'),
+    'max_execution_time' => ini_get('max_execution_time'),
+    'post_max_size' => ini_get('post_max_size'),
+    'upload_max_filesize' => ini_get('upload_max_filesize'),
+    'pdo_mysql' => extension_loaded('pdo_mysql') ? 'INSTALLED' : 'MISSING'
+];
+
+// --- 1. CONFIGURATION ---
 $dbHost = 'localhost';
 $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user'; 
@@ -21,9 +25,8 @@ $dbPass = '';
 
 // Simple .env parser (matches admin-users.php logic)
 $envPath = dirname(__DIR__) . '/.env';
-$envFound = false;
-if (file_exists($envPath)) {
-    $envFound = true;
+$envFound = file_exists($envPath);
+if ($envFound) {
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (strpos(trim($line), '#') === 0) continue;
@@ -38,19 +41,15 @@ if (file_exists($envPath)) {
     }
 }
 
-// --- ATTEMPT CONNECTION ---
-$report = [
-    'step_1_php_version' => PHP_VERSION,
-    'step_2_credentials' => [
+$diag = [
+    'env_diagnostics' => $envInfo,
+    'db_config' => [
         'env_file_found' => $envFound,
         'host' => $dbHost,
         'database' => $dbName,
         'user' => $dbUser,
         'password_set' => !empty($dbPass)
-    ],
-    'step_3_connection_test' => null,
-    'step_4_schema_check' => [],
-    'conclusion' => 'Pending'
+    ]
 ];
 
 try {
@@ -58,35 +57,33 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_TIMEOUT => 5
     ]);
-    $report['step_3_connection_test'] = "SUCCESS: Connected to database.";
-    
-    // Check tables
+    $diag['connection_test'] = "SUCCESS: Connected to database.";
+
+    // Schema Check
+    $schema = [];
     $tables = ['users', 'profiles', 'accounts', 'wire_transfer_codes', 'cards'];
     foreach ($tables as $table) {
         try {
             $q = $pdo->query("SELECT COUNT(*) FROM `$table` LIMIT 1");
             $count = $q->fetchColumn();
-            $report['step_4_schema_check'][$table] = "EXISTS (Rows: $count)";
+            $schema[$table] = "EXISTS (Rows: $count)";
             
             if ($table === 'profiles') {
                 $q2 = $pdo->query("DESCRIBE `profiles`");
                 $cols = $q2->fetchAll(PDO::FETCH_COLUMN);
-                $report['step_4_schema_check']['profiles_columns'] = $cols;
-                
-                if (in_array('passport_photo_url', $cols)) {
-                    $report['step_4_schema_check']['passport_photo_url_status'] = "FOUND (Correct)";
-                } else {
-                    $report['step_4_schema_check']['passport_photo_url_status'] = "MISSING! You need to run the SQL to add this column to the 'profiles' table.";
-                }
+                $schema['profiles_columns'] = $cols;
+                $schema['photo_urls_status'] = (in_array('profile_photo_url', $cols) && in_array('passport_photo_url', $cols)) ? 'FOUND' : 'MISSING';
             }
         } catch (Exception $e) {
-            $report['step_4_schema_check'][$table] = "ERROR: " . $e->getMessage();
+            $schema[$table] = "MISSING OR ERROR: " . $e->getMessage();
         }
     }
-    $report['conclusion'] = "Database is ONLINE and CONNECTED. If you see 'MISSING' columns above, run the SQL in phpMyAdmin.";
-} catch (Exception $e) {
-    $report['step_3_connection_test'] = "FAILED: " . $e->getMessage();
-    $report['conclusion'] = "Database CONNECTION FAILED. Please double-check your username and password in cPanel > MySQL Databases.";
+    $diag['schema_check'] = $schema;
+    $diag['conclusion'] = "Database is ONLINE and CONNECTED.";
+
+} catch (Throwable $e) {
+    $diag['connection_test'] = "FAILED: " . $e->getMessage();
+    $diag['conclusion'] = "CONNECTION ERROR. Verify your cPanel MySQL details.";
 }
 
-echo json_encode($report, JSON_PRETTY_PRINT);
+echo json_encode($diag, JSON_PRETTY_PRINT);

@@ -3,12 +3,11 @@
  * ============================================================================
  * WB CREDIT UNION - ADMIN USERS BACKEND API (cPanel / PHP / MySQL / JSON)
  * ============================================================================
- * 
- * Supports both cPanel MySQL database ('glolbka_wbcu_db') and fallback
- * file storage ('admin-users.json') to ensure users in the database
- * are always reflected in the Admin Portal and vice-versa.
- * ============================================================================
  */
+
+// Performance Tuning for large datasets (e.g. 1,428 users)
+set_time_limit(600); // 10 minutes
+ini_set('memory_limit', '512M');
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -26,13 +25,10 @@ if (!file_exists($dataFile)) {
 }
 
 // --- DATABASE CONFIGURATION ---
-// You can either:
-// 1. Create a .env file in the root with DB_PASS, DB_USER, etc.
-// 2. OR hardcode them here if .env is not working.
 $dbHost = 'localhost';
 $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user'; 
-$dbPass = ''; // <-- ENTER YOUR DATABASE PASSWORD HERE IF NOT USING .env
+$dbPass = ''; 
 
 // Simple .env parser for cPanel deployment
 $envPath = dirname(__DIR__) . '/.env';
@@ -50,18 +46,18 @@ if (file_exists($envPath)) {
         if ($name === 'DB_HOST') $dbHost = $value;
     }
 }
+
 $pdo = null;
 $dbError = null;
 try {
-    // Attempt connection
-    if (!empty($dbPass) || $dbUser === 'root') {
+    if (!empty($dbPass) || $dbUser === 'root' || $dbHost === 'localhost') {
         $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 5 // 5 second timeout
+            PDO::ATTR_TIMEOUT => 10 
         ]);
     } else {
-        $dbError = "Database password is not set in environment variables (DB_PASS or DB_PASSWORD).";
+        $dbError = "Database password is not set.";
     }
 } catch (Throwable $e) {
     $pdo = null;
@@ -72,9 +68,7 @@ function loadUsersFromFile($dataFile) {
     if (file_exists($dataFile)) {
         $raw = file_get_contents($dataFile);
         $data = json_decode($raw, true);
-        if (is_array($data)) {
-            return $data;
-        }
+        return is_array($data) ? $data : [];
     }
     return [];
 }
@@ -84,43 +78,37 @@ function saveUsersToFile($dataFile, $users) {
 }
 
 // ----------------------------------------------------------------------------
-// GET: Fetch all users from MySQL or fallback JSON file
+// GET: Fetch all users (Merged from MySQL and JSON)
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $users = [];
+    $usersMap = [];
     $source = 'json_store';
 
+    // 1. Load from File first (often has more "demo" or "local" users)
+    $fileUsers = loadUsersFromFile($dataFile);
+    foreach ($fileUsers as $u) {
+        if (!empty($u['id'])) $usersMap[$u['id']] = $u;
+    }
+
+    // 2. Load from Database
     if ($pdo) {
         try {
-            // Adaptive Column Detection for profile columns
+            $source = 'mysql_merged';
             $q = $pdo->query("DESCRIBE profiles");
             $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
             
-            $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1', 'city', 'country'];
+            $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1', 'profile_photo_url', 'passport_photo_url'];
             $selectFields = ["u.*"];
-            
             foreach ($profileFields as $f) {
-                if (in_array($f, $profileColumns)) {
-                    $selectFields[] = "p.$f";
-                }
-            }
-            
-            if (in_array('profile_photo_url', $profileColumns)) {
-                $selectFields[] = "p.profile_photo_url";
-            }
-            if (in_array('passport_photo_url', $profileColumns)) {
-                $selectFields[] = "p.passport_photo_url";
+                if (in_array($f, $profileColumns)) $selectFields[] = "p.$f";
             }
 
-            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC";
+            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id";
             $stmt = $pdo->query($sql);
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             if (!empty($dbUsers)) {
-                $source = 'mysql';
-                
-                // BULK FETCHING to avoid N+1 problem (performance)
-                // Fetch all accounts
+                // Fetch related data in bulk
                 $allAccounts = [];
                 $acctStmt = $pdo->query("SELECT * FROM accounts");
                 while ($a = $acctStmt->fetch()) {
@@ -135,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     ];
                 }
 
-                // Fetch all wire codes
                 $allWireCodes = [];
                 $wireStmt = $pdo->query("SELECT * FROM wire_transfer_codes");
                 while ($wc = $wireStmt->fetch()) {
@@ -146,13 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     ];
                 }
 
-                // Fetch all cards
                 $allCards = [];
                 $cardStmt = $pdo->query("SELECT * FROM cards");
                 while ($c = $cardStmt->fetch()) {
                     $allCards[$c['user_id']][] = [
                         'id' => $c['id'],
-                        'cardNumber' => $c['card_number'] ?? '•••• •••• •••• 1234',
+                        'cardNumber' => $c['card_number'] ?? '',
                         'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
                         'cardHolder' => $c['card_holder'] ?? '',
                         'type' => $c['card_type'] ?? 'Visa Platinum Debit',
@@ -168,11 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     $fullName = !empty($row['full_name']) ? $row['full_name'] : trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
                     if (empty($fullName)) $fullName = $row['username'] ?? $row['email'] ?? 'Member';
 
-                    $users[] = [
+                    $userObj = [
                         'id' => $row['id'],
                         'fullName' => $fullName,
                         'firstName' => $row['first_name'] ?? '',
-                        'middleName' => $row['middle_name'] ?? '',
                         'lastName' => $row['last_name'] ?? '',
                         'username' => $row['username'] ?? '',
                         'email' => $row['email'],
@@ -180,27 +165,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'dob' => $row['date_of_birth'] ?? '',
                         'address' => $row['address_line1'] ?? '',
                         'nationality' => $row['nationality'] ?? 'Switzerland',
-                        'occupation' => $row['occupation'] ?? '',
                         'profilePhoto' => $row['profile_photo_url'] ?? '',
-                        'avatarUrl' => $row['profile_photo_url'] ?? '',
-                        'passportPhoto' => $row['passport_photo_url'] ?? $row['profile_photo_url'] ?? '',
-                        'passportUrl' => $row['passport_photo_url'] ?? $row['profile_photo_url'] ?? '',
-                        'kycDocument' => $row['profile_photo_url'] ?? '',
+                        'passportPhoto' => $row['passport_photo_url'] ?? '',
                         'status' => $row['status'] ?? 'active',
                         'kycStatus' => $row['kyc_status'] ?? 'verified',
-                        'role' => ($row['role'] === 'super_admin' || $row['role'] === 'Super Admin') ? 'Super Admin' : (($row['role'] === 'admin' || $row['role'] === 'Admin') ? 'Admin' : 'Member'),
-                        'is_admin' => in_array(strtolower($row['role'] ?? ''), ['admin', 'super_admin', 'super_admin']),
-                        'transactionPin' => $row['transaction_pin'] ?? (string)rand(1000, 9999),
-                        'pin' => $row['transaction_pin'] ?? (string)rand(1000, 9999),
-                        'password' => $row['password'] ?? 'Password123!',
+                        'role' => (stripos($row['role'] ?? '', 'super') !== false) ? 'Super Admin' : ((stripos($row['role'] ?? '', 'admin') !== false) ? 'Admin' : 'Member'),
+                        'is_admin' => (stripos($row['role'] ?? '', 'admin') !== false),
+                        'transactionPin' => $row['transaction_pin'] ?? '',
                         'createdAt' => $row['created_at'] ?? date('c'),
-                        'lastLogin' => $row['last_login'] ?? date('c'),
                         'accounts' => $allAccounts[$uid] ?? [],
                         'wireTransferCodes' => $allWireCodes[$uid] ?? [],
-                        'cards' => $allCards[$uid] ?? [],
-                        'cryptoWallets' => [],
-                        'activityLog' => []
+                        'cards' => $allCards[$uid] ?? []
                     ];
+                    
+                    // Merge/Overwrite file data with fresh DB data
+                    $usersMap[$uid] = array_merge($usersMap[$uid] ?? [], $userObj);
                 }
             }
         } catch (Throwable $e) {
@@ -208,44 +187,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     }
 
-    // If database returned no users or was offline, load from file
-    if (empty($users)) {
-        $users = loadUsersFromFile($dataFile);
-        $source = 'json_store';
-    } else {
-        // Ensure we always have at least one Super Admin from the file if DB is somehow missing it
-        $hasAdminInList = false;
-        foreach ($users as $u) {
-            if (!empty($u['is_admin']) || in_array($u['role'] ?? '', ['Super Admin', 'Admin'])) {
-                $hasAdminInList = true;
-                break;
-            }
-        }
-        if (!$hasAdminInList) {
-            $fileUsers = loadUsersFromFile($dataFile);
-            foreach ($fileUsers as $fu) {
-                if (!empty($fu['is_admin']) || ($fu['role'] ?? '') === 'Super Admin') {
-                    $users[] = $fu;
-                }
-            }
-        }
-    }
-
+    $finalUsers = array_values($usersMap);
     echo json_encode([
         'success' => true,
         'source' => $source,
         'db_error' => $dbError,
-        'count' => count($users),
-        'users' => $users
+        'count' => count($finalUsers),
+        'users' => $finalUsers
     ]);
     exit;
 }
 
 // ----------------------------------------------------------------------------
-// POST: Create or sync users into MySQL Database AND JSON file
+// POST: Batch Sync users into MySQL AND JSON file
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
     $users = $input['users'] ?? null;
 
     if (!is_array($users)) {
@@ -254,169 +212,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Always update file as a backup
     saveUsersToFile($dataFile, $users);
 
     $dbSynced = false;
     $syncErrors = [];
+    $processedCount = 0;
+
     if ($pdo) {
         try {
+            // Get table columns once
+            $uCols = $pdo->query("DESCRIBE users")->fetchAll(PDO::FETCH_COLUMN);
+            $pCols = $pdo->query("DESCRIBE profiles")->fetchAll(PDO::FETCH_COLUMN);
+
+            // Use a transaction for atomic bulk insert
+            $pdo->beginTransaction();
+
             foreach ($users as $u) {
                 $uid = $u['id'] ?? ('usr-' . uniqid());
-                $username = $u['username'] ?? (!empty($u['email']) ? explode('@', $u['email'])[0] : ('user_' . rand(1000, 9999)));
-                $email = $u['email'] ?? ($username . '@wbcu.net');
-                $passwordRaw = $u['password'] ?? 'Password123!';
-                $roleRaw = (isset($u['is_admin']) && $u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' ? 'super_admin' : 'user';
-                $transactionPin = $u['transactionPin'] ?? $u['pin'] ?? str_pad((string)rand(1000, 9999), 4, '0', STR_PAD_LEFT);
-                $status = $u['status'] ?? 'active';
-                $kycStatus = $u['kycStatus'] ?? $u['kyc_status'] ?? 'verified';
-                $createdAt = $u['createdAt'] ?? date('Y-m-d H:i:s');
-
-                // Adaptive Column Detection for users table
-                static $userColumns = null;
-                if ($userColumns === null) {
-                    $q = $pdo->query("DESCRIBE users");
-                    $userColumns = $q->fetchAll(PDO::FETCH_COLUMN);
-                }
-
-                $userFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
-                $userValues = [$uid, $username, $email, $roleRaw, $transactionPin, $status, $kycStatus, $createdAt];
+                $email = $u['email'] ?? ($uid . '@wbcu.net');
+                $username = $u['username'] ?? explode('@', $email)[0];
                 
-                if (in_array('password', $userColumns)) {
-                    $userFields[] = 'password';
-                    $userValues[] = $passwordRaw;
-                }
-                if (in_array('password_hash', $userColumns)) {
-                    $userFields[] = 'password_hash';
-                    $userValues[] = $passwordRaw; // In production, this should be password_hash()
-                }
-
-                $placeholders = str_repeat('?,', count($userFields) - 1) . '?';
-                $updatePart = [];
-                foreach ($userFields as $f) {
-                    if ($f !== 'id' && $f !== 'created_at') {
-                        $updatePart[] = "`$f` = VALUES(`$f`)";
-                    }
-                }
+                // 1. Users Table
+                $uFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
+                $uVals = [$uid, $username, $email, ($u['is_admin'] ? 'super_admin' : 'user'), $u['transactionPin'] ?? '1234', $u['status'] ?? 'active', $u['kycStatus'] ?? 'verified', $u['createdAt'] ?? date('Y-m-d H:i:s')];
                 
-                $sql = "INSERT INTO users (" . implode(', ', $userFields) . ") VALUES ($placeholders) ON DUPLICATE KEY UPDATE " . implode(', ', $updatePart);
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute($userValues);
+                if (in_array('password', $uCols)) { $uFields[] = 'password'; $uVals[] = $u['password'] ?? 'Password123!'; }
+                
+                $placeholders = str_repeat('?,', count($uFields) - 1) . '?';
+                $updates = [];
+                foreach ($uFields as $f) if ($f !== 'id' && $f !== 'created_at') $updates[] = "`$f` = VALUES(`$f`)";
+                
+                $stmt = $pdo->prepare("INSERT INTO users (" . implode(', ', $uFields) . ") VALUES ($placeholders) ON DUPLICATE KEY UPDATE " . implode(', ', $updates));
+                $stmt->execute($uVals);
 
-                // 2. Upsert into profiles table
-                $fullName = $u['fullName'] ?? trim(($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? ''));
-                if (empty($fullName)) $fullName = 'Member';
-                $firstName = $u['firstName'] ?? explode(' ', $fullName)[0] ?? '';
-                $nameParts = explode(' ', $fullName);
-                $lastName = $u['lastName'] ?? (count($nameParts) > 1 ? end($nameParts) : '');
-                $phone = $u['phone'] ?? '+41 44 915 0000';
-                $dob = $u['dob'] ?? '1985-01-01';
-                $nationality = $u['nationality'] ?? 'Switzerland';
-                $occupation = $u['occupation'] ?? 'Executive';
-                $address = $u['address'] ?? 'Zurich, Switzerland';
-                $photo = $u['profilePhoto'] ?? $u['avatarUrl'] ?? '';
-                $passport = $u['passportPhoto'] ?? $u['passportUrl'] ?? $photo;
-                $profId = 'prof-' . str_replace('usr-', '', $uid);
-
-                // Adaptive Column Detection for profiles table
-                static $profileColumns = null;
-                if ($profileColumns === null) {
-                    $q = $pdo->query("DESCRIBE profiles");
-                    $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
-                }
-
+                // 2. Profiles Table
+                $fullName = $u['fullName'] ?? 'Member';
+                $firstName = $u['firstName'] ?? explode(' ', $fullName)[0];
+                $lastName = $u['lastName'] ?? '';
+                
                 $profFields = ['id', 'user_id', 'first_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1'];
-                $profValues = [$profId, $uid, $firstName, $lastName, $fullName, $phone, $dob, $nationality, $occupation, $address];
-
-                if (in_array('profile_photo_url', $profileColumns)) {
-                    $profFields[] = 'profile_photo_url';
-                    $profValues[] = $photo;
-                }
-                if (in_array('passport_photo_url', $profileColumns)) {
-                    $profFields[] = 'passport_photo_url';
-                    $profValues[] = $passport;
-                }
-
+                $profVals = ['prof-'.str_replace('usr-','',$uid), $uid, $firstName, $lastName, $fullName, $u['phone'] ?? '', $u['dob'] ?? '', $u['nationality'] ?? '', $u['occupation'] ?? '', $u['address'] ?? ''];
+                
+                if (in_array('profile_photo_url', $pCols)) { $profFields[] = 'profile_photo_url'; $profVals[] = $u['profilePhoto'] ?? ''; }
+                if (in_array('passport_photo_url', $pCols)) { $profFields[] = 'passport_photo_url'; $profVals[] = $u['passportPhoto'] ?? ''; }
+                
                 $pPlaceholders = str_repeat('?,', count($profFields) - 1) . '?';
-                $pUpdatePart = [];
-                foreach ($profFields as $f) {
-                    if ($f !== 'id' && $f !== 'user_id' && $f !== 'created_at') {
-                        $pUpdatePart[] = "`$f` = VALUES(`$f`)";
-                    }
-                }
+                $pUpdates = [];
+                foreach ($profFields as $f) if ($f !== 'id' && $f !== 'user_id') $pUpdates[] = "`$f` = VALUES(`$f`)";
+                
+                $pStmt = $pdo->prepare("INSERT INTO profiles (" . implode(', ', $profFields) . ") VALUES ($pPlaceholders) ON DUPLICATE KEY UPDATE " . implode(', ', $pUpdates));
+                $pStmt->execute($profVals);
 
-                $pSql = "INSERT INTO profiles (" . implode(', ', $profFields) . ") VALUES ($pPlaceholders) ON DUPLICATE KEY UPDATE " . implode(', ', $pUpdatePart);
-                $pStmt = $pdo->prepare($pSql);
-                $pStmt->execute($profValues);
-
-                // 3. Upsert into accounts table
+                // 3. Accounts Table
                 if (!empty($u['accounts']) && is_array($u['accounts'])) {
-                    foreach ($u['accounts'] as $index => $acc) {
-                        $accNum = $acc['accountNumber'] ?? ('09' . rand(100000000, 999999999));
-                        $accId = 'acct-' . str_replace('usr-', '', $uid) . '-' . $index;
-                        $accType = $acc['type'] ?? 'Checking';
-                        $accName = $acc['name'] ?? 'Primary Vault';
-                        $currency = $acc['currency'] ?? 'USD';
-                        $balance = (float)($acc['balance'] ?? 0);
-                        $accStatus = $acc['status'] ?? 'active';
-                        $routing = $acc['routingNumber'] ?? '021000089';
-
-                        $accStmt = $pdo->prepare("INSERT INTO accounts (id, account_number, user_id, account_type, account_name, currency, balance, status, routing_number) 
-                                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                                   ON DUPLICATE KEY UPDATE account_type=?, account_name=?, currency=?, balance=?, status=?, routing_number=?");
-                        $accStmt->execute([
-                            $accId, $accNum, $uid, $accType, $accName, $currency, $balance, $accStatus, $routing,
-                            $accType, $accName, $currency, $balance, $accStatus, $routing
-                        ]);
+                    foreach ($u['accounts'] as $idx => $acc) {
+                        $accId = 'acct-' . str_replace('usr-', '', $uid) . '-' . $idx;
+                        $pdo->prepare("INSERT INTO accounts (id, account_number, user_id, account_type, account_name, currency, balance, status, routing_number) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                                       ON DUPLICATE KEY UPDATE account_type=VALUES(account_type), account_name=VALUES(account_name), balance=VALUES(balance), status=VALUES(status)")
+                            ->execute([$accId, $acc['accountNumber'] ?? '09'.rand(100000,999999), $uid, $acc['type'] ?? 'Checking', $acc['name'] ?? 'Vault', $acc['currency'] ?? 'USD', (float)($acc['balance'] ?? 0), $acc['status'] ?? 'active', $acc['routingNumber'] ?? '021000089']);
                     }
                 }
 
-                // 4. Sync wire codes
+                // 4. Wire Codes Table
                 if (!empty($u['wireTransferCodes']) && is_array($u['wireTransferCodes'])) {
-                    foreach ($u['wireTransferCodes'] as $type => $cdata) {
-                        if (is_array($cdata)) {
-                            $codeVal = $cdata['code'] ?? '';
-                            if (!$codeVal) continue;
-                            $isActive = !empty($cdata['active']) ? 1 : 0;
-                            $notes = $cdata['notes'] ?? '';
-                            $wId = 'wc-' . str_replace('usr-', '', $uid) . '-' . strtolower($type);
-
-                            $wStmt = $pdo->prepare("INSERT INTO wire_transfer_codes (id, user_id, code_type, code_value, display_name, description, is_active) 
-                                                     VALUES (?, ?, ?, ?, ?, ?, ?) 
-                                                     ON DUPLICATE KEY UPDATE code_value=?, is_active=?, description=?");
-                            $wStmt->execute([
-                                $wId, $uid, $type, $codeVal, $type . ' Code', $notes, $isActive,
-                                $codeVal, $isActive, $notes
-                            ]);
+                    foreach ($u['wireTransferCodes'] as $type => $c) {
+                        if (is_array($c) && !empty($c['code'])) {
+                            $pdo->prepare("INSERT INTO wire_transfer_codes (id, user_id, code_type, code_value, display_name, description, is_active) 
+                                           VALUES (?, ?, ?, ?, ?, ?, ?) 
+                                           ON DUPLICATE KEY UPDATE code_value=VALUES(code_value), is_active=VALUES(is_active)")
+                                ->execute(['wc-'.str_replace('usr-','',$uid).'-'.strtolower($type), $uid, $type, $c['code'], $type.' Code', $c['notes'] ?? '', !empty($c['active']) ? 1 : 0]);
                         }
                     }
                 }
-                
-                // 5. Sync cards
-                if (!empty($u['cards']) && is_array($u['cards'])) {
-                    foreach ($u['cards'] as $index => $c) {
-                        $cId = $c['id'] ?? ('crd-' . str_replace('usr-', '', $uid) . '-' . $index);
-                        $cNum = $c['cardNumber'] ?? '';
-                        $cMasked = $c['cardMasked'] ?? '•••• •••• •••• 1234';
-                        $cHolder = $c['cardHolder'] ?? $fullName;
-                        $cType = $c['type'] ?? 'Visa Platinum Debit';
-                        $cExpiry = $c['expiry'] ?? '09/31';
-                        $cCvv = $c['cvv'] ?? '775';
-                        $cPin = $c['pin'] ?? '1234';
-                        $cStatus = $c['status'] ?? 'active';
 
-                        $cStmt = $pdo->prepare("INSERT INTO cards (id, user_id, card_holder, card_number, card_masked, card_type, expiry_display, cvv, pin, status) 
-                                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                                 ON DUPLICATE KEY UPDATE card_holder=?, card_type=?, expiry_display=?, cvv=?, pin=?, status=?");
-                        $cStmt->execute([
-                            $cId, $uid, $cHolder, $cNum, $cMasked, $cType, $cExpiry, $cCvv, $cPin, $cStatus,
-                            $cHolder, $cType, $cExpiry, $cCvv, $cPin, $cStatus
-                        ]);
+                // 5. Cards Table
+                if (!empty($u['cards']) && is_array($u['cards'])) {
+                    foreach ($u['cards'] as $idx => $card) {
+                        $cId = 'crd-' . str_replace('usr-', '', $uid) . '-' . $idx;
+                        $pdo->prepare("INSERT INTO cards (id, user_id, card_holder, card_number, card_masked, card_type, expiry_display, cvv, pin, status) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                                       ON DUPLICATE KEY UPDATE card_holder=VALUES(card_holder), card_type=VALUES(card_type), status=VALUES(status)")
+                            ->execute([$cId, $uid, $card['cardHolder'] ?? $fullName, $card['cardNumber'] ?? '', $card['cardMasked'] ?? '•••• 1234', $card['type'] ?? 'Debit', $card['expiry'] ?? '09/31', $card['cvv'] ?? '775', $card['pin'] ?? '1234', $card['status'] ?? 'active']);
                     }
                 }
+                $processedCount++;
             }
+
+            $pdo->commit();
             $dbSynced = true;
         } catch (Throwable $e) {
-            $dbSynced = false;
+            if ($pdo->inTransaction()) $pdo->rollBack();
             $syncErrors[] = $e->getMessage();
         }
     }
@@ -426,9 +313,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'db_synced' => $dbSynced,
         'db_errors' => $syncErrors,
         'db_connected' => ($pdo !== null),
-        'db_conn_error' => $dbError,
         'count' => count($users),
-        'message' => 'Users synchronized successfully'
+        'processed' => $processedCount,
+        'message' => $dbSynced ? 'Users fully synchronized to Database' : 'Users saved to file, but Database sync failed'
     ]);
     exit;
 }
