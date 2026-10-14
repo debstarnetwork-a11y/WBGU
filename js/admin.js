@@ -79,11 +79,11 @@ import {
 const ADMIN_MEMO_KEY = 'wb_credit_union_admin_memo';
 
 const defaultStats = {
-  totalUsers: 1428,
-  totalAccounts: 3892,
-  totalBalance: 48290450.00,
-  activeTransactionsToday: 342,
-  pendingWires: 7,
+  totalUsers: 0,
+  totalAccounts: 0,
+  totalBalance: 0.00,
+  activeTransactionsToday: 0,
+  pendingWires: 0,
 };
 
 let recentActivities = [
@@ -1401,4 +1401,19 @@ if (typeof document !== 'undefined') {
 if (typeof window !== 'undefined') {
   window.initAdminDashboard = initAdminDashboard;
   window.switchAdminView = switchAdminView;
+
+  // Global error handler to catch initialization or runtime crashes
+  window.addEventListener('error', (event) => {
+    console.error('[ADMIN GLOBAL ERROR]', event.error);
+    if (typeof showToast === 'function') {
+      showToast('A system error occurred. Please check the browser console for details.', 'error', 'Runtime Error');
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[ADMIN UNHANDLED PROMISE]', event.reason);
+    if (typeof showToast === 'function') {
+      showToast('A background task failed. Check connection or logs.', 'warning', 'Sync Issue');
+    }
+  });
 }

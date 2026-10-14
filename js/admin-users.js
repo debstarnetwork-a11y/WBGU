@@ -711,6 +711,9 @@ export function getAdminUsersList() {
   // Ensure all users have required fields and passwords
   const defaultPwds = ['MemberPass123!', 'Password123!', 'Vanguard@2026!', 'Sterling#884!'];
   list.forEach((u, i) => {
+    if (!u.id) {
+      u.id = 'usr-' + Math.random().toString(36).substr(2, 9);
+    }
     if (!u.password) {
       u.password = defaultPwds[i % defaultPwds.length] || 'MemberPass123!';
     }
@@ -1270,17 +1273,23 @@ export async function syncAdminUsersWithServer() {
  * ---------------------------------------------------------------------------- */
 export function initAdminUserManagement() {
   console.log('[ADMIN USERS] Initializing User Management...');
-  currentUsers = getAdminUsersList();
-  console.log('[ADMIN USERS] Loaded local users:', currentUsers.length);
+  try {
+    const list = getAdminUsersList();
+    currentUsers = Array.isArray(list) ? list : [];
+    console.log('[ADMIN USERS] Loaded local users:', currentUsers.length);
+  } catch (e) {
+    console.error('[ADMIN USERS] Failed to load local users:', e);
+    currentUsers = [];
+  }
   filteredUsers = [...currentUsers];
 
-  setupSearchAndFilters();
-  setupTableSorting();
-  setupBulkActions();
-  setupUserDetailDrawer();
-  setupCreateUserModal();
-  setupExportButtons();
-  setupSystemSyncButtons();
+  try { setupSearchAndFilters(); } catch (e) { console.error('[ADMIN USERS] Search/Filter setup error:', e); }
+  try { setupTableSorting(); } catch (e) { console.error('[ADMIN USERS] Table sorting setup error:', e); }
+  try { setupBulkActions(); } catch (e) { console.error('[ADMIN USERS] Bulk actions setup error:', e); }
+  try { setupUserDetailDrawer(); } catch (e) { console.error('[ADMIN USERS] Drawer setup error:', e); }
+  try { setupCreateUserModal(); } catch (e) { console.error('[ADMIN USERS] Modal setup error:', e); }
+  try { setupExportButtons(); } catch (e) { console.error('[ADMIN USERS] Export buttons setup error:', e); }
+  try { setupSystemSyncButtons(); } catch (e) { console.error('[ADMIN USERS] Sync buttons setup error:', e); }
 
   renderUsersTable();
 
@@ -1446,6 +1455,8 @@ export function renderUsersTable() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalUsers);
   const pagedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  console.log('[ADMIN RENDER] Rendering table. Page:', currentPage, 'Total:', totalUsers, 'Paged count:', pagedUsers.length);
 
   if (totalUsers === 0) {
     tbody.innerHTML = `
@@ -4502,86 +4513,108 @@ function setupSystemSyncButtons() {
   const syncBtn = document.getElementById('btnForceSyncToServer');
   
   console.log('[ADMIN SYNC] setupSystemSyncButtons called. SyncBtn found:', !!syncBtn);
+  
+  // Using delegation to ensure listener works even if button is re-added or on different pages
+  document.addEventListener('click', (e) => {
+    if (e.target && (e.target.id === 'btnForceSyncToServer' || e.target.closest('#btnForceSyncToServer'))) {
+      handleManualSync();
+    }
+    if (e.target && (e.target.id === 'btnResetAdminCache' || e.target.closest('#btnResetAdminCache'))) {
+      handleCacheReset();
+    }
+  });
 
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to RESET the admin cache? This will clear all local storage and reload everything from the server database. Unsaved changes will be lost.')) {
-        const keysToClear = [
-          ADMIN_USERS_STORAGE_KEY,
-          'wb_credit_union_registered_members_list',
-          'wbcu_all_registered_users',
-          'wbcu_user_registered_accounts',
-          'wb_credit_union_active_user',
-          'wbcu_user_profile_v1'
-        ];
-        keysToClear.forEach(k => localStorage.removeItem(k));
-        showToast('Local cache cleared. Reloading...', 'success', 'Cache Reset');
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    });
+    resetBtn.addEventListener('click', handleCacheReset);
   }
 
   if (syncBtn) {
-    syncBtn.addEventListener('click', async () => {
-      const totalUsers = currentUsers.length;
-      if (confirm(`Are you sure you want to SYNC ${totalUsers} users to the live database? This will be done in batches to prevent server timeouts.`)) {
-        const originalText = syncBtn.innerHTML;
-        syncBtn.disabled = true;
-        
-        // Configuration for chunked sync
-        const CHUNK_SIZE = 50; 
-        let processed = 0;
-        let successCount = 0;
-        let failedChunks = 0;
+    syncBtn.addEventListener('click', handleManualSync);
+  }
+}
 
-        try {
-          // 1. First, do a "Full" sync to the JSON file only (optional but good for backup)
-          // We can do this in the first chunk or as a separate call. 
-          // For simplicity, we'll let the backend handle the file saving on every chunk for now, 
-          // OR we modify the backend to only save to file if a flag is passed.
-          
-          for (let i = 0; i < totalUsers; i += CHUNK_SIZE) {
-            const chunk = currentUsers.slice(i, i + CHUNK_SIZE);
-            processed = Math.min(i + CHUNK_SIZE, totalUsers);
-            
-            syncBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Syncing ${processed}/${totalUsers}...`;
-            
-            const res = await fetch('/api/admin-users.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                users: chunk,
-                is_chunk: true // Hint to backend not to overwrite full file
-              }),
-            });
-            
-            const result = await res.json();
-            if (result.success && result.db_synced) {
-              successCount += chunk.length;
-            } else {
-              console.error(`Chunk ${i/CHUNK_SIZE} failed:`, result.db_errors || result.error);
-              failedChunks++;
-            }
-          }
+function handleCacheReset() {
+  if (confirm('Are you sure you want to RESET the admin cache? This will clear all local storage and reload everything from the server database. Unsaved changes will be lost.')) {
+    const keysToClear = [
+      ADMIN_USERS_STORAGE_KEY,
+      'wb_credit_union_registered_members_list',
+      'wbcu_all_registered_users',
+      'wbcu_user_registered_accounts',
+      'wb_credit_union_active_user',
+      'wbcu_user_profile_v1'
+    ];
+    keysToClear.forEach(k => localStorage.removeItem(k));
+    showToast('Local cache cleared. Reloading...', 'success', 'Cache Reset');
+    setTimeout(() => window.location.reload(), 1500);
+  }
+}
 
-          if (failedChunks === 0) {
-            showToast(`Successfully synchronized all ${totalUsers} users to the live database.`, 'success', 'Sync Complete');
-          } else if (successCount > 0) {
-            showToast(`Sync partially completed. ${successCount} users saved, but ${failedChunks} batches failed. Check console.`, 'warning', 'Partial Sync');
-          } else {
-            showToast('Sync failed for all batches. Please check server logs and database connectivity.', 'error', 'Sync Failed');
-          }
+async function handleManualSync() {
+  const totalUsers = currentUsers.length;
+  console.log('[ADMIN SYNC] Manual sync initiated for', totalUsers, 'users.');
+  
+  if (totalUsers === 0) {
+     showToast('No local users found to synchronize. Cache is empty.', 'info', 'Nothing to Sync');
+     return;
+  }
 
-        } catch (err) {
-          console.error('Manual sync failed:', err);
-          showToast('An unexpected error occurred during sync. Check your connection.', 'error', 'Sync Error');
-        } finally {
-          syncBtn.disabled = false;
-          syncBtn.innerHTML = originalText;
-          // Refresh the view if needed, or just toast
-        }
+  if (!confirm(`Are you sure you want to SYNC ${totalUsers} users to the live database? This will be done in batches to prevent server timeouts.`)) {
+    return;
+  }
+
+  const syncBtn = document.getElementById('btnForceSyncToServer');
+  const originalText = syncBtn ? syncBtn.innerHTML : 'PUSH TO LIVE DB';
+  if (syncBtn) syncBtn.disabled = true;
+  
+  // Configuration for chunked sync
+  const CHUNK_SIZE = 50; 
+  let processed = 0;
+  let successCount = 0;
+  let failedChunks = 0;
+
+  try {
+    for (let i = 0; i < totalUsers; i += CHUNK_SIZE) {
+      const chunk = currentUsers.slice(i, i + CHUNK_SIZE);
+      processed = Math.min(i + CHUNK_SIZE, totalUsers);
+      
+      if (syncBtn) {
+        syncBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Syncing ${processed}/${totalUsers}...`;
       }
-    });
+      
+      const res = await fetch('/api/admin-users.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          users: chunk,
+          is_chunk: true
+        }),
+      });
+      
+      const result = await res.json();
+      if (result.success && result.db_synced) {
+        successCount += chunk.length;
+      } else {
+        console.error(`Chunk ${i/CHUNK_SIZE} failed:`, result.db_errors || result.error);
+        failedChunks++;
+      }
+    }
+
+    if (failedChunks === 0) {
+      showToast(`Successfully synchronized all ${totalUsers} users to the live database.`, 'success', 'Sync Complete');
+    } else if (successCount > 0) {
+      showToast(`Sync partially completed. ${successCount} users saved, but ${failedChunks} batches failed. Check console.`, 'warning', 'Partial Sync');
+    } else {
+      showToast('Sync failed for all batches. Please check server logs and database connectivity.', 'error', 'Sync Failed');
+    }
+
+  } catch (err) {
+    console.error('Manual sync failed:', err);
+    showToast('An unexpected error occurred during sync. Check your connection.', 'error', 'Sync Error');
+  } finally {
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = originalText;
+    }
   }
 }
 
