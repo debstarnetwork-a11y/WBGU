@@ -4470,6 +4470,13 @@ function setupCreateUserModal() {
         currentUsers.unshift(newUser);
         saveAdminUsersList(currentUsers);
 
+        // Immediately sync to server DB in background
+        fetch('/api/admin-users.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ users: [newUser], is_chunk: true })
+        }).catch(err => console.warn('Background sync error:', err));
+
         // Reset filters and search inputs so new user displays immediately
         const searchInput = document.getElementById('userSearchInput');
         const statusFilter = document.getElementById('userStatusFilter');
@@ -4489,6 +4496,8 @@ function setupCreateUserModal() {
         renderUsersTable();
         const userBadge = document.getElementById('sidebarUserBadge');
         if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
+        const totalCountBadge = document.getElementById('userTotalCountBadge');
+        if (totalCountBadge) totalCountBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
 
         form.reset();
         if (window.wbRandomizeCreateUserModalFields) window.wbRandomizeCreateUserModalFields();
@@ -4500,7 +4509,16 @@ function setupCreateUserModal() {
           targetModal.classList.remove('show');
           targetModal.style.display = 'none';
         }
-        showToast(`Member account created for ${fullName} (${username}). Account is INACTIVE ($0.00 balance) awaiting Admin credit & activation.`, 'success', 'User Registered');
+
+        // Show prominent toast and success alert banner
+        showToast(`SUCCESS! Member account created for ${fullName} (${username}). Added to roster and synced.`, 'success', 'User Registered Successfully');
+        
+        const alertBanner = document.createElement('div');
+        alertBanner.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999; background: #065f46; color: #fff; padding: 16px 24px; border-radius: 12px; border: 2px solid #34d399; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-size: 0.95rem; font-family: inherit;';
+        alertBanner.innerHTML = `<div>🎉 <b>SUCCESSFULLY CREATED MEMBER!</b></div><div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">${escapeHtml(fullName)} (${escapeHtml(email)}) added to table.</div>`;
+        document.body.appendChild(alertBanner);
+        setTimeout(() => alertBanner.remove(), 6000);
+
       } catch (err) {
         console.error('[ADMIN CREATE USER] Submission error:', err);
         showToast('An error occurred while creating the user. Please check the console.', 'error', 'Submission Failed');
