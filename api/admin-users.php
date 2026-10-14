@@ -25,21 +25,44 @@ if (!file_exists($dataFile)) {
     $dataFile = __DIR__ . '/admin-users.json';
 }
 
-// Database Credentials (from cPanel schema)
+// --- DATABASE CONFIGURATION ---
+// You can either:
+// 1. Create a .env file in the root with DB_PASS, DB_USER, etc.
+// 2. OR hardcode them here if .env is not working.
 $dbHost = 'localhost';
 $dbName = 'glolbka_wbcu_db';
-$dbUser = 'glolbka_wbcu_user';
-// Support both DB_PASS and DB_PASSWORD from environment
-$dbPass = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: ''; 
+$dbUser = 'glolbka_wbcu_user'; 
+$dbPass = ''; // <-- ENTER YOUR DATABASE PASSWORD HERE IF NOT USING .env
 
+// Simple .env parser for cPanel deployment
+$envPath = dirname(__DIR__) . '/.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        $parts = explode('=', $line, 2);
+        if (count($parts) < 2) continue;
+        $name = trim($parts[0]);
+        $value = trim($parts[1], " \t\n\r\0\x0B\"'");
+        if ($name === 'DB_PASS' || $name === 'DB_PASSWORD') $dbPass = $value;
+        if ($name === 'DB_USER') $dbUser = $value;
+        if ($name === 'DB_NAME') $dbName = $value;
+        if ($name === 'DB_HOST') $dbHost = $value;
+    }
+}
 $pdo = null;
 $dbError = null;
 try {
     // Attempt connection
-    $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
+    if (!empty($dbPass) || $dbUser === 'root') {
+        $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_TIMEOUT => 5 // 5 second timeout
+        ]);
+    } else {
+        $dbError = "Database password is not set in environment variables (DB_PASS or DB_PASSWORD).";
+    }
 } catch (Throwable $e) {
     $pdo = null;
     $dbError = $e->getMessage();

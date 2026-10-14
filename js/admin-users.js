@@ -4500,8 +4500,12 @@ function setupSystemSyncButtons() {
           
           const result = await res.json();
           if (result.success) {
-            showToast(`Successfully synchronized ${currentUsers.length} users to the database.`, 'success', 'Sync Complete');
-            if (result.db_errors && result.db_errors.length > 0) {
+            if (result.db_connected && result.db_synced) {
+              showToast(`Successfully synchronized ${currentUsers.length} users to the live database.`, 'success', 'Sync Complete');
+            } else if (!result.db_connected) {
+              console.error('Database connection failed:', result.db_conn_error);
+              showToast('Users saved to file, but DATABASE connection failed. Check your DB credentials.', 'warning', 'DB Connection Error');
+            } else {
               console.warn('Sync partially succeeded with errors:', result.db_errors);
               showToast('Some users could not be updated in the database. Check console for details.', 'warning', 'Sync Partial');
             }
