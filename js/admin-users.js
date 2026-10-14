@@ -4728,6 +4728,102 @@ function setupExportButtons() {
   }
 }
 
+export function exportUsersCsv() {
+  const headers = ['User ID', 'Full Name', 'Email', 'Phone', 'Primary Account', 'Type', 'Status', 'KYC', 'Balance USD', 'Created Date'];
+  const rows = filteredUsers.map((u) => {
+    const totalBal = u.accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+    return [
+      u.id,
+      `"${u.fullName.replace(/"/g, '""')}"`,
+      u.email,
+      `"${u.phone}"`,
+      u.accounts[0]?.accountNumber || 'N/A',
+      u.accounts[0]?.type || 'Checking',
+      u.status,
+      u.kycStatus,
+      totalBal.toFixed(2),
+      new Date(u.createdAt).toISOString().slice(0, 10),
+    ];
+  });
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `WBCU_Member_Ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Exported CSV member ledger report.', 'success', 'Export Complete');
+}
+
+export async function exportUsersPdf() {
+  try {
+    let jsPDFModule = window.jspdf ? window.jspdf.jsPDF : null;
+    if (!jsPDFModule) {
+      try {
+        const mod = await import('jspdf');
+        jsPDFModule = mod.jsPDF || mod.default;
+      } catch(e) {}
+    }
+    if (!jsPDFModule) {
+      showToast('PDF generator library loading...', 'info', 'Exporting PDF');
+      return;
+    }
+    const doc = new jsPDFModule();
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 297, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('WB CREDIT UNION - TREASURY MEMBER LEDGER', 14, 20);
+
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Generated: ${new Date().toUTCString()} | Confidential Regulatory Audit Document`, 14, 28);
+
+    let y = 40;
+    doc.setFontSize(8);
+    doc.setTextColor(56, 189, 248);
+    doc.text('NAME', 14, y);
+    doc.text('EMAIL / ID', 65, y);
+    doc.text('ACCOUNT #', 115, y);
+    doc.text('STATUS / KYC', 155, y);
+    doc.text('BALANCE', 185, y);
+
+    y += 6;
+    doc.setDrawColor(51, 65, 85);
+    doc.line(14, y - 2, 196, y - 2);
+
+    filteredUsers.slice(0, 25).forEach((u) => {
+      doc.setTextColor(255, 255, 255);
+      doc.text(u.fullName.slice(0, 24), 14, y);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`${u.email.slice(0, 26)} (${u.id})`, 65, y);
+      doc.text(u.accounts[0]?.accountNumber || 'N/A', 115, y);
+      doc.text(`${u.status.toUpperCase()} / ${u.kycStatus.toUpperCase()}`, 155, y);
+      
+      const totalBal = u.accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`$${totalBal.toLocaleString()}`, 185, y);
+
+      y += 8;
+      if (y > 275) {
+        doc.addPage();
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 297, 'F');
+        y = 20;
+      }
+    });
+
+    doc.save(`WBCU_Member_Audit_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    showToast('Generated PDF audit report.', 'success', 'PDF Downloaded');
+  } catch (err) {
+    console.error('PDF Export error:', err);
+    showToast('Error generating PDF report.', 'error', 'Export Error');
+  }
+}
+
 /* ----------------------------------------------------------------------------
  * 12. HELPER UTILITIES
  * ---------------------------------------------------------------------------- */
@@ -4759,5 +4855,7 @@ if (typeof window !== 'undefined') {
   window.renderUsersTable = renderUsersTable;
   window.handleManualSync = handleManualSync;
   window.handleCacheReset = handleCacheReset;
+  window.exportUsersCsv = exportUsersCsv;
+  window.exportUsersPdf = exportUsersPdf;
 }
 

@@ -999,7 +999,7 @@
             </div>
 
             <div class="admin-quick-actions-bar">
-              <button type="button" class="admin-btn admin-btn-outline" id="btnResetAdminCache" title="Clear local browser storage and reload from server">
+              <button type="button" class="admin-btn admin-btn-outline" id="btnResetAdminCache" onclick="if(window.handleCacheReset){window.handleCacheReset();}" title="Clear local browser storage and reload from server">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M23 4v6h-6"></path>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
@@ -1007,7 +1007,7 @@
                 Reset Cache
               </button>
 
-              <button type="button" class="admin-btn admin-btn-outline" id="btnExportUsersCsv">
+              <button type="button" class="admin-btn admin-btn-outline" id="btnExportUsersCsv" onclick="if(window.exportUsersCsv){window.exportUsersCsv();}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
@@ -1016,7 +1016,7 @@
                 Export CSV
               </button>
 
-              <button type="button" class="admin-btn admin-btn-outline" id="btnExportUsersPdf">
+              <button type="button" class="admin-btn admin-btn-outline" id="btnExportUsersPdf" onclick="if(window.exportUsersPdf){window.exportUsersPdf();}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
@@ -1037,7 +1037,7 @@
                 Create New User
               </button>
 
-              <button type="button" class="admin-btn admin-btn-primary" id="btnForceSyncToServer" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+              <button type="button" class="admin-btn admin-btn-primary" id="btnForceSyncToServer" onclick="if(window.handleManualSync){window.handleManualSync();}" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
