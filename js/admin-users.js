@@ -598,11 +598,18 @@ export function getAdminUsersList() {
 
   // Gather users from primary store
   const stored = localStorage.getItem(ADMIN_USERS_STORAGE_KEY);
-  if (stored) {
+  if (stored && stored !== '[]' && stored !== '""') {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) list = parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
     } catch {}
+  }
+
+  if (!list.length) {
+    list = JSON.parse(JSON.stringify(initialSeedUsers));
+    try {
+      localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {}
   }
 
   // Gather users from secondary registered lists
@@ -4016,7 +4023,124 @@ function renderDrawerActivityTab(user) {
 }
 
 function setupDrawerActionButtons() {
-  // Helpers
+  if (window._drawerActionButtonsInitialized) return;
+  window._drawerActionButtonsInitialized = true;
+
+  document.addEventListener('click', (e) => {
+    // 1. Approve Account from Drawer
+    const approveBtn = e.target.closest('#btnDrawerApproveUser');
+    if (approveBtn && activeDetailUser) {
+      e.preventDefault();
+      approveUserAccount(activeDetailUser.id || activeDetailUser);
+      openUserDetailDrawer(activeDetailUser);
+      return;
+    }
+
+    // 2. Save Drawer Profile Form
+    const saveProfileBtn = e.target.closest('#btnSaveDrawerProfile');
+    if (saveProfileBtn && activeDetailUser) {
+      e.preventDefault();
+      const form = document.getElementById('drawerEditUserForm');
+      if (form) {
+        const fn = form.querySelector('#editUserFirstName')?.value?.trim() || activeDetailUser.firstName || '';
+        const ln = form.querySelector('#editUserLastName')?.value?.trim() || activeDetailUser.lastName || '';
+        const email = form.querySelector('#editUserEmail')?.value?.trim() || activeDetailUser.email || '';
+        const phone = form.querySelector('#editUserPhone')?.value?.trim() || activeDetailUser.phone || '';
+        const address = form.querySelector('#editUserAddress')?.value?.trim() || activeDetailUser.address || '';
+        const password = form.querySelector('#editUserPassword')?.value?.trim() || activeDetailUser.password || '';
+        const passport = form.querySelector('#editUserPassport')?.value?.trim() || activeDetailUser.passportPhoto || '';
+        const profilePhoto = form.querySelector('#editUserProfilePhoto')?.value?.trim() || activeDetailUser.profilePhoto || '';
+
+        activeDetailUser.firstName = fn;
+        activeDetailUser.lastName = ln;
+        activeDetailUser.fullName = `${fn} ${ln}`.trim() || activeDetailUser.fullName;
+        activeDetailUser.email = email;
+        activeDetailUser.phone = phone;
+        activeDetailUser.address = address;
+        activeDetailUser.password = password;
+        activeDetailUser.passportPhoto = passport;
+        activeDetailUser.passportUrl = passport;
+        activeDetailUser.profilePhoto = profilePhoto;
+        activeDetailUser.avatarUrl = profilePhoto;
+
+        updateUser(activeDetailUser);
+        renderUsersTable();
+        showToast(`Successfully updated profile for ${activeDetailUser.fullName}`, 'success', 'Profile Saved');
+      }
+      return;
+    }
+
+    // 3. Adjust Account Balance
+    const adjustBalBtn = e.target.closest('#btnDrawerAdjustBalance');
+    if (adjustBalBtn && activeDetailUser) {
+      e.preventDefault();
+      const input = document.getElementById('drawerAdjustBalanceInput');
+      const acctSelect = document.getElementById('drawerAdjustAccountSelect');
+      const amount = parseFloat(input?.value || '0');
+      if (isNaN(amount)) {
+        showToast('Please enter a valid ledger amount.', 'error', 'Invalid Amount');
+        return;
+      }
+      const acctNum = acctSelect?.value;
+      const targetAcct = activeDetailUser.accounts?.find((a) => a.accountNumber === acctNum) || activeDetailUser.accounts?.[0];
+      if (targetAcct) {
+        targetAcct.balance = (targetAcct.balance || 0) + amount;
+        targetAcct.available = (targetAcct.available || targetAcct.balance);
+        activeDetailUser.activityLog = activeDetailUser.activityLog || [];
+        activeDetailUser.activityLog.unshift({
+          date: new Date().toISOString().replace('T', ' ').slice(0, 19),
+          action: `Admin adjusted balance by $${amount.toLocaleString()} on account ${targetAcct.accountNumber}`,
+          ip: 'Admin Console',
+          officer: 'Chief Treasury Auditor'
+        });
+        updateUser(activeDetailUser);
+        openUserDetailDrawer(activeDetailUser);
+        renderUsersTable();
+        showToast(`Successfully adjusted account balance by $${amount.toLocaleString()}`, 'success', 'Balance Updated');
+      }
+      return;
+    }
+
+    // 4. Save Wire Codes
+    const saveCodesBtn = e.target.closest('#btnDrawerSaveWireCodes');
+    if (saveCodesBtn && activeDetailUser) {
+      e.preventDefault();
+      const cot = document.getElementById('drawerCotCodeInput')?.value?.trim();
+      const tax = document.getElementById('drawerTaxCodeInput')?.value?.trim();
+      const imf = document.getElementById('drawerImfCodeInput')?.value?.trim();
+      const aml = document.getElementById('drawerAmlCodeInput')?.value?.trim();
+      const pap = document.getElementById('drawerPapCodeInput')?.value?.trim();
+
+      activeDetailUser.wireTransferCodes = activeDetailUser.wireTransferCodes || {};
+      if (cot) activeDetailUser.wireTransferCodes.COT = { code: cot, active: true, notes: 'Updated by Chief Treasury Auditor' };
+      if (tax) activeDetailUser.wireTransferCodes.TAX = { code: tax, active: true, notes: 'Updated by Chief Treasury Auditor' };
+      if (imf) activeDetailUser.wireTransferCodes.IMF = { code: imf, active: true, notes: 'Updated by Chief Treasury Auditor' };
+      if (aml) activeDetailUser.wireTransferCodes.AML = { code: aml, active: true, notes: 'Updated by Chief Treasury Auditor' };
+      if (pap) activeDetailUser.wireTransferCodes.PAP = { code: pap, active: true, notes: 'Updated by Chief Treasury Auditor' };
+
+      updateUser(activeDetailUser);
+      openUserDetailDrawer(activeDetailUser);
+      showToast('Wire transfer clearance tokens updated successfully.', 'success', 'Codes Saved');
+      return;
+    }
+
+    // 5. Impersonate User
+    const loginAsBtn = e.target.closest('#btnDrawerLoginAsUser');
+    if (loginAsBtn && activeDetailUser) {
+      e.preventDefault();
+      try {
+        localStorage.setItem('wb_credit_union_active_user', JSON.stringify(activeDetailUser));
+        localStorage.setItem('wbcu_user_profile_v1', JSON.stringify(activeDetailUser));
+        showToast(`Switching session to member ${activeDetailUser.fullName}...`, 'success', 'Impersonating Member');
+        setTimeout(() => {
+          window.location.href = '/pages/dashboard.html';
+        }, 1200);
+      } catch (err) {
+        showToast('Error switching session.', 'error', 'Error');
+      }
+      return;
+    }
+  });
 }
 
 /* ----------------------------------------------------------------------------
