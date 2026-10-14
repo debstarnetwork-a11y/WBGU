@@ -5,14 +5,22 @@ deployment:
     - # If public_html is not correct, change it to your domain folder like /home/glolbka/www.wbcu.net
     - /bin/mkdir -p $DEPLOYPATH/api
     - /bin/mkdir -p $DEPLOYPATH/js
+    - /bin/mkdir -p $DEPLOYPATH/pages
+    - /bin/mkdir -p $DEPLOYPATH/admin
     - # Copy Vite build files
     - if [ -d dist ] && [ "$(ls -A dist)" ]; then /bin/cp -R dist/* $DEPLOYPATH/ ; fi
     - # Copy PHP backend files
     - if [ -d api ] && [ "$(ls -A api)" ]; then /bin/cp -R api/* $DEPLOYPATH/api/ ; fi
     - # Copy raw JS files
     - if [ -d js ] && [ "$(ls -A js)" ]; then /bin/cp -R js/* $DEPLOYPATH/js/ ; fi
+    - # Copy pages and admin directories
+    - if [ -d pages ] && [ "$(ls -A pages)" ]; then /bin/cp -R pages/* $DEPLOYPATH/pages/ ; fi
+    - if [ -d admin ] && [ "$(ls -A admin)" ]; then /bin/cp -R admin/* $DEPLOYPATH/admin/ ; fi
     - # Copy configuration and entry points
     - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/ ; fi
+    - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/admin/index.html ; fi
+    - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/pages/admin-dashboard.html ; fi
+    - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/pages/admin.html ; fi
     - if [ -f index.html ]; then /bin/cp index.html $DEPLOYPATH/ ; fi
     - if [ -f .htaccess ]; then /bin/cp .htaccess $DEPLOYPATH/ ; fi
     - if [ -f admin-users.json ]; then /bin/cp admin-users.json $DEPLOYPATH/ ; fi

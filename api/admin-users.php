@@ -239,9 +239,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // 1. Users Table
                 $uFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
-                $uVals = [$uid, $username, $email, ($u['is_admin'] ? 'super_admin' : 'user'), $u['transactionPin'] ?? '1234', $u['status'] ?? 'active', $u['kycStatus'] ?? 'verified', $u['createdAt'] ?? date('Y-m-d H:i:s')];
+                $uVals = [$uid, $username, $email, (!empty($u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' || ($u['role'] ?? '') === 'super_admin' ? 'super_admin' : 'user'), $u['transactionPin'] ?? '8869', $u['status'] ?? 'active', $u['kycStatus'] ?? 'verified', $u['createdAt'] ?? date('Y-m-d H:i:s')];
                 
-                if (in_array('password', $uCols)) { $uFields[] = 'password'; $uVals[] = $u['password'] ?? 'Password123!'; }
+                if (in_array('password_hash', $uCols)) { $uFields[] = 'password_hash'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
+                if (in_array('password', $uCols)) { $uFields[] = 'password'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
+                if (in_array('is_admin', $uCols)) { $uFields[] = 'is_admin'; $uVals[] = (!empty($u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' || ($u['role'] ?? '') === 'super_admin') ? 1 : 0; }
+                if (in_array('two_factor_enabled', $uCols)) { $uFields[] = 'two_factor_enabled'; $uVals[] = 1; }
                 
                 $placeholders = str_repeat('?,', count($uFields) - 1) . '?';
                 $updates = [];
@@ -256,10 +259,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $lastName = $u['lastName'] ?? '';
                 
                 $profFields = ['id', 'user_id', 'first_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1'];
-                $profVals = ['prof-'.str_replace('usr-','',$uid), $uid, $firstName, $lastName, $fullName, $u['phone'] ?? '', $u['dob'] ?? '', $u['nationality'] ?? '', $u['occupation'] ?? '', $u['address'] ?? ''];
+                $profVals = ['prof-'.str_replace('usr-','',$uid), $uid, $firstName, $lastName, $fullName, $u['phone'] ?? '+41 44 915 8901', $u['dob'] ?? '1988-05-18', $u['nationality'] ?? 'Switzerland', $u['occupation'] ?? 'Executive Private Client', $u['address'] ?? 'Zurich, Switzerland'];
                 
+                if (in_array('city', $pCols)) { $profFields[] = 'city'; $profVals[] = 'Zurich'; }
+                if (in_array('country', $pCols)) { $profFields[] = 'country'; $profVals[] = $u['nationality'] ?? 'Switzerland'; }
                 if (in_array('profile_photo_url', $pCols)) { $profFields[] = 'profile_photo_url'; $profVals[] = $u['profilePhoto'] ?? ''; }
-                if (in_array('passport_photo_url', $pCols)) { $profFields[] = 'passport_photo_url'; $profVals[] = $u['passportPhoto'] ?? ''; }
+                if (in_array('passport_photo_url', $pCols)) { $profFields[] = 'passport_photo_url'; $profVals[] = $u['passportPhoto'] ?? $u['passportUrl'] ?? ''; }
                 
                 $pPlaceholders = str_repeat('?,', count($profFields) - 1) . '?';
                 $pUpdates = [];

@@ -1447,13 +1447,102 @@ function sortUsers() {
 
 /* ----------------------------------------------------------------------------
  * 6. RENDER USERS TABLE & PAGINATION
+/**
+ * Roster Navigation Filter Buttons (Comprehensive member roster, ledger balances, identity clearance, wire codes, account overrides)
+ */
+export function filterUserRoster(tab) {
+  if (!currentUsers || currentUsers.length === 0) {
+    currentUsers = getAdminUsersList();
+  }
+
+  // Update active pill button style
+  const tabBtnMap = {
+    'all': 'btnRosterAll',
+    'ledger': 'btnRosterLedger',
+    'kyc': 'btnRosterKyc',
+    'wires': 'btnRosterWires',
+    'overrides': 'btnRosterOverrides'
+  };
+
+  Object.values(tabBtnMap).forEach(btnId => {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.style.background = 'transparent';
+      btn.style.color = '#94a3b8';
+      btn.classList.add('admin-btn-outline');
+    }
+  });
+
+  const activeBtn = document.getElementById(tabBtnMap[tab] || 'btnRosterAll');
+  if (activeBtn) {
+    activeBtn.style.background = '#2563eb';
+    activeBtn.style.color = '#ffffff';
+    activeBtn.style.borderColor = '#3b82f6';
+    activeBtn.classList.remove('admin-btn-outline');
+  }
+
+  const searchInput = document.getElementById('userSearchInput');
+  if (searchInput) searchInput.value = '';
+
+  if (tab === 'all') {
+    filteredUsers = [...currentUsers];
+    currentPage = 1;
+    renderUsersTable();
+    showToast(`Displaying Comprehensive Member Roster (${filteredUsers.length} total members).`, 'info', 'Member Roster');
+  } else if (tab === 'ledger') {
+    filteredUsers = [...currentUsers].sort((a, b) => {
+      const balA = (a.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
+      const balB = (b.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
+      return balB - balA;
+    });
+    currentPage = 1;
+    renderUsersTable();
+    showToast('Roster sorted by total ledger balances (Highest to Lowest).', 'success', 'Ledger Balances');
+  } else if (tab === 'kyc') {
+    filteredUsers = currentUsers.filter(u => {
+      const kyc = (u.kycStatus || u.kyc_status || '').toLowerCase();
+      return kyc === 'pending' || kyc === 'unverified' || kyc === 'rejected' || !u.passportPhoto;
+    });
+    if (filteredUsers.length === 0) filteredUsers = [...currentUsers];
+    currentPage = 1;
+    renderUsersTable();
+    showToast(`Filtered to Identity Clearance & KYC Review (${filteredUsers.length} members).`, 'warning', 'Identity Clearance');
+  } else if (tab === 'wires') {
+    filteredUsers = currentUsers.filter(u => u.wireTransferCodes && Object.keys(u.wireTransferCodes).length > 0);
+    if (filteredUsers.length === 0) filteredUsers = [...currentUsers];
+    currentPage = 1;
+    renderUsersTable();
+    showToast(`Filtered to Wire Transfer Clearance Codes (${filteredUsers.length} members).`, 'info', 'Wire Codes');
+  } else if (tab === 'overrides') {
+    filteredUsers = currentUsers.filter(u => {
+      const st = (u.status || '').toLowerCase();
+      return st === 'inactive' || st === 'suspended' || st === 'frozen' || st === 'dormant' || st === 'pending';
+    });
+    if (filteredUsers.length === 0) filteredUsers = currentUsers.slice(0, 5);
+    currentPage = 1;
+    renderUsersTable();
+    showToast(`Filtered to Account Overrides & Pending Clearances (${filteredUsers.length} members).`, 'warning', 'Account Overrides');
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.filterUserRoster = filterUserRoster;
+}
+
+/* ----------------------------------------------------------------------------
+ * 6. TABLE RENDERING CONTROLLER
  * ---------------------------------------------------------------------------- */
 export function renderUsersTable() {
   const tbody = document.getElementById('adminUsersTableBody');
   const countBadge = document.getElementById('userTotalCountBadge');
   const paginationInfo = document.getElementById('userPaginationInfo');
   const paginationControls = document.getElementById('userPaginationControls');
-  const selectAllCheckbox = document.getElementById('selectAllUsersCheckbox');
+
+  // Auto-heal empty roster
+  if (!currentUsers || currentUsers.length === 0) {
+    currentUsers = getAdminUsersList();
+    filteredUsers = [...currentUsers];
+  }
 
   if (countBadge) countBadge.textContent = `${filteredUsers.length} Users`;
 
@@ -4256,22 +4345,49 @@ function setupCreateUserModal() {
         const dataUrl = evt.target?.result;
         if (!dataUrl) return;
 
-        if (targetId.includes('Passport') || targetId.includes('Id') || targetId.includes('Kyc')) {
-          const urlEl = document.getElementById('adminNewUserPassportUrl') || document.getElementById('editUserPassport') || e.target.form?.querySelector('input[type="text"]');
-          const previewEl = document.getElementById('adminNewUserPassportPreview') || document.getElementById('editUserPassportPreview');
+        if (targetId === 'adminNewUserPassportFile') {
+          const urlEl = document.getElementById('adminNewUserPassportUrl');
+          const previewEl = document.getElementById('adminNewUserPassportPreview');
           if (urlEl) urlEl.value = dataUrl;
           if (previewEl) {
             previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport/ID" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
           }
-          showToast('SUCCESS! Biometric ID / Passport document uploaded successfully.', 'success', 'ID Uploaded');
-        } else {
-          const urlEl = document.getElementById('adminNewUserProfilePhotoUrl') || document.getElementById('editUserProfilePhoto') || e.target.form?.querySelector('input[type="text"]');
-          const previewEl = document.getElementById('adminNewUserPhotoPreview') || document.getElementById('editUserPhotoPreview');
+          showToast('Biometric Passport/ID uploaded for registration.', 'success', 'ID Uploaded');
+        } else if (targetId === 'editUserPassportFile') {
+          const urlEl = document.getElementById('editUserPassport');
+          const previewEl = document.getElementById('editUserPassportPreview');
+          if (urlEl) urlEl.value = dataUrl;
+          if (previewEl) {
+            previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport/ID" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
+          }
+          if (typeof activeDetailUser !== 'undefined' && activeDetailUser) {
+            activeDetailUser.passportPhoto = dataUrl;
+            activeDetailUser.passportUrl = dataUrl;
+            activeDetailUser.kycDocument = dataUrl;
+            try { updateUser(activeDetailUser); } catch(err) {}
+          }
+          showToast('Biometric Passport/ID updated for member profile.', 'success', 'Passport Saved');
+        } else if (targetId === 'adminNewUserProfilePhotoFile') {
+          const urlEl = document.getElementById('adminNewUserProfilePhotoUrl');
+          const previewEl = document.getElementById('adminNewUserPhotoPreview');
           if (urlEl) urlEl.value = dataUrl;
           if (previewEl) {
             previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
           }
-          showToast('SUCCESS! Profile photo uploaded successfully.', 'success', 'Photo Uploaded');
+          showToast('Profile photo uploaded successfully.', 'success', 'Photo Uploaded');
+        } else if (targetId === 'editUserProfilePhotoFile') {
+          const urlEl = document.getElementById('editUserProfilePhoto');
+          const previewEl = document.getElementById('editUserPhotoPreview');
+          if (urlEl) urlEl.value = dataUrl;
+          if (previewEl) {
+            previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
+          }
+          if (typeof activeDetailUser !== 'undefined' && activeDetailUser) {
+            activeDetailUser.profilePhoto = dataUrl;
+            activeDetailUser.avatarUrl = dataUrl;
+            try { updateUser(activeDetailUser); } catch(err) {}
+          }
+          showToast('Profile photo updated for member.', 'success', 'Photo Saved');
         }
       };
       reader.readAsDataURL(file);
@@ -4397,68 +4513,51 @@ function setupCreateUserModal() {
     unInput.addEventListener('input', () => { unInput.removeAttribute('data-auto'); });
   }
 
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const fn = document.getElementById('adminNewUserFirstName')?.value.trim() || '';
-      const mn = document.getElementById('adminNewUserMiddleName')?.value.trim() || '';
-      const ln = document.getElementById('adminNewUserLastName')?.value.trim() || '';
-      const fullName = [fn, mn, ln].filter(Boolean).join(' ') || 'New Banking Member';
+  const handleAdminCreateUserSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+      const fnInput = document.getElementById('adminNewUserFirstName');
+      const lnInput = document.getElementById('adminNewUserLastName');
+      const emailInput = document.getElementById('adminNewUserEmail');
 
-      const username = document.getElementById('adminNewUserUsername')?.value.trim() || `user_${Math.floor(1000 + Math.random() * 9000)}`;
-      const email = document.getElementById('adminNewUserEmail')?.value.trim() || `member_${Date.now()}@wbcu.net`;
-      const phone = document.getElementById('adminNewUserPhone')?.value.trim() || '+41 44 915 0000';
-      const dob = document.getElementById('adminNewUserDob')?.value.trim() || '01/01/1985';
-      const occupation = document.getElementById('adminNewUserOccupation')?.value.trim() || 'Executive Director';
-      const address = document.getElementById('adminNewUserAddress')?.value.trim() || 'Zurich, Switzerland';
+      const fn = (fnInput?.value || '').trim();
+      const mn = (document.getElementById('adminNewUserMiddleName')?.value || '').trim();
+      const ln = (lnInput?.value || '').trim();
+
+      if (!fn || !ln) {
+        showToast('Please enter Member First Name and Last Name.', 'error', 'Validation Error');
+        if (!fn && fnInput) fnInput.focus();
+        else if (!ln && lnInput) lnInput.focus();
+        return false;
+      }
+
+      const fullName = [fn, mn, ln].filter(Boolean).join(' ');
+      const username = (document.getElementById('adminNewUserUsername')?.value || '').trim() || `${fn.toLowerCase()}${Math.floor(100 + Math.random() * 900)}`;
+      const email = (emailInput?.value || '').trim() || `${username}@wbcu.net`;
+      const phone = (document.getElementById('adminNewUserPhone')?.value || '').trim() || '+41 44 915 8901';
+      const dob = (document.getElementById('adminNewUserDob')?.value || '').trim() || '01/15/1988';
+      const occupation = (document.getElementById('adminNewUserOccupation')?.value || '').trim() || 'Executive Client';
       const nationality = document.getElementById('adminNewUserNationality')?.value || 'Switzerland';
-      const acctType = document.getElementById('adminNewUserAcctType')?.value || 'Checking';
+      const address = (document.getElementById('adminNewUserAddress')?.value || '').trim() || 'Zurich, Switzerland';
+      const acctType = (document.getElementById('adminNewUserAcctType')?.value || '').trim() || 'Checking';
 
-      // Codes and numbers - preserve entered values or generate fresh unique random values
-      let acctNum = document.getElementById('adminNewUserAccountNum')?.value.trim();
-      if (!acctNum) {
-        acctNum = generateRandomAccountNumber();
-      }
-      let cotCode = document.getElementById('adminNewUserCotCode')?.value.trim();
-      if (!cotCode) {
-        cotCode = generateRandomCotCode();
-      }
-      let imfCode = document.getElementById('adminNewUserImfCode')?.value.trim();
-      if (!imfCode) {
-        imfCode = generateRandomImfCode();
-      }
-      let taxCode = document.getElementById('adminNewUserTaxCode')?.value.trim();
-      if (!taxCode) {
-        taxCode = generateRandomTaxCode();
-      }
-      let txPin = document.getElementById('adminNewUserTxPin')?.value.trim() || generateRandomPin();
-      if (!txPin) {
-        txPin = generateRandomPin();
-      }
+      let acctNum = (document.getElementById('adminNewUserAccountNum')?.value || '').trim();
+      if (!acctNum) acctNum = generateRandomAccountNumber();
+      let cotCode = (document.getElementById('adminNewUserCotCode')?.value || '').trim() || generateRandomCotCode();
+      let imfCode = (document.getElementById('adminNewUserImfCode')?.value || '').trim() || generateRandomImfCode();
+      let taxCode = (document.getElementById('adminNewUserTaxCode')?.value || '').trim() || generateRandomTaxCode();
+      let txPin = (document.getElementById('adminNewUserTxPin')?.value || '').trim() || generateRandomPin();
 
       const amlCode = generateRandomAmlCode();
       const papCode = generateRandomPapCode();
       const otpCode = generateRandomOtpCode();
 
-      // Profile photo, Passport & Password
       const profilePhoto = document.getElementById('adminNewUserProfilePhotoUrl')?.value || '';
       const passportPhoto = document.getElementById('adminNewUserPassportUrl')?.value || profilePhoto;
-      const password = document.getElementById('adminNewUserPassword')?.value || '';
-      const confirmPassword = document.getElementById('adminNewUserConfirmPassword')?.value || '';
-
-      if (password && confirmPassword && password !== confirmPassword) {
-        showToast('Password and Confirm Password do not match.', 'error', 'Validation Error');
-        return;
-      }
-
-      // Initial Account Balance is $0.00 and status is INACTIVE until Admin credits & activates it
-      const balance = 0.00;
-      const status = 'inactive';
-      const kycStatus = 'pending';
+      const password = document.getElementById('adminNewUserPassword')?.value || 'MemberPass123!';
 
       const randomId = `usr-${Date.now().toString(36)}-${Math.floor(100 + Math.random() * 900)}`;
 
-      // Generate complete official bank ATM Card for new member
       const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
       const cardFormatted = cardRawNum.replace(/(.{4})/g, '$1 ').trim();
       const expYear = String((new Date().getFullYear() + 5) % 100).padStart(2, '0');
@@ -4479,30 +4578,8 @@ function setupCreateUserModal() {
         expiry_year: expYear,
         cvv: String(Math.floor(100 + Math.random() * 900)),
         pin: txPin,
-        status: 'pending_approval',
-        is_frozen: false,
-        printStatus: 'requested',
-        trackingNumber: `CH-POST-${Math.floor(10000000 + Math.random() * 90000000)}-SWISS`,
-        shippingAddress: address,
-        dailyAtmLimit: 5000,
-        dailyPosLimit: 25000,
-        monthlyLimit: 50000,
-        allowOnline: true,
-        allowInternational: true,
-        allowContactless: true,
-        createdAt: new Date().toISOString(),
-        recentTransactions: []
+        status: 'pending_approval'
       };
-
-      // Sync new ATM card into Admin Cards Database
-      try {
-        const adminCardsRaw = localStorage.getItem('wb_credit_union_admin_cards_db');
-        const adminCards = adminCardsRaw ? JSON.parse(adminCardsRaw) : [];
-        adminCards.unshift(newAtmCard);
-        localStorage.setItem('wb_credit_union_admin_cards_db', JSON.stringify(adminCards));
-      } catch (e) {
-        console.warn('Sync admin cards error:', e);
-      }
 
       const newUser = {
         id: randomId,
@@ -4523,44 +4600,20 @@ function setupCreateUserModal() {
         passportUrl: passportPhoto,
         kycDocument: passportPhoto,
         password: password || 'MemberPass123!',
-        avatar: fullName.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
+        avatar: (fullName || 'MB').split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
         avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-        status,
+        status: 'inactive',
         statusReason: 'Pending Administrative Credit & Activation',
-        kycStatus,
+        kycStatus: passportPhoto ? 'verified' : 'pending',
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
         pin: txPin,
         transactionPin: txPin,
         accounts: [
           { accountNumber: acctNum, type: acctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089', isPrimary: true },
-          { accountNumber: `EUR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `GBP-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'British Pound Sterling Vault', currency: 'GBP', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `CHF-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Swiss Franc Reserve Vault', currency: 'CHF', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `CAD-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Canadian Dollar Commercial Vault', currency: 'CAD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `AUD-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Australian Dollar Treasury Vault', currency: 'AUD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `JPY-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Business', name: 'Japanese Yen Multi-Asset Vault', currency: 'JPY', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
-          { accountNumber: `NGN-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Savings', name: 'Nigerian Naira International Vault', currency: 'NGN', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' },
+          { accountNumber: `EUR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' }
         ],
-        wallets: [
-          { currency: 'USD', name: 'US Dollar Primary', balance: 0.00, isPrimary: true },
-          { currency: 'EUR', name: 'Euro Global Holding', balance: 0.00, isPrimary: false },
-          { currency: 'GBP', name: 'British Pound Sterling', balance: 0.00, isPrimary: false },
-          { currency: 'CHF', name: 'Swiss Franc Vault Reserve', balance: 0.00, isPrimary: false },
-          { currency: 'CAD', name: 'Canadian Dollar Commercial', balance: 0.00, isPrimary: false },
-          { currency: 'AUD', name: 'Australian Dollar Treasury', balance: 0.00, isPrimary: false },
-          { currency: 'JPY', name: 'Japanese Yen Multi-Asset', balance: 0.00, isPrimary: false },
-          { currency: 'NGN', name: 'Nigerian Naira International', balance: 0.00, isPrimary: false },
-        ],
-        transactions: [],
-        grants: [],
-        loans: [],
         cards: [newAtmCard],
-        cryptoWallets: [
-          { id: 'cw-btc', symbol: 'BTC', name: 'Bitcoin Vault', address: 'bc1q' + Math.random().toString(36).slice(2, 12), balance: 0.0, priceUSD: 64516.12, network: 'Bitcoin Mainnet' },
-          { id: 'cw-eth', symbol: 'ETH', name: 'Ethereum Vault', address: '0x' + Math.random().toString(16).slice(2, 12), balance: 0.0, priceUSD: 3480.50, network: 'ERC-20' },
-          { id: 'cw-usdt', symbol: 'USDT', name: 'Tether USD Vault', address: '0x' + Math.random().toString(16).slice(2, 12), balance: 0.0, priceUSD: 1.00, network: 'TRC-20' }
-        ],
         wireTransferCodes: {
           COT: { code: cotCode, active: true, notes: 'Automated Cost of Transfer clearance token' },
           TAX: { code: taxCode, active: true, notes: 'Automated Federal Tax clearance token' },
@@ -4569,69 +4622,82 @@ function setupCreateUserModal() {
           PAP: { code: papCode, active: true, notes: 'Automated Proof of Anti-Piracy clearance token' },
           OTP: { code: otpCode, active: true, notes: 'Automated One-Time Passcode clearance' }
         },
+        transactions: [],
         activityLog: [
-          { date: new Date().toISOString().replace('T', ' ').slice(0, 19), action: 'Account opened in INACTIVE state ($0.00 balance) with wire codes & ATM card', ip: 'Admin Console', officer: 'Chief Treasury Auditor' }
+          { date: new Date().toISOString().replace('T', ' ').slice(0, 19), action: 'Account opened in INACTIVE state ($0.00 balance)', ip: 'Admin Console', officer: 'Chief Treasury Auditor' }
         ]
       };
 
-      try {
-        currentUsers.unshift(newUser);
-        saveAdminUsersList(currentUsers);
+      currentUsers.unshift(newUser);
+      saveAdminUsersList(currentUsers);
 
-        // Immediately sync to server DB in background
-        fetch('/api/admin-users.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ users: [newUser], is_chunk: true })
-        }).catch(err => console.warn('Background sync error:', err));
+      // Post to backend
+      fetch('/api/admin-users.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users: [newUser], is_chunk: true })
+      }).catch(err => console.warn('Background sync error:', err));
 
-        // Reset filters and search inputs so new user displays immediately
-        const searchInput = document.getElementById('userSearchInput');
-        const statusFilter = document.getElementById('userStatusFilter');
-        const kycFilter = document.getElementById('userKycFilter');
-        const typeFilter = document.getElementById('userAccountTypeFilter');
-        const dateFilter = document.getElementById('userDateRangeFilter');
+      // Reset search inputs
+      const searchInput = document.getElementById('userSearchInput');
+      if (searchInput) searchInput.value = '';
 
-        if (searchInput) searchInput.value = '';
-        if (statusFilter) statusFilter.value = 'all';
-        if (kycFilter) kycFilter.value = 'all';
-        if (typeFilter) typeFilter.value = 'all';
-        if (dateFilter) dateFilter.value = 'all';
+      filteredUsers = [...currentUsers];
+      currentPage = 1;
 
-        filteredUsers = [...currentUsers];
-        currentPage = 1;
+      renderUsersTable();
+      const userBadge = document.getElementById('sidebarUserBadge');
+      if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
+      const totalCountBadge = document.getElementById('userTotalCountBadge');
+      if (totalCountBadge) totalCountBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
 
-        renderUsersTable();
-        const userBadge = document.getElementById('sidebarUserBadge');
-        if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
-        const totalCountBadge = document.getElementById('userTotalCountBadge');
-        if (totalCountBadge) totalCountBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
+      if (form) form.reset();
+      if (window.wbRandomizeCreateUserModalFields) window.wbRandomizeCreateUserModalFields();
 
-        form.reset();
-        if (window.wbRandomizeCreateUserModalFields) window.wbRandomizeCreateUserModalFields();
-        if (photoPreview) photoPreview.innerHTML = 'No photo';
-        if (passportPreview) passportPreview.innerHTML = 'No ID';
-        
-        const targetModal = document.getElementById('createUserFullModal') || modal;
-        if (targetModal) {
-          targetModal.classList.remove('show');
-          targetModal.style.display = 'none';
-        }
-
-        // Show prominent toast and success alert banner
-        showToast(`SUCCESS! Member account created for ${fullName} (${username}). Added to roster and synced.`, 'success', 'User Registered Successfully');
-        
-        const alertBanner = document.createElement('div');
-        alertBanner.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999; background: #065f46; color: #fff; padding: 16px 24px; border-radius: 12px; border: 2px solid #34d399; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-size: 0.95rem; font-family: inherit;';
-        alertBanner.innerHTML = `<div>🎉 <b>SUCCESSFULLY CREATED MEMBER!</b></div><div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">${escapeHtml(fullName)} (${escapeHtml(email)}) added to table.</div>`;
-        document.body.appendChild(alertBanner);
-        setTimeout(() => alertBanner.remove(), 6000);
-
-      } catch (err) {
-        console.error('[ADMIN CREATE USER] Submission error:', err);
-        showToast('An error occurred while creating the user. Please check the console.', 'error', 'Submission Failed');
+      const targetModal = document.getElementById('createUserFullModal') || modal;
+      if (targetModal) {
+        targetModal.classList.remove('show');
+        targetModal.style.display = 'none';
       }
-    });
+
+      // Switch view to Users view so admin sees the table immediately!
+      if (typeof window.switchAdminView === 'function') {
+        window.switchAdminView('users');
+      }
+
+      // Highlight newly created user row
+      setTimeout(() => {
+        const firstRow = document.querySelector('#adminUsersTableBody tr:first-child');
+        if (firstRow) {
+          firstRow.style.transition = 'all 0.5s ease';
+          firstRow.style.backgroundColor = 'rgba(16, 185, 129, 0.35)';
+          firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => { firstRow.style.backgroundColor = ''; }, 3500);
+        }
+      }, 100);
+
+      // Prominent Success Banner
+      const alertBanner = document.createElement('div');
+      alertBanner.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999; background: #065f46; color: #fff; padding: 18px 24px; border-radius: 14px; border: 2px solid #34d399; box-shadow: 0 10px 35px rgba(0,0,0,0.85); font-size: 0.95rem; font-family: inherit; max-width: 450px;';
+      alertBanner.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-weight:bold;font-size:1.05rem;">🎉 MEMBER CREATED SUCCESSFULLY!</div><div style="font-size:0.88rem; opacity:0.95; margin-top:4px;"><b>${escapeHtml(fullName)}</b> (${escapeHtml(email)}) has been registered with Account <b>${acctNum}</b> and added to roster.</div>`;
+      document.body.appendChild(alertBanner);
+      setTimeout(() => alertBanner.remove(), 7000);
+
+      showToast(`SUCCESS! Member account created for ${fullName} (${username}). Added to roster.`, 'success', 'User Registered Successfully');
+
+    } catch (err) {
+      console.error('[ADMIN CREATE USER] Submission error:', err);
+      showToast('An error occurred while creating the user.', 'error', 'Submission Failed');
+    }
+    return false;
+  };
+
+  if (typeof window !== 'undefined') {
+    window.handleAdminCreateUserSubmit = handleAdminCreateUserSubmit;
+  }
+
+  if (form) {
+    form.addEventListener('submit', handleAdminCreateUserSubmit);
   }
 }
 
@@ -4974,38 +5040,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-export function filterUserRoster(mode) {
-  if (mode === 'all') {
-    const searchInput = document.getElementById('userSearchInput');
-    if (searchInput) searchInput.value = '';
-    const statusFilter = document.getElementById('userStatusFilter');
-    if (statusFilter) statusFilter.value = 'all';
-    const kycFilter = document.getElementById('userKycFilter');
-    if (kycFilter) kycFilter.value = 'all';
-    const typeFilter = document.getElementById('userAccountTypeFilter');
-    if (typeFilter) typeFilter.value = 'all';
-    filteredUsers = [...currentUsers];
-    renderUsersTable();
-    showToast(`Displaying comprehensive member roster (${currentUsers.length} members)`, 'success', 'Member Roster');
-  } else if (mode === 'balances') {
-    filteredUsers = [...currentUsers].sort((a, b) => {
-      const balA = (a.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
-      const balB = (b.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
-      return balB - balA;
-    });
-    renderUsersTable();
-    showToast('Sorted all member accounts by ledger balances (Highest first)', 'success', 'Ledger Balances');
-  } else if (mode === 'kyc') {
-    filteredUsers = currentUsers.filter(u => (u.kycStatus || u.kyc_status || '').toLowerCase() === 'verified');
-    renderUsersTable();
-    showToast(`Filtered to members with verified identity clearance (${filteredUsers.length} members)`, 'success', 'Identity Clearance');
-  } else if (mode === 'overrides') {
-    if (currentUsers.length > 0 && typeof openUserDetailDrawer === 'function') {
-      openUserDetailDrawer(currentUsers[0].id);
-      showToast('Opened account override and master ledger console for primary member.', 'info', 'Account Overrides');
-    }
-  }
-}
+
 
 if (typeof window !== 'undefined') {
   window.initAdminUserManagement = initAdminUserManagement;
