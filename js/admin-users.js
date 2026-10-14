@@ -836,32 +836,48 @@ export function ensureUserHasUniqueCodesAndAccounts(user, persist = false) {
   return user;
 }
 
-export function saveAdminUsersList(users) {
+export async function saveAdminUsersList(users) {
   if (!users || !Array.isArray(users)) return;
   
+  // 1. Local Storage Persistence (Primary)
   try {
-    // Only save ONE copy to primary key to avoid QuotaExceededError (5MB limit)
-    // 1,428 users at ~2KB each = ~2.8MB. Saving 4 copies (11.2MB) will crash the browser.
     localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(users));
-    
-    // Optional: Keep ONE secondary key for legacy compatibility if absolutely needed, 
-    // but better to just use the primary one.
-    // localStorage.setItem('wb_credit_union_registered_members_list', JSON.stringify(users));
   } catch (e) {
-    console.warn('[ADMIN STORAGE] Local quota exceeded, relying on server sync only.', e);
+    console.warn('[ADMIN STORAGE] Local quota exceeded.', e);
   }
 
-  try {
-    // Explicitly target the PHP endpoint for cPanel compatibility
-    fetch('/api/admin-users.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ users }),
-    }).catch((err) => {
-      console.error('[ADMIN SYNC] Failed to POST users to server:', err);
-    });
-  } catch (e) {
-    console.error('[ADMIN SYNC] POST fetch error:', e);
+  // 2. Server Persistence (Secondary / Backup)
+  // If the list is large, we use chunking to avoid timeouts on cPanel
+  const CHUNK_SIZE = 50;
+  if (users.length > CHUNK_SIZE) {
+    console.log('[ADMIN SYNC] Large dataset detected, using chunked background sync...');
+    // We only sync in the background without blocking the UI
+    for (let i = 0; i < users.length; i += CHUNK_SIZE) {
+      const chunk = users.slice(i, i + CHUNK_SIZE);
+      fetch('/api/admin-users.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users: chunk, is_chunk: true }),
+      }).catch(err => console.error(`[ADMIN SYNC] Chunk ${i} failed:`, err));
+      
+      // Small delay between chunks to be nice to the server
+      if (i + CHUNK_SIZE < users.length) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
+  } else {
+    // Small list, send all at once
+    try {
+      fetch('/api/admin-users.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users }),
+      }).catch((err) => {
+        console.error('[ADMIN SYNC] Failed to POST users to server:', err);
+      });
+    } catch (e) {
+      console.error('[ADMIN SYNC] POST fetch error:', e);
+    }
   }
 }
 
@@ -1188,6 +1204,23 @@ export async function syncAdminUsersWithServer() {
     const res = await fetch('/api/admin-users.php');
     if (!res.ok) return;
     const data = await res.json();
+    
+    // Check for data discrepancy between local and server
+    const localCount = currentUsers.length;
+    const serverCount = data.count || 0;
+    
+    const alertEl = document.getElementById('adminSyncRequiredAlert');
+    const localCountText = document.getElementById('localUserCountText');
+    const dbCountText = document.getElementById('dbUserCountText');
+    
+    if (alertEl && localCount > serverCount + 10) { // Threshold of 10 users difference
+      alertEl.classList.remove('d-none');
+      if (localCountText) localCountText.textContent = localCount.toLocaleString();
+      if (dbCountText) dbCountText.textContent = serverCount.toLocaleString();
+    } else if (alertEl) {
+      alertEl.classList.add('d-none');
+    }
+
     if (Array.isArray(data.users) && data.users.length > 0) {
       let updated = false;
       data.users.forEach((serverUser) => {
@@ -1215,13 +1248,15 @@ export async function syncAdminUsersWithServer() {
         renderUsersTable();
         const badge = document.getElementById('sidebarUserBadge');
         if (badge) badge.textContent = currentUsers.length.toLocaleString();
+        const countBadge = document.getElementById('userTotalCountBadge');
+        if (countBadge) countBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
       }
       
       // Notify about connection status for transparency
       if (data.db_connected === false) {
-        console.error('[ADMIN DB] Database connection failed:', data.db_conn_error);
+        console.error('[ADMIN DB] Database connection failed:', data.db_errors);
         showToast('System is running on local file storage. Database is currently offline.', 'warning', 'Database Offline');
-      } else if (data.source === 'mysql') {
+      } else if (data.source === 'mysql_merged') {
         console.log('[ADMIN DB] Connected to Live Database');
       }
     }
