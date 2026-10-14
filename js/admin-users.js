@@ -708,6 +708,10 @@ export function getAdminUsersList() {
     }
   });
 
+  if (list.length === 0) {
+    list = JSON.parse(JSON.stringify(initialSeedUsers));
+  }
+
   // Ensure all users have required fields and passwords
   const defaultPwds = ['MemberPass123!', 'Password123!', 'Vanguard@2026!', 'Sterling#884!'];
   list.forEach((u, i) => {
@@ -4550,6 +4554,9 @@ function handleCacheReset() {
 }
 
 async function handleManualSync() {
+  if (!currentUsers || currentUsers.length === 0) {
+    currentUsers = getAdminUsersList();
+  }
   const totalUsers = currentUsers.length;
   console.log('[ADMIN SYNC] Manual sync initiated for', totalUsers, 'users.');
   
