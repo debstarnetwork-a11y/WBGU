@@ -985,7 +985,7 @@
             </div>
 
             <div class="admin-quick-actions-bar">
-              <button type="button" class="admin-btn admin-btn-outline" id="btnResetAdminCache" title="Clear local browser storage and reload from server">
+              <button type="button" class="admin-btn admin-btn-outline" id="btnResetAdminCache" onclick="if(window.handleCacheReset){window.handleCacheReset();}" title="Clear local browser storage and reload from server">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M23 4v6h-6"></path>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
@@ -1014,7 +1014,7 @@
               </button>
 
               <!-- Highly Prominent Sync Button (Pulsing if needed) -->
-              <button type="button" class="admin-btn" id="btnForceSyncToServer" 
+              <button type="button" class="admin-btn" id="btnForceSyncToServer" onclick="if(window.handleManualSync){window.handleManualSync();}"
                 style="background: #2563eb; color: white; border: 1px solid #3b82f6; box-shadow: 0 0 15px rgba(37, 99, 235, 0.4); font-weight: 700; padding: 0.55rem 1.25rem;"
                 title="CRITICAL: Push your local member cache to the live MySQL database">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1">

@@ -4738,3 +4738,24 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// Auto-initialize user management on DOM load if not already called
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try { initAdminUserManagement(); } catch (e) { console.error('[ADMIN USERS AUTO-INIT]', e); }
+    });
+  } else {
+    setTimeout(() => {
+      try { initAdminUserManagement(); } catch (e) { console.error('[ADMIN USERS AUTO-INIT]', e); }
+    }, 50);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.initAdminUserManagement = initAdminUserManagement;
+  window.renderUsersTable = renderUsersTable;
+  window.handleManualSync = handleManualSync;
+  window.handleCacheReset = handleCacheReset;
+}
+
