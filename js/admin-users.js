@@ -4538,19 +4538,17 @@ function setupSystemSyncButtons() {
 }
 
 function handleCacheReset() {
-  if (confirm('Are you sure you want to RESET the admin cache? This will clear all local storage and reload everything from the server database. Unsaved changes will be lost.')) {
-    const keysToClear = [
-      ADMIN_USERS_STORAGE_KEY,
-      'wb_credit_union_registered_members_list',
-      'wbcu_all_registered_users',
-      'wbcu_user_registered_accounts',
-      'wb_credit_union_active_user',
-      'wbcu_user_profile_v1'
-    ];
-    keysToClear.forEach(k => localStorage.removeItem(k));
-    showToast('Local cache cleared. Reloading...', 'success', 'Cache Reset');
-    setTimeout(() => window.location.reload(), 1500);
-  }
+  const keysToClear = [
+    ADMIN_USERS_STORAGE_KEY,
+    'wb_credit_union_registered_members_list',
+    'wbcu_all_registered_users',
+    'wbcu_user_registered_accounts',
+    'wb_credit_union_active_user',
+    'wbcu_user_profile_v1'
+  ];
+  keysToClear.forEach(k => localStorage.removeItem(k));
+  showToast('Local cache cleared. Reloading...', 'success', 'Cache Reset');
+  setTimeout(() => window.location.reload(), 1500);
 }
 
 async function handleManualSync() {
@@ -4565,9 +4563,7 @@ async function handleManualSync() {
      return;
   }
 
-  if (!confirm(`Are you sure you want to SYNC ${totalUsers} users to the live database? This will be done in batches to prevent server timeouts.`)) {
-    return;
-  }
+  showToast(`Starting synchronization of ${totalUsers} users to live database...`, 'info', 'Syncing');
 
   const syncBtn = document.getElementById('btnForceSyncToServer');
   const originalText = syncBtn ? syncBtn.innerHTML : 'PUSH TO LIVE DB';
