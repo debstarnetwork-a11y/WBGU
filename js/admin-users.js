@@ -4974,6 +4974,39 @@ if (typeof document !== 'undefined') {
   }
 }
 
+export function filterUserRoster(mode) {
+  if (mode === 'all') {
+    const searchInput = document.getElementById('userSearchInput');
+    if (searchInput) searchInput.value = '';
+    const statusFilter = document.getElementById('userStatusFilter');
+    if (statusFilter) statusFilter.value = 'all';
+    const kycFilter = document.getElementById('userKycFilter');
+    if (kycFilter) kycFilter.value = 'all';
+    const typeFilter = document.getElementById('userAccountTypeFilter');
+    if (typeFilter) typeFilter.value = 'all';
+    filteredUsers = [...currentUsers];
+    renderUsersTable();
+    showToast(`Displaying comprehensive member roster (${currentUsers.length} members)`, 'success', 'Member Roster');
+  } else if (mode === 'balances') {
+    filteredUsers = [...currentUsers].sort((a, b) => {
+      const balA = (a.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
+      const balB = (b.accounts || []).reduce((s, acc) => s + (acc.balance || 0), 0);
+      return balB - balA;
+    });
+    renderUsersTable();
+    showToast('Sorted all member accounts by ledger balances (Highest first)', 'success', 'Ledger Balances');
+  } else if (mode === 'kyc') {
+    filteredUsers = currentUsers.filter(u => (u.kycStatus || u.kyc_status || '').toLowerCase() === 'verified');
+    renderUsersTable();
+    showToast(`Filtered to members with verified identity clearance (${filteredUsers.length} members)`, 'success', 'Identity Clearance');
+  } else if (mode === 'overrides') {
+    if (currentUsers.length > 0 && typeof openUserDetailDrawer === 'function') {
+      openUserDetailDrawer(currentUsers[0].id);
+      showToast('Opened account override and master ledger console for primary member.', 'info', 'Account Overrides');
+    }
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.initAdminUserManagement = initAdminUserManagement;
   window.renderUsersTable = renderUsersTable;
@@ -4981,5 +5014,7 @@ if (typeof window !== 'undefined') {
   window.handleCacheReset = handleCacheReset;
   window.exportUsersCsv = exportUsersCsv;
   window.exportUsersPdf = exportUsersPdf;
+  window.filterUserRoster = filterUserRoster;
 }
+
 
