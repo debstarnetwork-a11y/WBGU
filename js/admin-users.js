@@ -4486,38 +4486,62 @@ function setupSystemSyncButtons() {
 
   if (syncBtn) {
     syncBtn.addEventListener('click', async () => {
-      if (confirm(`Are you sure you want to SYNC ${currentUsers.length} users to the live database? This will overwrite or update existing records on the server.`)) {
+      const totalUsers = currentUsers.length;
+      if (confirm(`Are you sure you want to SYNC ${totalUsers} users to the live database? This will be done in batches to prevent server timeouts.`)) {
         const originalText = syncBtn.innerHTML;
         syncBtn.disabled = true;
-        syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Syncing...';
         
+        // Configuration for chunked sync
+        const CHUNK_SIZE = 50; 
+        let processed = 0;
+        let successCount = 0;
+        let failedChunks = 0;
+
         try {
-          const res = await fetch('/api/admin-users.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ users: currentUsers }),
-          });
+          // 1. First, do a "Full" sync to the JSON file only (optional but good for backup)
+          // We can do this in the first chunk or as a separate call. 
+          // For simplicity, we'll let the backend handle the file saving on every chunk for now, 
+          // OR we modify the backend to only save to file if a flag is passed.
           
-          const result = await res.json();
-          if (result.success) {
-            if (result.db_connected && result.db_synced) {
-              showToast(`Successfully synchronized ${currentUsers.length} users to the live database.`, 'success', 'Sync Complete');
-            } else if (!result.db_connected) {
-              console.error('Database connection failed:', result.db_conn_error);
-              showToast('Users saved to file, but DATABASE connection failed. Check your DB credentials.', 'warning', 'DB Connection Error');
+          for (let i = 0; i < totalUsers; i += CHUNK_SIZE) {
+            const chunk = currentUsers.slice(i, i + CHUNK_SIZE);
+            processed = Math.min(i + CHUNK_SIZE, totalUsers);
+            
+            syncBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Syncing ${processed}/${totalUsers}...`;
+            
+            const res = await fetch('/api/admin-users.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                users: chunk,
+                is_chunk: true // Hint to backend not to overwrite full file
+              }),
+            });
+            
+            const result = await res.json();
+            if (result.success && result.db_synced) {
+              successCount += chunk.length;
             } else {
-              console.warn('Sync partially succeeded with errors:', result.db_errors);
-              showToast('Some users could not be updated in the database. Check console for details.', 'warning', 'Sync Partial');
+              console.error(`Chunk ${i/CHUNK_SIZE} failed:`, result.db_errors || result.error);
+              failedChunks++;
             }
-          } else {
-            throw new Error(result.error || 'Server sync failed');
           }
+
+          if (failedChunks === 0) {
+            showToast(`Successfully synchronized all ${totalUsers} users to the live database.`, 'success', 'Sync Complete');
+          } else if (successCount > 0) {
+            showToast(`Sync partially completed. ${successCount} users saved, but ${failedChunks} batches failed. Check console.`, 'warning', 'Partial Sync');
+          } else {
+            showToast('Sync failed for all batches. Please check server logs and database connectivity.', 'error', 'Sync Failed');
+          }
+
         } catch (err) {
           console.error('Manual sync failed:', err);
-          showToast('Failed to sync users to the server. Please check your connection and server logs.', 'error', 'Sync Failed');
+          showToast('An unexpected error occurred during sync. Check your connection.', 'error', 'Sync Error');
         } finally {
           syncBtn.disabled = false;
           syncBtn.innerHTML = originalText;
+          // Refresh the view if needed, or just toast
         }
       }
     });

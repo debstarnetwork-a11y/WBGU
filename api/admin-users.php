@@ -212,8 +212,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Always update file as a backup
-    saveUsersToFile($dataFile, $users);
+    // Only update the JSON backup file if it's a full sync or explicitly requested.
+    // If it's a chunk, we skip updating the full backup file to avoid overwriting all users with a small batch.
+    $isChunk = !empty($input['is_chunk']);
+    if (!$isChunk) {
+        saveUsersToFile($dataFile, $users);
+    }
 
     $dbSynced = false;
     $syncErrors = [];
