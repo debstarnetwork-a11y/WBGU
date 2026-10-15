@@ -1717,6 +1717,7 @@ export function renderUsersTable() {
   }
 
   // Update master checkbox
+  const selectAllCheckbox = document.getElementById('selectAllUsersCheckbox');
   if (selectAllCheckbox) {
     selectAllCheckbox.checked = pagedUsers.length > 0 && pagedUsers.every((u) => selectedUserIds.has(u.id));
   }

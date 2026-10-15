@@ -1039,7 +1039,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
           }
         }
       } catch (err) {
-        console.warn("[MYSQL USER BATCH SYNC WARN]", err);
+        console.log("[MYSQL USER BATCH SYNC NOTICE]", err?.message || err);
       }
       return res.json({ success: true, count: users.length, db_synced: true });
     }
