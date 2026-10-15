@@ -2483,6 +2483,51 @@ function renderDrawerProfileTab(user) {
     });
   }
 
+  // Biometric Passport Upload & Clear Listener in Edit Drawer
+  const passportFileInput = document.getElementById('editUserPassportFile');
+  const passportUrlInput = document.getElementById('editUserPassport');
+  const passportPreview = document.getElementById('editUserPassportPreview');
+  const removePassportBtn = document.getElementById('btnRemoveEditUserPassport');
+
+  if (passportFileInput) {
+    passportFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const dataUrl = evt.target.result;
+          if (passportUrlInput) passportUrlInput.value = dataUrl;
+          if (passportPreview) {
+            if (file.type && file.type.includes('pdf')) {
+              passportPreview.innerHTML = `<span class="text-xs font-bold" style="color:#34d399;">PDF ID</span>`;
+            } else {
+              passportPreview.innerHTML = `<img src="${escapeHtml(dataUrl)}" alt="Passport" style="width: 100%; height: 100%; object-fit: cover;" />`;
+            }
+          }
+          user.passportPhoto = dataUrl;
+          user.passportUrl = dataUrl;
+          user.kycDocument = dataUrl;
+          user.kycStatus = 'verified';
+          user.kyc_status = 'verified';
+          showToast(`Biometric Passport / ID (${file.name}) uploaded! Click "EXECUTE & SAVE" to persist.`, 'success', 'ID Uploaded');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (removePassportBtn) {
+    removePassportBtn.addEventListener('click', () => {
+      if (passportFileInput) passportFileInput.value = '';
+      if (passportUrlInput) passportUrlInput.value = '';
+      if (passportPreview) passportPreview.innerHTML = '<span style="font-weight: 800; font-size: 0.7rem; color: #94a3b8;">NO ID</span>';
+      user.passportPhoto = '';
+      user.passportUrl = '';
+      user.kycDocument = '';
+      showToast('Passport ID cleared.', 'info', 'ID Removed');
+    });
+  }
+
   // Setup Password Show/Hide, Copy & Generate handlers
   const pwdInput = document.getElementById('editUserPassword');
   const togglePwdBtn = document.getElementById('btnToggleUserPasswordVisibility');
@@ -4553,6 +4598,43 @@ function setupCreateUserModal() {
   document.querySelectorAll('[data-open-modal="createUserFullModal"], [data-open-modal="createUserModal"]').forEach((el) => {
     el.addEventListener('click', openCreateUserModal);
   });
+
+  // Biometric Passport / ID Upload Listener for New User Modal
+  const newPassportFileInput = document.getElementById('adminNewUserPassportFile');
+  const newPassportUrlInput = document.getElementById('adminNewUserPassportUrl');
+  const newPassportPreview = document.getElementById('adminNewUserPassportPreview');
+  const clearNewPassportBtn = document.getElementById('btnClearAdminNewUserPassport');
+
+  if (newPassportFileInput) {
+    newPassportFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const dataUrl = evt.target.result;
+          if (newPassportUrlInput) newPassportUrlInput.value = dataUrl;
+          if (newPassportPreview) {
+            if (file.type && file.type.includes('pdf')) {
+              newPassportPreview.innerHTML = `<span class="text-xs font-bold" style="color:#34d399;">PDF ID</span>`;
+            } else {
+              newPassportPreview.innerHTML = `<img src="${escapeHtml(dataUrl)}" alt="Passport Preview" style="width: 100%; height: 100%; object-fit: cover;" />`;
+            }
+          }
+          showToast(`Biometric Passport / ID file (${file.name}) attached!`, 'success', 'ID Attached');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (clearNewPassportBtn) {
+    clearNewPassportBtn.addEventListener('click', () => {
+      if (newPassportFileInput) newPassportFileInput.value = '';
+      if (newPassportUrlInput) newPassportUrlInput.value = '';
+      if (newPassportPreview) newPassportPreview.innerHTML = 'No ID';
+      showToast('Passport attachment cleared.', 'info', 'Cleared');
+    });
+  }
 
   if (form) {
     form.addEventListener('submit', handleAdminCreateUserSubmit);

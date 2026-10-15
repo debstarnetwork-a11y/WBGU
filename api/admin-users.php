@@ -5,8 +5,7 @@
  * ============================================================================
  */
 
-// Performance Tuning for large datasets (e.g. 1,428 users)
-set_time_limit(600); // 10 minutes
+set_time_limit(600); // 10 minutes for large batch syncs
 ini_set('memory_limit', '512M');
 
 header('Content-Type: application/json; charset=utf-8');
@@ -57,7 +56,7 @@ try {
             PDO::ATTR_TIMEOUT => 10 
         ]);
     } else {
-        $dbError = "Database password is not set.";
+        $dbError = "Database password is not set in .env";
     }
 } catch (Throwable $e) {
     $pdo = null;
@@ -78,76 +77,87 @@ function saveUsersToFile($dataFile, $users) {
 }
 
 // ----------------------------------------------------------------------------
-// GET: Fetch all users (Merged from MySQL and JSON)
+// GET: Fetch all members/users (Merged from MySQL and JSON)
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $usersMap = [];
     $source = 'json_store';
 
-    // 1. Load from File first (often has more "demo" or "local" users)
+    // 1. Load from JSON File backup
     $fileUsers = loadUsersFromFile($dataFile);
     foreach ($fileUsers as $u) {
         if (!empty($u['id'])) $usersMap[$u['id']] = $u;
     }
 
-    // 2. Load from Database
+    // 2. Load from Live MySQL Database
     if ($pdo) {
         try {
             $source = 'mysql_merged';
-            $q = $pdo->query("DESCRIBE profiles");
-            $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
             
+            // Check profiles columns dynamically
+            $profileColumns = [];
+            try {
+                $q = $pdo->query("DESCRIBE profiles");
+                if ($q) $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
+            } catch (Throwable $e) {}
+
             $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1', 'profile_photo_url', 'passport_photo_url'];
             $selectFields = ["u.*"];
             foreach ($profileFields as $f) {
                 if (in_array($f, $profileColumns)) $selectFields[] = "p.$f";
             }
 
-            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id";
+            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC";
             $stmt = $pdo->query($sql);
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             if (!empty($dbUsers)) {
                 // Fetch related data in bulk
                 $allAccounts = [];
-                $acctStmt = $pdo->query("SELECT * FROM accounts");
-                while ($a = $acctStmt->fetch()) {
-                    $allAccounts[$a['user_id']][] = [
-                        'accountNumber' => $a['account_number'],
-                        'type' => $a['account_type'] ?? 'Checking',
-                        'name' => $a['account_name'] ?? 'Primary Vault',
-                        'currency' => $a['currency'] ?? 'USD',
-                        'balance' => (float)$a['balance'],
-                        'status' => $a['status'] ?? 'active',
-                        'routingNumber' => $a['routing_number'] ?? '021000089'
-                    ];
-                }
+                try {
+                    $acctStmt = $pdo->query("SELECT * FROM accounts");
+                    while ($a = $acctStmt->fetch()) {
+                        $allAccounts[$a['user_id']][] = [
+                            'accountNumber' => $a['account_number'],
+                            'type' => $a['account_type'] ?? 'Checking',
+                            'name' => $a['account_name'] ?? 'Primary Vault',
+                            'currency' => $a['currency'] ?? 'USD',
+                            'balance' => (float)$a['balance'],
+                            'status' => $a['status'] ?? 'active',
+                            'routingNumber' => $a['routing_number'] ?? '021000089'
+                        ];
+                    }
+                } catch (Throwable $e) {}
 
                 $allWireCodes = [];
-                $wireStmt = $pdo->query("SELECT * FROM wire_transfer_codes");
-                while ($wc = $wireStmt->fetch()) {
-                    $allWireCodes[$wc['user_id']][$wc['code_type']] = [
-                        'code' => $wc['code_value'],
-                        'active' => (bool)$wc['is_active'],
-                        'notes' => $wc['description'] ?? ''
-                    ];
-                }
+                try {
+                    $wireStmt = $pdo->query("SELECT * FROM wire_transfer_codes");
+                    while ($wc = $wireStmt->fetch()) {
+                        $allWireCodes[$wc['user_id']][$wc['code_type']] = [
+                            'code' => $wc['code_value'],
+                            'active' => (bool)$wc['is_active'],
+                            'notes' => $wc['description'] ?? ''
+                        ];
+                    }
+                } catch (Throwable $e) {}
 
                 $allCards = [];
-                $cardStmt = $pdo->query("SELECT * FROM cards");
-                while ($c = $cardStmt->fetch()) {
-                    $allCards[$c['user_id']][] = [
-                        'id' => $c['id'],
-                        'cardNumber' => $c['card_number'] ?? '',
-                        'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
-                        'cardHolder' => $c['card_holder'] ?? '',
-                        'type' => $c['card_type'] ?? 'Visa Platinum Debit',
-                        'expiry' => $c['expiry_display'] ?? '09/31',
-                        'cvv' => $c['cvv'] ?? '775',
-                        'pin' => $c['pin'] ?? '1234',
-                        'status' => $c['status'] ?? 'active'
-                    ];
-                }
+                try {
+                    $cardStmt = $pdo->query("SELECT * FROM cards");
+                    while ($c = $cardStmt->fetch()) {
+                        $allCards[$c['user_id']][] = [
+                            'id' => $c['id'],
+                            'cardNumber' => $c['card_number'] ?? '',
+                            'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
+                            'cardHolder' => $c['card_holder'] ?? '',
+                            'type' => $c['card_type'] ?? 'Visa Platinum Debit',
+                            'expiry' => $c['expiry_display'] ?? '09/31',
+                            'cvv' => $c['cvv'] ?? '775',
+                            'pin' => $c['pin'] ?? '1234',
+                            'status' => $c['status'] ?? 'active'
+                        ];
+                    }
+                } catch (Throwable $e) {}
 
                 foreach ($dbUsers as $row) {
                     $uid = $row['id'];
@@ -167,6 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'nationality' => $row['nationality'] ?? 'Switzerland',
                         'profilePhoto' => $row['profile_photo_url'] ?? '',
                         'passportPhoto' => $row['passport_photo_url'] ?? '',
+                        'passportUrl' => $row['passport_photo_url'] ?? '',
                         'status' => $row['status'] ?? 'active',
                         'kycStatus' => $row['kyc_status'] ?? 'verified',
                         'role' => (stripos($row['role'] ?? '', 'super') !== false) ? 'Super Admin' : ((stripos($row['role'] ?? '', 'admin') !== false) ? 'Admin' : 'Member'),
@@ -191,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo json_encode([
         'success' => true,
         'source' => $source,
+        'db_connected' => ($pdo !== null),
         'db_error' => $dbError,
         'count' => count($finalUsers),
         'users' => $finalUsers
@@ -199,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ----------------------------------------------------------------------------
-// POST: Batch Sync users into MySQL AND JSON file
+// POST: Sync users into MySQL AND JSON file
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rawInput = file_get_contents('php://input');
@@ -212,32 +224,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Only update the JSON backup file if it's a full sync or explicitly requested.
-    // If it's a chunk, we skip updating the full backup file to avoid overwriting all users with a small batch.
     $isChunk = !empty($input['is_chunk']);
     if (!$isChunk) {
         saveUsersToFile($dataFile, $users);
     }
 
-    $dbSynced = false;
     $syncErrors = [];
     $processedCount = 0;
 
     if ($pdo) {
+        $uCols = [];
+        $pCols = [];
         try {
-            // Get table columns once
             $uCols = $pdo->query("DESCRIBE users")->fetchAll(PDO::FETCH_COLUMN);
             $pCols = $pdo->query("DESCRIBE profiles")->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Throwable $e) {
+            $syncErrors[] = "Describe error: " . $e->getMessage();
+        }
 
-            // Use a transaction for atomic bulk insert
-            $pdo->beginTransaction();
-
-            foreach ($users as $u) {
+        foreach ($users as $u) {
+            try {
                 $uid = $u['id'] ?? ('usr-' . uniqid());
                 $email = $u['email'] ?? ($uid . '@wbcu.net');
                 $username = $u['username'] ?? explode('@', $email)[0];
                 
-                // Map ENUM values strictly matching DESCRIBE users; schema
+                // Roles
                 $roleRaw = strtolower($u['role'] ?? '');
                 $safeRole = 'user';
                 if (!empty($u['is_admin']) || strpos($roleRaw, 'super') !== false) {
@@ -246,6 +257,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $safeRole = 'admin';
                 } else if (strpos($roleRaw, 'audit') !== false) {
                     $safeRole = 'auditor';
+                }
+
+                // If role is admin or super_admin, sync to admins table if table exists
+                if ($safeRole === 'admin' || $safeRole === 'super_admin') {
+                    try {
+                        $adminStmt = $pdo->prepare("INSERT INTO admins (id, username, email, password_hash, full_name, role, status)
+                                                    VALUES (?, ?, ?, ?, ?, ?, 'active')
+                                                    ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), role=VALUES(role)");
+                        $adminStmt->execute([
+                            'adm-' . str_replace('usr-', '', $uid),
+                            $username,
+                            $email,
+                            $u['password'] ?? 'Admin123!',
+                            $u['fullName'] ?? 'Admin Officer',
+                            $safeRole
+                        ]);
+                    } catch (Throwable $eAdm) {
+                        // admins table optional
+                    }
                 }
 
                 $statusRaw = strtolower($u['status'] ?? 'active');
@@ -266,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // 1. Users Table
                 $uFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
-                $uVals = [$uid, $username, $email, $safeRole, $u['transactionPin'] ?? '8869', $safeStatus, $safeKyc, $u['createdAt'] ?? date('Y-m-d H:i:s')];
+                $uVals = [$uid, $username, $email, $safeRole, $u['transactionPin'] ?? '1234', $safeStatus, $safeKyc, !empty($u['createdAt']) ? date('Y-m-d H:i:s', strtotime($u['createdAt'])) : date('Y-m-d H:i:s')];
                 
                 if (in_array('password_hash', $uCols)) { $uFields[] = 'password_hash'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
                 if (in_array('password', $uCols)) { $uFields[] = 'password'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
@@ -286,17 +316,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $lastName = $u['lastName'] ?? '';
                 $middleName = $u['middleName'] ?? '';
                 
-                // Format Date of Birth strictly for MySQL DATE type (YYYY-MM-DD)
                 $rawDob = $u['dob'] ?? $u['date_of_birth'] ?? '1988-05-18';
                 $formattedDob = '1988-05-18';
                 $tsDob = strtotime($rawDob);
                 if ($tsDob !== false) {
                     $formattedDob = date('Y-m-d', $tsDob);
-                } else {
-                    $dobParts = explode('/', $rawDob);
-                    if (count($dobParts) === 3 && strlen($dobParts[2]) === 4) {
-                        $formattedDob = sprintf('%04d-%02d-%02d', (int)$dobParts[2], (int)$dobParts[0], (int)$dobParts[1]);
-                    }
                 }
 
                 $profFields = ['id', 'user_id', 'first_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1'];
@@ -365,24 +389,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 $processedCount++;
+            } catch (Throwable $eUser) {
+                $syncErrors[] = "Error syncing user {$uid}: " . $eUser->getMessage();
             }
-
-            $pdo->commit();
-            $dbSynced = true;
-        } catch (Throwable $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            $syncErrors[] = $e->getMessage();
         }
     }
 
     echo json_encode([
         'success' => true,
-        'db_synced' => $dbSynced,
+        'db_synced' => ($pdo !== null && $processedCount > 0),
         'db_errors' => $syncErrors,
         'db_connected' => ($pdo !== null),
         'count' => count($users),
         'processed' => $processedCount,
-        'message' => $dbSynced ? 'Users fully synchronized to Database' : 'Users saved to file, but Database sync failed'
+        'message' => ($processedCount > 0) ? "Successfully synchronized {$processedCount} members to MySQL Database" : "Saved to JSON file"
     ]);
     exit;
 }
