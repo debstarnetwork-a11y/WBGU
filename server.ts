@@ -732,7 +732,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
   const distIndexPath = path.resolve(__dirname, 'dist', 'index.html');
   const rootIndexPath = path.resolve(__dirname, 'index.html');
 
-  if (process.env.NODE_ENV !== 'production' && !fs.existsSync(distIndexPath)) {
+  if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: 'spa',
