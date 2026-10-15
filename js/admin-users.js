@@ -1236,19 +1236,24 @@ export async function syncAdminUsersWithServer() {
     }
 
     if (Array.isArray(data.users) && data.users.length > 0) {
-      data.users.forEach((serverUser) => {
-        if (!serverUser || !serverUser.id) return;
-        const existsIdx = currentUsers.findIndex(
-          (u) => u && u.id === serverUser.id
-        );
-        if (existsIdx === -1) {
-          currentUsers.push(serverUser);
-        } else {
-          // Trust server data for core identity and state; merge into existing record
-          const localUser = currentUsers[existsIdx];
-          currentUsers[existsIdx] = { ...localUser, ...serverUser };
-        }
-      });
+      if (data.source === 'mysql_live' || data.db_connected) {
+        // Live MySQL database is the authoritative source: set members directly
+        currentUsers = [...data.users];
+      } else {
+        data.users.forEach((serverUser) => {
+          if (!serverUser || !serverUser.id) return;
+          const existsIdx = currentUsers.findIndex(
+            (u) => u && u.id === serverUser.id
+          );
+          if (existsIdx === -1) {
+            currentUsers.push(serverUser);
+          } else {
+            // Trust server data for core identity and state; merge into existing record
+            const localUser = currentUsers[existsIdx];
+            currentUsers[existsIdx] = { ...localUser, ...serverUser };
+          }
+        });
+      }
     }
 
     if (!currentUsers || currentUsers.length === 0) {
@@ -1266,9 +1271,9 @@ export async function syncAdminUsersWithServer() {
     
     // Notify about connection status for transparency
     if (data.db_connected === false) {
-      console.error('[ADMIN DB] Database connection failed:', data.db_errors);
-    } else if (data.source === 'mysql_merged') {
-      console.log('[ADMIN DB] Connected to Live Database');
+      console.warn('[ADMIN DB] Database connection notice:', data.db_error);
+    } else if (data.db_connected === true) {
+      console.log('[ADMIN DB] Connected to Live Database. Source:', data.source, 'Members:', data.count);
     }
   } catch (err) {
     console.warn('[ADMIN USER SYNC INFO]', err);

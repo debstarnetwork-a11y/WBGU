@@ -634,58 +634,48 @@ Respond concisely, politely, professionally, and in the language specified (${la
       return res.status(400).json({ success: false, error: 'Officer email/username and master passcode are required.' });
     }
 
-    const users = Array.isArray(serverUsersStore) ? serverUsersStore : defaultSeedUsers;
+    const users = Array.isArray(serverUsersStore) ? serverUsersStore : [];
     const matchedUser = users.find((u: any) => {
       const uEmail = String(u.email || '').toLowerCase();
       const uUsername = String(u.username || '').toLowerCase();
-      return uEmail === inputIdentifier || uUsername === inputIdentifier ||
-        (inputIdentifier === 'admin' && (uEmail.includes('admin') || u.role === 'Super Admin')) ||
-        (inputIdentifier === 'mizbrymo' && (uEmail.includes('mizbrymo') || u.role === 'Super Admin'));
+      return uEmail === inputIdentifier || uUsername === inputIdentifier;
     });
 
-    const isSuperAdminAlias =
-      inputIdentifier === 'mizbrymo@gmail.com' ||
-      inputIdentifier === 'mizbrymo' ||
-      inputIdentifier === 'admin@wbcu.net' ||
-      inputIdentifier === 'admin' ||
-      inputIdentifier === 'administrator' ||
-      inputIdentifier === 'superadmin' ||
-      inputIdentifier === 'root' ||
-      inputIdentifier === 'wbcu' ||
-      inputIdentifier === 'officer' ||
-      inputIdentifier === 'info@wbcu.net' ||
-      inputIdentifier === 'support@wbcu.net' ||
-      inputIdentifier.endsWith('@wbcu.net') ||
-      inputIdentifier.includes('admin') ||
-      inputIdentifier.includes('brymo') ||
-      inputIdentifier.includes('miz');
+    if (!matchedUser) {
+      return res.status(401).json({ success: false, error: 'Access Denied: Administrative account not found in database.' });
+    }
 
-    const validMasterPasscodes = [
-      '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',
-      'admin', 'admin123', 'Admin@123', '123456', 'password', 'wbcu', 'wbcu123',
-      'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net'
-    ];
-    if (matchedUser && matchedUser.password) validMasterPasscodes.push(matchedUser.password);
-    if (matchedUser && matchedUser.pin) validMasterPasscodes.push(matchedUser.pin);
-    if (matchedUser && matchedUser.transactionPin) validMasterPasscodes.push(matchedUser.transactionPin);
+    const isAdminRole = Boolean(
+      matchedUser.is_admin ||
+      matchedUser.role === 'Super Admin' ||
+      matchedUser.role === 'Admin' ||
+      matchedUser.role === 'super_admin' ||
+      matchedUser.role === 'admin'
+    );
 
-    const isPasswordValid = validMasterPasscodes.includes(inputPassword);
+    if (!isAdminRole) {
+      return res.status(403).json({ success: false, error: 'Access Denied: Account does not have administrative privileges.' });
+    }
 
-    if ((matchedUser && (matchedUser.is_admin || matchedUser.role === 'Super Admin' || matchedUser.role === 'Admin') && isPasswordValid) || (isSuperAdminAlias && isPasswordValid)) {
+    // Verify password strictly against user's stored password or password_hash
+    const storedPass = String(matchedUser.password || matchedUser.password_hash || '');
+    const isPasswordValid = storedPass && (inputPassword === storedPass);
+
+    if (isPasswordValid) {
       const adminSession = {
-        id: matchedUser?.id || 'wb-adm-001',
-        email: matchedUser?.email || (inputIdentifier.includes('@') ? inputIdentifier : 'admin@wbcu.net'),
-        fullName: matchedUser?.fullName || 'Miz Brymo',
-        role: 'Super Admin',
+        id: matchedUser.id || 'wb-adm-001',
+        email: matchedUser.email || inputIdentifier,
+        fullName: matchedUser.fullName || matchedUser.name || 'Chief Treasury Auditor',
+        role: matchedUser.role || 'Super Admin',
         badgeNumber: code,
         is_admin: true,
-        authMethod: 'Master_Clearance',
+        authMethod: 'Database_Clearance',
         authenticatedAt: new Date().toISOString()
       };
       return res.json({ success: true, admin: adminSession });
     }
 
-    return res.status(401).json({ success: false, error: 'Invalid administrative credentials or master passcode.' });
+    return res.status(401).json({ success: false, error: 'Access Denied: Invalid administrative credentials or master passcode.' });
   });
 
   app.get('/api/admin/cards', (_req, res) => {

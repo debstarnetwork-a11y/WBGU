@@ -1,12 +1,12 @@
 <?php
 /**
  * ============================================================================
- * WB CREDIT UNION - ADMIN AUTHENTICATION API (cPanel / PHP / MySQL / JSON)
+ * WB CREDIT UNION - ADMIN AUTHENTICATION API (Strict Database Authentication)
  * ============================================================================
  * 
- * Authenticates Administrative Officers into the WB Credit Union Admin Portal.
- * Connects to cPanel MySQL database ('glolbka_wbcu_db') and checks both
- * 'admins' and 'users' tables, supporting bcrypt hashes and master passcodes.
+ * Authenticates Administrative Officers strictly against the live cPanel MySQL
+ * database ('glolbka_wbcu_db'). Rejects all hardcoded, fallback, and unauthorized
+ * credentials. Only credentials configured in the database are permitted.
  * ============================================================================
  */
 
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// 1. Read Input
+// 1. Read Request Input
 $rawInput = file_get_contents('php://input');
 $inputData = json_decode($rawInput, true) ?: [];
 $email = trim($inputData['email'] ?? $_POST['email'] ?? '');
@@ -36,177 +36,213 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
-// 2. Load .env if present to obtain DB_PASSWORD
-$envFile = dirname(__DIR__) . '/.env';
-$dbPass = getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '';
-if (empty($dbPass) && file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if (strpos($line, '#') === 0) continue;
-        if (strpos($line, 'DB_PASSWORD=') === 0) {
-            $dbPass = trim(str_replace(['DB_PASSWORD=', '"', "'"], '', $line));
-        } elseif (strpos($line, 'DB_PASS=') === 0 && empty($dbPass)) {
-            $dbPass = trim(str_replace(['DB_PASS=', '"', "'"], '', $line));
-        }
-    }
-}
-
-// 3. Attempt cPanel MySQL Connection
+// 2. Discover Database Credentials from Environment / .env
 $dbHost = 'localhost';
 $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user';
+$dbPass = '';
 
-$pdo = null;
-try {
-    if (!empty($dbPass)) {
-        $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]);
-    }
-} catch (Exception $e) {
-    $pdo = null;
-}
-
-// 4. Verification Logic
-$normEmail = strtolower($email);
-
-// Master Passcodes accepted for Admin Access
-$validPasscodes = [
-    '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',
-    'admin', 'admin123', 'Admin@123', '123456', 'password', 'wbcu', 'wbcu123',
-    'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net', '0000', '1111'
+$envPaths = [
+    dirname(__DIR__) . '/.env',
+    __DIR__ . '/.env',
+    __DIR__ . '/../.env',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/.env',
+    '/home/glolbka/WBCU/.env'
 ];
 
-$matchedAdmin = null;
-$passwordVerified = false;
+foreach ($envPaths as $envPath) {
+    if (!empty($envPath) && file_exists($envPath)) {
+        $lines = @file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (is_array($lines)) {
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (strpos($line, '#') === 0) continue;
+                $parts = explode('=', $line, 2);
+                if (count($parts) < 2) continue;
+                $key = trim($parts[0]);
+                $val = trim($parts[1], " \t\n\r\0\x0B\"'");
+                if (($key === 'DB_PASS' || $key === 'DB_PASSWORD') && !empty($val)) $dbPass = $val;
+                if ($key === 'DB_USER' && !empty($val)) $dbUser = $val;
+                if ($key === 'DB_NAME' && !empty($val)) $dbName = $val;
+                if ($key === 'DB_HOST' && !empty($val)) $dbHost = $val;
+            }
+        }
+    }
+}
 
-if ($pdo) {
-    // Check 4a: Check 'admins' table first
+// System Environment variable fallbacks
+if (empty($dbPass)) $dbPass = getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '';
+if (empty($dbUser) || $dbUser === 'root') {
+    $envUser = getenv('DB_USER');
+    if (!empty($envUser)) $dbUser = $envUser;
+}
+if (!empty(getenv('DB_NAME'))) $dbName = getenv('DB_NAME');
+if (!empty(getenv('DB_HOST'))) $dbHost = getenv('DB_HOST');
+
+// 3. Connect to Live MySQL Database
+$pdo = null;
+$dbConnectError = null;
+
+try {
+    $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_TIMEOUT => 5
+    ]);
+} catch (Throwable $e) {
+    $pdo = null;
+    $dbConnectError = $e->getMessage();
+}
+
+if (!$pdo) {
+    http_response_code(503);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Database connection failed. Unable to authenticate against administrative database.',
+        'details' => $dbConnectError
+    ]);
+    exit;
+}
+
+// 4. Query Officer Record from Database ONLY
+$normIdentifier = strtolower($email);
+$matchedRow = null;
+$sourceTable = null;
+
+// 4a. Check dedicated 'admins' table first
+try {
+    $stmtAdmins = $pdo->prepare("SELECT * FROM admins WHERE LOWER(email) = ? OR LOWER(username) = ? LIMIT 1");
+    $stmtAdmins->execute([$normIdentifier, $normIdentifier]);
+    $adminRow = $stmtAdmins->fetch();
+    if ($adminRow) {
+        $matchedRow = $adminRow;
+        $sourceTable = 'admins';
+    }
+} catch (Throwable $e) {
+    // Admins table may be absent or empty
+}
+
+// 4b. Check 'users' table if not in 'admins'
+if (!$matchedRow) {
     try {
-        $stmtAdmins = $pdo->prepare("SELECT * FROM admins WHERE LOWER(email) = ? OR LOWER(username) = ? LIMIT 1");
-        $stmtAdmins->execute([$normEmail, $normEmail]);
-        $adminRow = $stmtAdmins->fetch();
-        if ($adminRow) {
-            $matchedAdmin = [
-                'id' => $adminRow['id'] ?? 'adm-001',
-                'email' => $adminRow['email'] ?? $email,
-                'fullName' => $adminRow['full_name'] ?? 'Chief Treasury Auditor',
-                'role' => 'Super Admin',
-                'badgeNumber' => $accessCode,
-                'is_admin' => true,
-                'authMethod' => 'Database_Admins_Table'
-            ];
-            // Password verification against database hash or plain password
-            if (!empty($adminRow['password_hash']) && password_verify($password, $adminRow['password_hash'])) {
-                $passwordVerified = true;
-            } elseif (!empty($adminRow['password']) && $password === $adminRow['password']) {
-                $passwordVerified = true;
-            }
+        $stmtUsers = $pdo->prepare("SELECT u.*, p.full_name, p.first_name, p.last_name 
+                                    FROM users u 
+                                    LEFT JOIN profiles p ON u.id = p.user_id 
+                                    WHERE (LOWER(u.email) = ? OR LOWER(u.username) = ?) 
+                                      AND (u.role IN ('admin', 'super_admin', 'auditor') OR u.is_admin = 1) 
+                                    LIMIT 1");
+        $stmtUsers->execute([$normIdentifier, $normIdentifier]);
+        $userRow = $stmtUsers->fetch();
+        if ($userRow) {
+            $matchedRow = $userRow;
+            $sourceTable = 'users';
         }
-    } catch (Exception $e) {}
-
-    // Check 4b: Check 'users' table if not matched in 'admins'
-    if (!$matchedAdmin) {
-        try {
-            $stmtUsers = $pdo->prepare("SELECT u.*, p.full_name FROM users u LEFT JOIN profiles p ON u.id = p.user_id WHERE (LOWER(u.email) = ? OR LOWER(u.username) = ?) AND u.role IN ('admin', 'super_admin', 'auditor') LIMIT 1");
-            $stmtUsers->execute([$normEmail, $normEmail]);
-            $userRow = $stmtUsers->fetch();
-            if ($userRow) {
-                $matchedAdmin = [
-                    'id' => $userRow['id'] ?? 'wb-adm-001',
-                    'email' => $userRow['email'] ?? $email,
-                    'fullName' => $userRow['full_name'] ?? 'Miz Brymo',
-                    'role' => 'Super Admin',
-                    'badgeNumber' => $accessCode,
-                    'is_admin' => true,
-                    'authMethod' => 'Database_Users_Table'
-                ];
-                if (!empty($userRow['password_hash']) && password_verify($password, $userRow['password_hash'])) {
-                    $passwordVerified = true;
-                } elseif (!empty($userRow['password_hash']) && $password === $userRow['password_hash']) {
-                    $passwordVerified = true;
-                } elseif (!empty($userRow['password']) && $password === $userRow['password']) {
-                    $passwordVerified = true;
-                }
-            }
-        } catch (Exception $e) {}
+    } catch (Throwable $e) {
+        // Users table query error
     }
 }
 
-// Check 4c: Check JSON file fallback
-if (!$matchedAdmin) {
-    $dataFile = dirname(__DIR__) . '/admin-users.json';
-    if (!file_exists($dataFile)) $dataFile = __DIR__ . '/admin-users.json';
-    if (file_exists($dataFile)) {
-        $rawJson = @file_get_contents($dataFile);
-        $jsonUsers = json_decode($rawJson, true);
-        if (is_array($jsonUsers)) {
-            foreach ($jsonUsers as $u) {
-                $uEmail = strtolower($u['email'] ?? '');
-                $uUser = strtolower($u['username'] ?? '');
-                if (($uEmail === $normEmail || $uUser === $normEmail) && (!empty($u['is_admin']) || in_array($u['role'] ?? '', ['Admin', 'Super Admin', 'admin', 'super_admin']))) {
-                    $matchedAdmin = [
-                        'id' => $u['id'] ?? 'wb-adm-001',
-                        'email' => $u['email'] ?? $email,
-                        'fullName' => $u['fullName'] ?? $u['full_name'] ?? 'Miz Brymo',
-                        'role' => 'Super Admin',
-                        'badgeNumber' => $accessCode,
-                        'is_admin' => true,
-                        'authMethod' => 'JSON_File_Storage'
-                    ];
-                    if (!empty($u['password'])) $validPasscodes[] = $u['password'];
-                    if (!empty($u['pin'])) $validPasscodes[] = $u['pin'];
-                    break;
-                }
-            }
+// If account does NOT exist in the database, reject immediately
+if (!$matchedRow) {
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Access Denied: Invalid administrative credentials or master passcode.'
+    ]);
+    exit;
+}
+
+// 5. Verify Password Against Database Record ONLY
+function verifyDatabasePassword($rawPassword, $row) {
+    $storedHash = $row['password_hash'] ?? $row['password'] ?? '';
+    if ($storedHash === '' || $storedHash === null) {
+        return false;
+    }
+
+    // A. PHP standard password_verify (bcrypt, argon2, etc.)
+    if (password_verify($rawPassword, $storedHash)) {
+        return true;
+    }
+
+    // B. Direct plaintext equality (if stored as plain text in phpMyAdmin)
+    if ($rawPassword === $storedHash) {
+        return true;
+    }
+
+    // C. Check alternate 'password' column if distinct from 'password_hash'
+    if (!empty($row['password'])) {
+        if ($rawPassword === $row['password'] || password_verify($rawPassword, $row['password'])) {
+            return true;
         }
     }
-}
 
-// Master Admin Aliases
-$isSuperAdminAlias = (
-    $normEmail === 'admin' ||
-    $normEmail === 'administrator' ||
-    $normEmail === 'mizbrymo' ||
-    $normEmail === 'mizbrymo@gmail.com' ||
-    $normEmail === 'admin@wbcu.net' ||
-    $normEmail === 'superadmin' ||
-    $normEmail === 'root' ||
-    $normEmail === 'wbcu' ||
-    $normEmail === 'officer' ||
-    (strpos($normEmail, 'admin') !== false)
-);
-
-if (in_array($password, $validPasscodes)) {
-    $passwordVerified = true;
-}
-
-if ($isSuperAdminAlias || $matchedAdmin) {
-    if ($passwordVerified || $isSuperAdminAlias) {
-        $finalAdmin = $matchedAdmin ?: [
-            'id' => 'wb-adm-001',
-            'email' => strpos($normEmail, '@') !== false ? $email : 'admin@wbcu.net',
-            'fullName' => 'Chief Treasury Auditor',
-            'role' => 'Super Admin',
-            'badgeNumber' => $accessCode,
-            'is_admin' => true,
-            'authMethod' => 'Master_Officer_Clearance'
-        ];
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Admin authentication approved',
-            'admin' => $finalAdmin
-        ]);
-        exit;
+    // D. MD5 hash equality (if MD5() SQL function was selected in phpMyAdmin)
+    if (strtolower(md5($rawPassword)) === strtolower($storedHash)) {
+        return true;
     }
+
+    // E. SHA-256 hash equality (if SHA2() SQL function was used in phpMyAdmin)
+    if (strtolower(hash('sha256', $rawPassword)) === strtolower($storedHash)) {
+        return true;
+    }
+
+    // F. SHA-1 hash equality (if SHA1() SQL function was used in phpMyAdmin)
+    if (strtolower(sha1($rawPassword)) === strtolower($storedHash)) {
+        return true;
+    }
+
+    return false;
 }
 
-http_response_code(401);
+$isPasswordValid = verifyDatabasePassword($password, $matchedRow);
+
+if (!$isPasswordValid) {
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Access Denied: Invalid administrative credentials or master passcode.'
+    ]);
+    exit;
+}
+
+// 6. Update last_login in the database
+try {
+    $updateStmt = $pdo->prepare("UPDATE `{$sourceTable}` SET last_login = NOW() WHERE id = ?");
+    $updateStmt->execute([$matchedRow['id']]);
+} catch (Throwable $e) {}
+
+// 7. Officer Authenticated Successfully
+$fullName = $matchedRow['full_name'] ?? trim(($matchedRow['first_name'] ?? '') . ' ' . ($matchedRow['last_name'] ?? ''));
+if (empty($fullName)) {
+    $fullName = $matchedRow['username'] ?? 'Chief Treasury Auditor';
+}
+
+$role = $matchedRow['role'] ?? 'super_admin';
+$displayRole = 'Super Admin';
+if (stripos($role, 'super') !== false) {
+    $displayRole = 'Super Admin';
+} elseif (stripos($role, 'auditor') !== false) {
+    $displayRole = 'Treasury Auditor';
+} else {
+    $displayRole = 'Admin';
+}
+
+$adminPayload = [
+    'id' => $matchedRow['id'],
+    'email' => $matchedRow['email'] ?? $email,
+    'username' => $matchedRow['username'] ?? $email,
+    'fullName' => $fullName,
+    'role' => $displayRole,
+    'badgeNumber' => $accessCode,
+    'is_admin' => true,
+    'authMethod' => 'MySQL_Database_Verified',
+    'sourceTable' => $sourceTable,
+    'authenticatedAt' => date('c')
+];
+
 echo json_encode([
-    'success' => false,
-    'error' => 'Access Denied: Invalid administrative credentials or master passcode.'
+    'success' => true,
+    'message' => 'Admin authentication approved against database',
+    'admin' => $adminPayload
 ]);
 exit;

@@ -29,22 +29,42 @@ $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user'; 
 $dbPass = ''; 
 
-// Simple .env parser for cPanel deployment
-$envPath = dirname(__DIR__) . '/.env';
-if (file_exists($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        $parts = explode('=', $line, 2);
-        if (count($parts) < 2) continue;
-        $name = trim($parts[0]);
-        $value = trim($parts[1], " \t\n\r\0\x0B\"'");
-        if ($name === 'DB_PASS' || $name === 'DB_PASSWORD') $dbPass = $value;
-        if ($name === 'DB_USER') $dbUser = $value;
-        if ($name === 'DB_NAME') $dbName = $value;
-        if ($name === 'DB_HOST') $dbHost = $value;
+// Comprehensive .env parser for cPanel deployment
+$envPaths = [
+    dirname(__DIR__) . '/.env',
+    __DIR__ . '/.env',
+    __DIR__ . '/../.env',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/.env',
+    '/home/glolbka/WBCU/.env'
+];
+
+foreach ($envPaths as $envPath) {
+    if (!empty($envPath) && file_exists($envPath)) {
+        $lines = @file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (is_array($lines)) {
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (strpos($line, '#') === 0) continue;
+                $parts = explode('=', $line, 2);
+                if (count($parts) < 2) continue;
+                $key = trim($parts[0]);
+                $val = trim($parts[1], " \t\n\r\0\x0B\"'");
+                if (($key === 'DB_PASS' || $key === 'DB_PASSWORD') && !empty($val)) $dbPass = $val;
+                if ($key === 'DB_USER' && !empty($val)) $dbUser = $val;
+                if ($key === 'DB_NAME' && !empty($val)) $dbName = $val;
+                if ($key === 'DB_HOST' && !empty($val)) $dbHost = $val;
+            }
+        }
     }
 }
+
+if (empty($dbPass)) $dbPass = getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '';
+if (empty($dbUser) || $dbUser === 'root') {
+    $envUser = getenv('DB_USER');
+    if (!empty($envUser)) $dbUser = $envUser;
+}
+if (!empty(getenv('DB_NAME'))) $dbName = getenv('DB_NAME');
+if (!empty(getenv('DB_HOST'))) $dbHost = getenv('DB_HOST');
 
 $pdo = null;
 $dbError = null;
@@ -77,41 +97,43 @@ function saveUsersToFile($dataFile, $users) {
 }
 
 // ----------------------------------------------------------------------------
-// GET: Fetch all members/users (Merged from MySQL and JSON)
+// GET: Fetch all members/users (Live MySQL Database Authoritative)
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $usersMap = [];
     $source = 'json_store';
 
-    // 1. Load from JSON File backup
-    $fileUsers = loadUsersFromFile($dataFile);
-    foreach ($fileUsers as $u) {
-        if (!empty($u['id'])) $usersMap[$u['id']] = $u;
-    }
-
-    // 2. Load from Live MySQL Database
+    // 1. Load from Live MySQL Database (Primary Source)
     if ($pdo) {
         try {
-            $source = 'mysql_merged';
-            
-            // Check profiles columns dynamically
+            // Check users and profiles columns dynamically
+            $userColumns = [];
+            try {
+                $uq = $pdo->query("DESCRIBE `users`");
+                if ($uq) $userColumns = $uq->fetchAll(PDO::FETCH_COLUMN);
+            } catch (Throwable $e) {}
+
             $profileColumns = [];
             try {
-                $q = $pdo->query("DESCRIBE profiles");
+                $q = $pdo->query("DESCRIBE `profiles`");
                 if ($q) $profileColumns = $q->fetchAll(PDO::FETCH_COLUMN);
             } catch (Throwable $e) {}
 
-            $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1', 'profile_photo_url', 'passport_photo_url'];
+            $profileFields = ['first_name', 'middle_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'gender', 'nationality', 'occupation', 'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country', 'profile_photo_url', 'passport_photo_url', 'avatar_color', 'id_type', 'id_number', 'id_card_front_url', 'id_card_back_url', 'proof_of_address_url'];
             $selectFields = ["u.*"];
             foreach ($profileFields as $f) {
-                if (in_array($f, $profileColumns)) $selectFields[] = "p.$f";
+                if (in_array($f, $profileColumns)) $selectFields[] = "p.`$f`";
             }
 
-            $sql = "SELECT " . implode(', ', $selectFields) . " FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC";
+            $orderBy = in_array('created_at', $userColumns) ? "ORDER BY u.created_at DESC" : (in_array('id', $userColumns) ? "ORDER BY u.id ASC" : "");
+            $sql = "SELECT " . implode(', ', $selectFields) . " FROM `users` u LEFT JOIN `profiles` p ON u.id = p.user_id $orderBy";
             $stmt = $pdo->query($sql);
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             if (!empty($dbUsers)) {
+                $source = 'mysql_live';
+                // Reset usersMap so only live MySQL members appear in admin
+                $usersMap = [];
                 // Fetch related data in bulk
                 $allAccounts = [];
                 try {
@@ -189,12 +211,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'cards' => $allCards[$uid] ?? []
                     ];
                     
-                    // Merge/Overwrite file data with fresh DB data
-                    $usersMap[$uid] = array_merge($usersMap[$uid] ?? [], $userObj);
+                    $usersMap[$uid] = $userObj;
                 }
             }
         } catch (Throwable $e) {
             $dbError = $e->getMessage();
+        }
+    }
+
+    // 2. Fall back to JSON File backup only if no live database users were loaded
+    if (empty($usersMap)) {
+        $fileUsers = loadUsersFromFile($dataFile);
+        foreach ($fileUsers as $u) {
+            if (!empty($u['id'])) $usersMap[$u['id']] = $u;
         }
     }
 

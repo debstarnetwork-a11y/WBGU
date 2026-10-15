@@ -2709,85 +2709,36 @@ export function initAdminLoginForm() {
       const normalizedEmail = email.toLowerCase().trim();
       let validatedAdmin = null;
 
-      // 1. Try Server API Login
+      // 1. Authenticate against Live Database Endpoint
+      let srvErrorMessage = '';
       try {
-        let srvRes = await fetch('/api/admin/login', {
+        let srvRes = await fetch('/api/admin-login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: normalizedEmail, password }),
         });
         if (!srvRes.ok) {
-          srvRes = await fetch('/api/admin-login.php', {
+          srvRes = await fetch('/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: normalizedEmail, password }),
           });
         }
-        if (srvRes && srvRes.ok) {
-          const srvData = await srvRes.json();
-          if (srvData.success && srvData.admin) {
+        if (srvRes) {
+          const srvData = await srvRes.json().catch(() => null);
+          if (srvRes.ok && srvData && srvData.success && srvData.admin) {
             validatedAdmin = srvData.admin;
+          } else if (srvData && srvData.error) {
+            srvErrorMessage = srvData.error;
           }
         }
       } catch (err) {
-        console.warn('Server admin login check error:', err);
+        console.warn('Database authentication request error:', err);
       }
 
-      // 2. Client-side database check fallback
+      // Reject all unauthorized credentials not verified in the database
       if (!validatedAdmin) {
-        const isMasterAdmin =
-          normalizedEmail === 'mizbrymo@gmail.com' ||
-          normalizedEmail === 'mizbrymo' ||
-          normalizedEmail === 'admin@wbcu.net' ||
-          normalizedEmail === 'admin' ||
-          normalizedEmail === 'administrator' ||
-          normalizedEmail === 'superadmin' ||
-          normalizedEmail.includes('admin');
-
-        const validPasscodes = [
-          '12345', '1234', '8869', '9988', 'Admin123!', 'Password123!', 'DemoPass123!',
-          'admin', 'admin123', 'Admin@123', '123456', 'password', 'wbcu', 'wbcu123',
-          'wbcu2024', 'wbcu2025', 'wbcu2026', 'wbcu.net', '0000', '1111'
-        ];
-
-        let dbUsers = [];
-        try {
-          dbUsers = getAdminUsersList();
-        } catch (e) {
-          try {
-            const raw = localStorage.getItem('wb_credit_union_admin_users_db');
-            if (raw) dbUsers = JSON.parse(raw);
-          } catch (err) {}
-        }
-
-        const foundUser = dbUsers.find(
-          (u) =>
-            (u.email && u.email.toLowerCase() === normalizedEmail) ||
-            (u.username && u.username.toLowerCase() === normalizedEmail)
-        );
-
-        if (foundUser) {
-          if (foundUser.password) validPasscodes.push(foundUser.password);
-          if (foundUser.pin) validPasscodes.push(foundUser.pin);
-          if (foundUser.transactionPin) validPasscodes.push(foundUser.transactionPin);
-        }
-
-        const isPasswordCorrect = validPasscodes.includes(password) || isMasterAdmin || (foundUser && password.length >= 4);
-
-        if ((isMasterAdmin || (foundUser && (foundUser.is_admin || foundUser.role === 'Super Admin' || foundUser.role === 'Admin'))) && isPasswordCorrect) {
-          validatedAdmin = {
-            id: foundUser?.id || 'wb-adm-001',
-            email: foundUser?.email || (normalizedEmail.includes('@') ? normalizedEmail : 'admin@wbcu.net'),
-            fullName: foundUser?.fullName || 'Chief Treasury Auditor',
-            role: foundUser?.role || 'Super Admin',
-            badgeNumber: 'WB-TREASURY-01',
-            is_admin: true,
-            authMethod: foundUser ? 'Database_Clearance' : 'Master_Clearance',
-            createdAt: new Date().toISOString(),
-          };
-        } else {
-          throw new Error('Access Denied: Invalid administrative credentials or master passcode.');
-        }
+        throw new Error(srvErrorMessage || 'Access Denied: Invalid administrative credentials or master passcode.');
       }
 
       // Credentials confirmed! Immediately grant admin session & redirect instantly
