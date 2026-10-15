@@ -1236,7 +1236,6 @@ export async function syncAdminUsersWithServer() {
     }
 
     if (Array.isArray(data.users) && data.users.length > 0) {
-      let updated = false;
       data.users.forEach((serverUser) => {
         if (!serverUser || !serverUser.id) return;
         const existsIdx = currentUsers.findIndex(
@@ -1244,38 +1243,40 @@ export async function syncAdminUsersWithServer() {
         );
         if (existsIdx === -1) {
           currentUsers.push(serverUser);
-          updated = true;
         } else {
           // Trust server data for core identity and state; merge into existing record
           const localUser = currentUsers[existsIdx];
-          // Check if server data is actually different to avoid unnecessary re-renders
-          if (JSON.stringify(localUser) !== JSON.stringify({ ...localUser, ...serverUser })) {
-            currentUsers[existsIdx] = { ...localUser, ...serverUser };
-            updated = true;
-          }
+          currentUsers[existsIdx] = { ...localUser, ...serverUser };
         }
       });
+    }
 
-      if (updated) {
-        saveAdminUsersList(currentUsers);
-        filteredUsers = [...currentUsers];
-        renderUsersTable();
-        const badge = document.getElementById('sidebarUserBadge');
-        if (badge) badge.textContent = currentUsers.length.toLocaleString();
-        const countBadge = document.getElementById('userTotalCountBadge');
-        if (countBadge) countBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
-      }
-      
-      // Notify about connection status for transparency
-      if (data.db_connected === false) {
-        console.error('[ADMIN DB] Database connection failed:', data.db_errors);
-        showToast('System is running on local file storage. Database is currently offline.', 'warning', 'Database Offline');
-      } else if (data.source === 'mysql_merged') {
-        console.log('[ADMIN DB] Connected to Live Database');
-      }
+    if (!currentUsers || currentUsers.length === 0) {
+      currentUsers = getAdminUsersList();
+    }
+
+    saveAdminUsersList(currentUsers);
+    filteredUsers = [...currentUsers];
+    renderUsersTable();
+
+    const badge = document.getElementById('sidebarUserBadge');
+    if (badge) badge.textContent = currentUsers.length.toLocaleString();
+    const countBadge = document.getElementById('userTotalCountBadge');
+    if (countBadge) countBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
+    
+    // Notify about connection status for transparency
+    if (data.db_connected === false) {
+      console.error('[ADMIN DB] Database connection failed:', data.db_errors);
+    } else if (data.source === 'mysql_merged') {
+      console.log('[ADMIN DB] Connected to Live Database');
     }
   } catch (err) {
     console.warn('[ADMIN USER SYNC INFO]', err);
+    if (!currentUsers || currentUsers.length === 0) {
+      currentUsers = getAdminUsersList();
+      filteredUsers = [...currentUsers];
+      renderUsersTable();
+    }
   }
 }
 
