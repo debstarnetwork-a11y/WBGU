@@ -2588,6 +2588,36 @@ export function initAdminLoginForm() {
   emailInput?.addEventListener('input', clearAdminErrors);
   passInput?.addEventListener('input', clearAdminErrors);
 
+  // Quick fill master officer buttons
+  const btnQuickAdmin = document.getElementById('btnQuickFillAdmin');
+  const btnQuickMiz = document.getElementById('btnQuickFillMiz');
+
+  btnQuickAdmin?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (emailInput) {
+      emailInput.value = 'admin@wbcu.net';
+      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (passInput) {
+      passInput.value = '12345';
+      passInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    clearAdminErrors();
+  });
+
+  btnQuickMiz?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (emailInput) {
+      emailInput.value = 'mizbrymo@gmail.com';
+      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (passInput) {
+      passInput.value = '12345';
+      passInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    clearAdminErrors();
+  });
+
   // Close 2FA modal
   const close2FAModal = () => {
     if (modal2FA) modal2FA.style.display = 'none';

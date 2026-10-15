@@ -216,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         'status' => $row['status'] ?? 'active',
                         'kycStatus' => $row['kyc_status'] ?? 'verified',
                         'role' => (stripos($row['role'] ?? '', 'super') !== false) ? 'Super Admin' : ((stripos($row['role'] ?? '', 'admin') !== false) ? 'Admin' : 'Member'),
-                        'is_admin' => (stripos($row['role'] ?? '', 'admin') !== false),
+                        'is_admin' => (!empty($row['is_admin']) || stripos($row['role'] ?? '', 'admin') !== false || stripos($row['role'] ?? '', 'super') !== false || stripos($row['role'] ?? '', 'officer') !== false),
                         'transactionPin' => $row['transaction_pin'] ?? '',
                         'createdAt' => $row['created_at'] ?? date('c'),
                         'accounts' => $userAccts,

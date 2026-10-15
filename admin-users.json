@@ -1,5 +1,147 @@
 [
   {
+    "id": "usr-admin-01",
+    "fullName": "Chief Treasury Auditor",
+    "firstName": "Chief",
+    "lastName": "Auditor",
+    "username": "admin",
+    "email": "admin@wbcu.net",
+    "password": "12345",
+    "pin": "8869",
+    "transactionPin": "8869",
+    "role": "Super Admin",
+    "is_admin": true,
+    "phone": "+41 44 915 8900",
+    "avatar": "AD",
+    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+    "dob": "1980-01-01",
+    "nationality": "Switzerland",
+    "address": "109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland",
+    "status": "active",
+    "account_status": "active",
+    "accountStatus": "active",
+    "statusReason": "Master Administrator Clearance",
+    "kycStatus": "verified",
+    "kyc_status": "verified",
+    "createdAt": "2026-10-10T10:00:00Z",
+    "lastLogin": "2026-10-15T12:00:00.000Z",
+    "accounts": [
+      {
+        "accountNumber": "09331164002",
+        "type": "Checking",
+        "name": "Executive Reserve Vault",
+        "currency": "USD",
+        "balance": 500000.00,
+        "status": "active",
+        "routingNumber": "021000089",
+        "isPrimary": true
+      }
+    ],
+    "transactions": [],
+    "cards": [
+      {
+        "id": "crd-adm-01",
+        "cardNumber": "4532 9918 0001 0002",
+        "cardHolder": "CHIEF TREASURY AUDITOR",
+        "type": "Visa Platinum Debit",
+        "expiry": "09/31",
+        "cvv": "884",
+        "pin": "8869",
+        "status": "active",
+        "dailyAtmLimit": 50000,
+        "onlineLimit": 250000
+      }
+    ],
+    "cryptoWallets": [
+      {
+        "currency": "BTC",
+        "balance": 15.5,
+        "address": "bc1q9x48v2m9sl3k0pw84mz789xq4e9admin",
+        "status": "active"
+      }
+    ],
+    "wireTransferCodes": {
+      "COT": { "code": "COT-99412", "active": true, "notes": "Master COT" },
+      "TAX": { "code": "TX-88392", "active": true, "notes": "Tax Clearance" },
+      "IMF": { "code": "9498779", "active": true, "notes": "IMF Clearance" },
+      "AML": { "code": "AML-86902", "active": true, "notes": "AML Key" },
+      "PAP": { "code": "PAP-70216", "active": true, "notes": "PAP Key" },
+      "OTP": "806158"
+    },
+    "activityLog": []
+  },
+  {
+    "id": "usr-101",
+    "fullName": "Miz Brymo",
+    "firstName": "Miz",
+    "lastName": "Brymo",
+    "username": "mizbrymo",
+    "email": "mizbrymo@gmail.com",
+    "password": "12345",
+    "pin": "8869",
+    "transactionPin": "8869",
+    "role": "Super Admin",
+    "is_admin": true,
+    "phone": "+41 44 915 8901",
+    "avatar": "MB",
+    "avatarColor": "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+    "dob": "1984-06-14",
+    "nationality": "Switzerland",
+    "address": "109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland",
+    "status": "active",
+    "account_status": "active",
+    "accountStatus": "active",
+    "statusReason": "Master Officer Active",
+    "kycStatus": "verified",
+    "kyc_status": "verified",
+    "createdAt": "2026-10-10T10:00:00Z",
+    "lastLogin": "2026-10-15T12:00:00.000Z",
+    "accounts": [
+      {
+        "accountNumber": "09331164001",
+        "type": "Checking",
+        "name": "Treasury Master Vault",
+        "currency": "USD",
+        "balance": 248500.00,
+        "status": "active",
+        "routingNumber": "021000089",
+        "isPrimary": true
+      }
+    ],
+    "transactions": [],
+    "cards": [
+      {
+        "id": "crd-101",
+        "cardNumber": "4532 9918 2041 3311",
+        "cardHolder": "MIZ BRYMO",
+        "type": "Visa Platinum Debit",
+        "expiry": "09/31",
+        "cvv": "884",
+        "pin": "8869",
+        "status": "active",
+        "dailyAtmLimit": 50000,
+        "onlineLimit": 250000
+      }
+    ],
+    "cryptoWallets": [
+      {
+        "currency": "BTC",
+        "balance": 8.75,
+        "address": "bc1qmizbrymox48v2m9sl3k0pw84mz789xq",
+        "status": "active"
+      }
+    ],
+    "wireTransferCodes": {
+      "COT": { "code": "COT-99412", "active": true, "notes": "Treasury Master COT" },
+      "TAX": { "code": "TX-88392", "active": true, "notes": "Tax Clearance" },
+      "IMF": { "code": "9498779", "active": true, "notes": "IMF Clearance" },
+      "AML": { "code": "AML-86902", "active": true, "notes": "AML Key" },
+      "PAP": { "code": "PAP-70216", "active": true, "notes": "PAP Key" },
+      "OTP": "806158"
+    },
+    "activityLog": []
+  },
+  {
     "id": "usr-34400",
     "fullName": "Kristin Willis",
     "firstName": "Kristin",
