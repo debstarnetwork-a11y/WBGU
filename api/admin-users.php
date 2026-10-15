@@ -284,10 +284,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fullName = $u['fullName'] ?? 'Member';
                 $firstName = $u['firstName'] ?? explode(' ', $fullName)[0];
                 $lastName = $u['lastName'] ?? '';
+                $middleName = $u['middleName'] ?? '';
                 
+                // Format Date of Birth strictly for MySQL DATE type (YYYY-MM-DD)
+                $rawDob = $u['dob'] ?? $u['date_of_birth'] ?? '1988-05-18';
+                $formattedDob = '1988-05-18';
+                $tsDob = strtotime($rawDob);
+                if ($tsDob !== false) {
+                    $formattedDob = date('Y-m-d', $tsDob);
+                } else {
+                    $dobParts = explode('/', $rawDob);
+                    if (count($dobParts) === 3 && strlen($dobParts[2]) === 4) {
+                        $formattedDob = sprintf('%04d-%02d-%02d', (int)$dobParts[2], (int)$dobParts[0], (int)$dobParts[1]);
+                    }
+                }
+
                 $profFields = ['id', 'user_id', 'first_name', 'last_name', 'full_name', 'phone_number', 'date_of_birth', 'nationality', 'occupation', 'address_line1'];
-                $profVals = ['prof-'.str_replace('usr-','',$uid), $uid, $firstName, $lastName, $fullName, $u['phone'] ?? '+41 44 915 8901', $u['dob'] ?? '1988-05-18', $u['nationality'] ?? 'Switzerland', $u['occupation'] ?? 'Executive Private Client', $u['address'] ?? 'Zurich, Switzerland'];
+                $profVals = ['prof-'.str_replace('usr-','',$uid), $uid, $firstName, $lastName, $fullName, $u['phone'] ?? '+41 44 915 8901', $formattedDob, $u['nationality'] ?? 'Switzerland', $u['occupation'] ?? 'Executive Private Client', $u['address'] ?? 'Zurich, Switzerland'];
                 
+                if (in_array('middle_name', $pCols)) { $profFields[] = 'middle_name'; $profVals[] = $middleName; }
                 if (in_array('city', $pCols)) { $profFields[] = 'city'; $profVals[] = 'Zurich'; }
                 if (in_array('country', $pCols)) { $profFields[] = 'country'; $profVals[] = $u['nationality'] ?? 'Switzerland'; }
                 if (in_array('profile_photo_url', $pCols)) { $profFields[] = 'profile_photo_url'; $profVals[] = $u['profilePhoto'] ?? ''; }
@@ -301,24 +316,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pStmt->execute($profVals);
 
                 // 3. Accounts Table
+                $allowedAcctTypes = ['Checking', 'Savings', 'Business', 'Offshore', 'Fixed Deposit', 'Money Market'];
+                $allowedAcctStatus = ['active', 'inactive', 'frozen', 'closed', 'dormant'];
+
                 if (!empty($u['accounts']) && is_array($u['accounts'])) {
                     foreach ($u['accounts'] as $idx => $acc) {
                         $accId = 'acct-' . str_replace('usr-', '', $uid) . '-' . $idx;
-                        $pdo->prepare("INSERT INTO accounts (id, account_number, user_id, account_type, account_name, currency, balance, status, routing_number) 
-                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                                       ON DUPLICATE KEY UPDATE account_type=VALUES(account_type), account_name=VALUES(account_name), balance=VALUES(balance), status=VALUES(status)")
-                            ->execute([$accId, $acc['accountNumber'] ?? '09'.rand(100000,999999), $uid, $acc['type'] ?? 'Checking', $acc['name'] ?? 'Vault', $acc['currency'] ?? 'USD', (float)($acc['balance'] ?? 0), $acc['status'] ?? 'active', $acc['routingNumber'] ?? '021000089']);
+                        $rawType = trim($acc['type'] ?? 'Checking');
+                        $safeType = 'Checking';
+                        foreach ($allowedAcctTypes as $at) {
+                            if (strcasecmp($at, $rawType) === 0) { $safeType = $at; break; }
+                        }
+                        
+                        $rawStatus = strtolower($acc['status'] ?? 'active');
+                        $safeStatus = in_array($rawStatus, $allowedAcctStatus) ? $rawStatus : 'active';
+                        $balance = (float)($acc['balance'] ?? 0);
+
+                        $pdo->prepare("INSERT INTO accounts (id, account_number, user_id, account_type, account_name, currency, balance, available_balance, status, routing_number, swift_bic) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'WBCUUS33') 
+                                       ON DUPLICATE KEY UPDATE account_type=VALUES(account_type), account_name=VALUES(account_name), balance=VALUES(balance), available_balance=VALUES(available_balance), status=VALUES(status)")
+                            ->execute([$accId, $acc['accountNumber'] ?? '09'.rand(100000,999999), $uid, $safeType, $acc['name'] ?? 'Primary Vault', $acc['currency'] ?? 'USD', $balance, $balance, $safeStatus, $acc['routingNumber'] ?? '251480576']);
                     }
                 }
 
                 // 4. Wire Codes Table
+                $allowedWireTypes = ['COT', 'TAX', 'IMF', 'AML', 'PAP', 'OTP'];
                 if (!empty($u['wireTransferCodes']) && is_array($u['wireTransferCodes'])) {
                     foreach ($u['wireTransferCodes'] as $type => $c) {
-                        if (is_array($c) && !empty($c['code'])) {
+                        $codeTypeUpper = strtoupper($type);
+                        if (in_array($codeTypeUpper, $allowedWireTypes) && is_array($c) && !empty($c['code'])) {
+                            $wcId = 'wc-' . str_replace('usr-', '', $uid) . '-' . strtolower($codeTypeUpper);
                             $pdo->prepare("INSERT INTO wire_transfer_codes (id, user_id, code_type, code_value, display_name, description, is_active) 
                                            VALUES (?, ?, ?, ?, ?, ?, ?) 
                                            ON DUPLICATE KEY UPDATE code_value=VALUES(code_value), is_active=VALUES(is_active)")
-                                ->execute(['wc-'.str_replace('usr-','',$uid).'-'.strtolower($type), $uid, $type, $c['code'], $type.' Code', $c['notes'] ?? '', !empty($c['active']) ? 1 : 0]);
+                                ->execute([$wcId, $uid, $codeTypeUpper, $c['code'], $codeTypeUpper . ' Clearance Code', $c['notes'] ?? '', !empty($c['active']) ? 1 : 0]);
                         }
                     }
                 }
