@@ -31,20 +31,31 @@ $dbName = 'glolbka_wbcu_db';
 $dbUser = 'glolbka_wbcu_user';
 $dbPass = getenv('DB_PASS') ?: '';
 
-// Simple .env parser for cPanel deployment
-$envPath = dirname(__DIR__) . '/.env';
-if (file_exists($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        $parts = explode('=', $line, 2);
-        if (count($parts) < 2) continue;
-        $name = trim($parts[0]);
-        $value = trim($parts[1], " \t\n\r\0\x0B\"'");
-        if ($name === 'DB_PASS' || $name === 'DB_PASSWORD') $dbPass = $value;
-        if ($name === 'DB_USER') $dbUser = $value;
-        if ($name === 'DB_NAME') $dbName = $value;
-        if ($name === 'DB_HOST') $dbHost = $value;
+// Comprehensive .env parser for cPanel deployment
+$envPaths = [
+    dirname(__DIR__) . '/.env',
+    __DIR__ . '/.env',
+    __DIR__ . '/../.env',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/.env',
+    '/home/glolbka/WBCU/.env'
+];
+foreach ($envPaths as $envPath) {
+    if (!empty($envPath) && file_exists($envPath)) {
+        $lines = @file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (is_array($lines)) {
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (strpos($line, '#') === 0) continue;
+                $parts = explode('=', $line, 2);
+                if (count($parts) < 2) continue;
+                $name = trim($parts[0]);
+                $value = trim($parts[1], " \t\n\r\0\x0B\"'");
+                if (($name === 'DB_PASS' || $name === 'DB_PASSWORD') && !empty($value)) $dbPass = $value;
+                if ($name === 'DB_USER' && !empty($value)) $dbUser = $value;
+                if ($name === 'DB_NAME' && !empty($value)) $dbName = $value;
+                if ($name === 'DB_HOST' && !empty($value)) $dbHost = $value;
+            }
+        }
     }
 }
 
@@ -83,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($pdo) {
         try {
-            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
+            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url, p.passport_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
             foreach ($dbUsers as $row) {
@@ -129,13 +140,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     'nationality' => $row['nationality'] ?? 'Switzerland',
                     'occupation' => $row['occupation'] ?? '',
                     'profilePhoto' => $row['profile_photo_url'] ?? '',
+                    'passportPhoto' => $row['passport_photo_url'] ?? '',
+                    'passportUrl' => $row['passport_photo_url'] ?? '',
                     'status' => $row['status'] ?? 'active',
                     'kycStatus' => $row['kyc_status'] ?? 'verified',
                     'role' => $row['role'] === 'super_admin' ? 'Super Admin' : ($row['role'] === 'admin' ? 'Admin' : 'Member'),
                     'is_admin' => in_array($row['role'], ['admin', 'super_admin']),
                     'transactionPin' => $row['transaction_pin'] ?? '1234',
                     'pin' => $row['transaction_pin'] ?? '1234',
-                    'password' => 'Password123!',
+                    'password' => $row['password_hash'] ?? '12345',
                     'createdAt' => $row['created_at'] ?? date('c'),
                     'lastLogin' => $row['last_login'] ?? date('c'),
                     'accounts' => array_map(function($a) {

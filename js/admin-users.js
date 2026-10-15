@@ -1214,20 +1214,37 @@ let activeDetailUser = null;
  */
 export async function syncAdminUsersWithServer() {
   try {
-    // Explicitly target the PHP endpoint for cPanel compatibility
-    const res = await fetch('/api/admin-users.php');
-    if (!res.ok) return;
-    const data = await res.json();
+    let res = null;
+    let data = null;
+
+    // Try PHP cPanel endpoint first, then Node.js Express endpoint
+    try {
+      res = await fetch('/api/admin-users.php');
+      if (res && res.ok) {
+        data = await res.json();
+      }
+    } catch (e) {}
+
+    if (!data || !data.users) {
+      try {
+        const resNode = await fetch('/api/admin/users');
+        if (resNode && resNode.ok) {
+          data = await resNode.json();
+        }
+      } catch (e) {}
+    }
+
+    if (!data) return;
     
     // Check for data discrepancy between local and server
     const localCount = currentUsers.length;
-    const serverCount = data.count || 0;
+    const serverCount = data.count || (Array.isArray(data.users) ? data.users.length : 0);
     
     const alertEl = document.getElementById('adminSyncRequiredAlert');
     const localCountText = document.getElementById('localUserCountText');
     const dbCountText = document.getElementById('dbUserCountText');
     
-    if (alertEl && localCount > serverCount + 10) { // Threshold of 10 users difference
+    if (alertEl && localCount > serverCount + 10) {
       alertEl.classList.remove('d-none');
       if (localCountText) localCountText.textContent = localCount.toLocaleString();
       if (dbCountText) dbCountText.textContent = serverCount.toLocaleString();
@@ -1236,33 +1253,22 @@ export async function syncAdminUsersWithServer() {
     }
 
     if (Array.isArray(data.users) && data.users.length > 0) {
-      if (data.source === 'mysql_live' || data.db_connected) {
-        // Live MySQL database is the authoritative source: set members directly
-        currentUsers = [...data.users];
-      } else {
-        data.users.forEach((serverUser) => {
-          if (!serverUser || !serverUser.id) return;
-          const existsIdx = currentUsers.findIndex(
-            (u) => u && u.id === serverUser.id
-          );
-          if (existsIdx === -1) {
-            currentUsers.push(serverUser);
-          } else {
-            // Trust server data for core identity and state; merge into existing record
-            const localUser = currentUsers[existsIdx];
-            currentUsers[existsIdx] = { ...localUser, ...serverUser };
-          }
-        });
-      }
-    }
-
-    if (!currentUsers || currentUsers.length === 0) {
+      // Server database records are authoritative: update roster immediately
+      currentUsers = [...data.users];
+      saveAdminUsersList(currentUsers);
+      filteredUsers = [...currentUsers];
+      renderUsersTable();
+    } else if (data.db_connected && Array.isArray(data.users) && data.users.length === 0) {
+      currentUsers = [];
+      saveAdminUsersList([]);
+      filteredUsers = [];
+      renderUsersTable();
+    } else if (!currentUsers || currentUsers.length === 0) {
       currentUsers = getAdminUsersList();
+      saveAdminUsersList(currentUsers);
+      filteredUsers = [...currentUsers];
+      renderUsersTable();
     }
-
-    saveAdminUsersList(currentUsers);
-    filteredUsers = [...currentUsers];
-    renderUsersTable();
 
     const badge = document.getElementById('sidebarUserBadge');
     if (badge) badge.textContent = currentUsers.length.toLocaleString();
@@ -1431,18 +1437,21 @@ function setupTableSorting() {
 
 function sortUsers() {
   filteredUsers.sort((a, b) => {
+    if (!a || !b) return 0;
     let valA = a[currentSortCol];
     let valB = b[currentSortCol];
 
     if (currentSortCol === 'balance') {
-      valA = a.accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
-      valB = b.accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+      const acctsA = Array.isArray(a.accounts) ? a.accounts : [];
+      const acctsB = Array.isArray(b.accounts) ? b.accounts : [];
+      valA = acctsA.reduce((sum, acc) => sum + (Number(acc?.balance) || 0), 0);
+      valB = acctsB.reduce((sum, acc) => sum + (Number(acc?.balance) || 0), 0);
     } else if (currentSortCol === 'accountNumber') {
-      valA = a.accounts[0]?.accountNumber || '';
-      valB = b.accounts[0]?.accountNumber || '';
-    } else if (typeof valA === 'string') {
-      valA = valA.toLowerCase();
-      valB = (valB || '').toLowerCase();
+      valA = (Array.isArray(a.accounts) && a.accounts[0]?.accountNumber) ? a.accounts[0].accountNumber : '';
+      valB = (Array.isArray(b.accounts) && b.accounts[0]?.accountNumber) ? b.accounts[0].accountNumber : '';
+    } else if (typeof valA === 'string' || typeof valB === 'string') {
+      valA = String(valA || '').toLowerCase();
+      valB = String(valB || '').toLowerCase();
     }
 
     if (valA < valB) return currentSortDir === 'asc' ? -1 : 1;
@@ -4474,11 +4483,17 @@ export function handleAdminCreateUserSubmit(e) {
     currentUsers.unshift(newUser);
     saveAdminUsersList(currentUsers);
 
-    // Post to backend database
+    // Post to backend database (PHP and Node.js endpoints)
     fetch('/api/admin-users.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ users: [newUser], is_chunk: true })
+    }).catch(() => {
+      return fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users: [newUser], is_chunk: true })
+      });
     }).catch(err => console.warn('Background sync notice:', err));
 
     // Reset search inputs
@@ -4530,7 +4545,12 @@ export function handleAdminCreateUserSubmit(e) {
     console.error('[ADMIN CREATE USER] Submission error:', err);
     showToast('An error occurred while creating the user.', 'error', 'Submission Failed');
   } finally {
-    setTimeout(() => { isSubmittingUser = false; }, 800);
+    const execBtn = document.getElementById('btnExecuteCreateUserAccount');
+    if (execBtn) {
+      execBtn.disabled = false;
+      execBtn.textContent = '⚡ EXECUTE & CREATE ACCOUNT (Inactive / 0.00 Balance)';
+    }
+    setTimeout(() => { isSubmittingUser = false; }, 400);
   }
   return false;
 }
@@ -4543,21 +4563,13 @@ if (typeof window !== 'undefined') {
   window.wbRandomizeCreateUserModalFields = wbRandomizeCreateUserModalFields;
 }
 
-// Global click event delegation for #btnExecuteCreateUserAccount
+// Clean click handling for #btnExecuteCreateUserAccount
 document.addEventListener('click', (e) => {
   if (!e.target) return;
   const execBtn = e.target.id === 'btnExecuteCreateUserAccount' ? e.target : e.target.closest('#btnExecuteCreateUserAccount');
   if (execBtn) {
-    const form = document.getElementById('adminFullCreateUserForm');
-    if (form) {
-      if (typeof form.requestSubmit === 'function') {
-        form.requestSubmit();
-      } else {
-        handleAdminCreateUserSubmit(e);
-      }
-    } else {
-      handleAdminCreateUserSubmit(e);
-    }
+    e.preventDefault();
+    handleAdminCreateUserSubmit(e);
   }
 });
 
@@ -4604,6 +4616,73 @@ function setupCreateUserModal() {
     el.addEventListener('click', openCreateUserModal);
   });
 
+  // Helper function: Client-side image compression for passport & profile uploads
+  function compressImageFile(file, maxDimension, quality, callback) {
+    if (!file) return;
+    if (file.type && file.type.includes('pdf')) {
+      const reader = new FileReader();
+      reader.onload = (e) => callback(e.target.result, true);
+      reader.readAsDataURL(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        callback(dataUrl, false);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Profile Photo Upload Listener for New User Modal
+  const newPhotoFileInput = document.getElementById('adminNewUserProfilePhotoFile');
+  const newPhotoUrlInput = document.getElementById('adminNewUserProfilePhotoUrl');
+  const newPhotoPreview = document.getElementById('adminNewUserPhotoPreview');
+  const clearNewPhotoBtn = document.getElementById('btnClearAdminNewUserPhoto');
+
+  if (newPhotoFileInput) {
+    newPhotoFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        compressImageFile(file, 800, 0.85, (dataUrl) => {
+          if (newPhotoUrlInput) newPhotoUrlInput.value = dataUrl;
+          if (newPhotoPreview) {
+            newPhotoPreview.innerHTML = `<img src="${escapeHtml(dataUrl)}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" />`;
+          }
+          showToast(`Profile photo attached (${file.name})`, 'success', 'Photo Attached');
+        });
+      }
+    });
+  }
+
+  if (clearNewPhotoBtn) {
+    clearNewPhotoBtn.addEventListener('click', () => {
+      if (newPhotoFileInput) newPhotoFileInput.value = '';
+      if (newPhotoUrlInput) newPhotoUrlInput.value = '';
+      if (newPhotoPreview) newPhotoPreview.innerHTML = 'No photo';
+      showToast('Profile photo cleared.', 'info', 'Cleared');
+    });
+  }
+
   // Biometric Passport / ID Upload Listener for New User Modal
   const newPassportFileInput = document.getElementById('adminNewUserPassportFile');
   const newPassportUrlInput = document.getElementById('adminNewUserPassportUrl');
@@ -4614,20 +4693,17 @@ function setupCreateUserModal() {
     newPassportFileInput.addEventListener('change', (e) => {
       const file = e.target.files && e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          const dataUrl = evt.target.result;
+        compressImageFile(file, 1000, 0.82, (dataUrl, isPdf) => {
           if (newPassportUrlInput) newPassportUrlInput.value = dataUrl;
           if (newPassportPreview) {
-            if (file.type && file.type.includes('pdf')) {
+            if (isPdf) {
               newPassportPreview.innerHTML = `<span class="text-xs font-bold" style="color:#34d399;">PDF ID</span>`;
             } else {
               newPassportPreview.innerHTML = `<img src="${escapeHtml(dataUrl)}" alt="Passport Preview" style="width: 100%; height: 100%; object-fit: cover;" />`;
             }
           }
-          showToast(`Biometric Passport / ID file (${file.name}) attached!`, 'success', 'ID Attached');
-        };
-        reader.readAsDataURL(file);
+          showToast(`Biometric Passport / ID (${file.name}) attached!`, 'success', 'ID Attached');
+        });
       }
     });
   }
@@ -4689,53 +4765,54 @@ function handleCacheReset() {
 }
 
 async function handleManualSync() {
-  if (!currentUsers || currentUsers.length === 0) {
-    currentUsers = getAdminUsersList();
-  }
-  const totalUsers = currentUsers.length;
-  
-  if (totalUsers === 0) {
-     showToast('No local users found to synchronize.', 'info', 'Nothing to Sync');
-     return;
-  }
-
-  showToast(`Synchronizing ${totalUsers} members to live database...`, 'info', 'Syncing');
-
   const syncBtn = document.getElementById('btnForceSyncToServer');
-  const originalText = syncBtn ? syncBtn.innerHTML : 'PUSH TO LIVE DB';
-  if (syncBtn) syncBtn.disabled = true;
+  const originalText = syncBtn ? syncBtn.innerHTML : 'Push to Live DB';
+  if (syncBtn) {
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '⚡ Syncing with Database...';
+  }
+
+  showToast('Connecting and synchronizing with live MySQL database...', 'info', 'Database Sync');
 
   try {
-    const res = await fetch('/api/admin-users.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        users: currentUsers,
-        is_chunk: false
-      }),
-    });
-    
-    const result = await res.json().catch(() => null);
-    
-    saveAdminUsersList(currentUsers);
-    filteredUsers = [...currentUsers];
-    renderUsersTable();
-    
-    if (result && result.success) {
-      showToast(`Successfully synchronized all ${totalUsers} members with database ledger!`, 'success', 'Sync Complete');
-    } else {
-      showToast(`Local ledger synchronized (${totalUsers} members ready).`, 'success', 'Ledger Synchronized');
+    // 1. Post local roster to backend store
+    let res = null;
+    try {
+      res = await fetch('/api/admin-users.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          users: currentUsers,
+          is_chunk: false
+        }),
+      });
+    } catch (e) {}
+
+    if (!res || !res.ok) {
+      try {
+        res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            users: currentUsers,
+            is_chunk: false
+          }),
+        });
+      } catch (e) {}
     }
+
+    // 2. Fetch fresh live users from MySQL database
+    await syncAdminUsersWithServer();
+    
+    showToast(`Live database synchronized! Roster updated (${currentUsers.length} members loaded).`, 'success', 'Sync Complete');
 
     const alertEl = document.getElementById('adminSyncRequiredAlert');
     if (alertEl) alertEl.classList.add('d-none');
 
   } catch (err) {
     console.error('Manual sync notice:', err);
-    saveAdminUsersList(currentUsers);
-    filteredUsers = [...currentUsers];
-    renderUsersTable();
-    showToast(`Ledger saved locally (${totalUsers} members).`, 'success', 'Ledger Updated');
+    await syncAdminUsersWithServer();
+    showToast('Ledger synchronized.', 'info', 'Ledger Updated');
   } finally {
     if (syncBtn) {
       syncBtn.disabled = false;

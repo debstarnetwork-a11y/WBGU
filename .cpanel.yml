@@ -24,4 +24,12 @@ deployment:
     - if [ -f index.html ]; then /bin/cp index.html $DEPLOYPATH/ ; fi
     - if [ -f .htaccess ]; then /bin/cp .htaccess $DEPLOYPATH/ ; fi
     - if [ -f admin-users.json ]; then /bin/cp admin-users.json $DEPLOYPATH/ ; fi
+    - if [ -f server.js ]; then /bin/cp server.js $DEPLOYPATH/ ; fi
+    - # Also synchronize to WBCU application root if present
+    - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u server.js /home/glolbka/WBCU/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u admin-users.json /home/glolbka/WBCU/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU/api ]; then /bin/cp -Ru api/* /home/glolbka/WBCU/api/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU/js ]; then /bin/cp -Ru js/* /home/glolbka/WBCU/js/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU/pages ]; then /bin/cp -Ru pages/* /home/glolbka/WBCU/pages/ 2>/dev/null || true; fi
+
 

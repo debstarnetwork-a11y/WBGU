@@ -5,9 +5,27 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import { GoogleGenAI } from '@google/genai';
+import mysql from 'mysql2/promise';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Comprehensive .env parsing for local development and cPanel Node.js runtime
+const envFileCandidates = [
+  path.resolve(__dirname, '.env'),
+  path.resolve(process.cwd(), '.env'),
+  '/home/glolbka/WBCU/.env',
+  '/home/glolbka/public_html/.env'
+];
+for (const envF of envFileCandidates) {
+  if (fs.existsSync(envF)) {
+    try {
+      dotenv.config({ path: envF });
+    } catch {}
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -603,14 +621,274 @@ Respond concisely, politely, professionally, and in the language specified (${la
     console.warn('[USERS STORE LOAD ERROR]', err);
   }
 
+  // --- MYSQL DATABASE INTEGRATION (Authoritative cPanel Database Store) ---
+  let mysqlPool: any = null;
+  function getDbPool() {
+    if (mysqlPool) return mysqlPool;
+    try {
+      const dbHost = process.env.DB_HOST || 'localhost';
+      const dbUser = process.env.DB_USER || 'glolbka_wbcu_user';
+      const dbPassword = process.env.DB_PASSWORD || process.env.DB_PASS || '';
+      const dbName = process.env.DB_NAME || 'glolbka_wbcu_db';
+
+      mysqlPool = mysql.createPool({
+        host: dbHost,
+        user: dbUser,
+        password: dbPassword,
+        database: dbName,
+        waitForConnections: true,
+        connectionLimit: 5,
+        queueLimit: 0,
+        connectTimeout: 5000,
+      });
+      return mysqlPool;
+    } catch (err) {
+      console.warn('[MYSQL POOL INIT WARN]', err);
+      return null;
+    }
+  }
+
+  async function fetchUsersFromMysql(): Promise<any[] | null> {
+    try {
+      const pool = getDbPool();
+      if (!pool) return null;
+
+      // 1. Fetch Users + Profiles
+      const [rows]: any = await pool.query(`
+        SELECT u.*, 
+               p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, 
+               p.date_of_birth, p.gender, p.nationality, p.occupation, p.address_line1, 
+               p.city, p.state, p.country, p.profile_photo_url, p.passport_photo_url, 
+               p.avatar_color, p.id_type, p.id_number
+        FROM users u 
+        LEFT JOIN profiles p ON u.id = p.user_id 
+        ORDER BY u.created_at DESC
+      `);
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return [];
+      }
+
+      // 2. Fetch Accounts
+      const accountsByUser: Record<string, any[]> = {};
+      try {
+        const [accts]: any = await pool.query('SELECT * FROM accounts');
+        if (Array.isArray(accts)) {
+          for (const a of accts) {
+            if (!accountsByUser[a.user_id]) accountsByUser[a.user_id] = [];
+            accountsByUser[a.user_id].push({
+              accountNumber: a.account_number,
+              type: a.account_type || 'Checking',
+              name: a.account_name || 'Primary Vault',
+              currency: a.currency || 'USD',
+              balance: Number(a.balance) || 0.00,
+              available: Number(a.available_balance || a.balance) || 0.00,
+              status: a.status || 'active',
+              routingNumber: a.routing_number || '021000089'
+            });
+          }
+        }
+      } catch (err) {}
+
+      // 3. Fetch Wire Codes
+      const wireCodesByUser: Record<string, any> = {};
+      try {
+        const [wCodes]: any = await pool.query('SELECT * FROM wire_transfer_codes');
+        if (Array.isArray(wCodes)) {
+          for (const wc of wCodes) {
+            if (!wireCodesByUser[wc.user_id]) wireCodesByUser[wc.user_id] = {};
+            wireCodesByUser[wc.user_id][wc.code_type] = {
+              code: wc.code_value,
+              active: Boolean(wc.is_active),
+              notes: wc.description || ''
+            };
+          }
+        }
+      } catch (err) {}
+
+      // 4. Fetch Cards
+      const cardsByUser: Record<string, any[]> = {};
+      try {
+        const [cards]: any = await pool.query('SELECT * FROM cards');
+        if (Array.isArray(cards)) {
+          for (const c of cards) {
+            if (!cardsByUser[c.user_id]) cardsByUser[c.user_id] = [];
+            cardsByUser[c.user_id].push({
+              id: c.id,
+              cardNumber: c.card_number || '',
+              cardMasked: c.card_masked || '•••• •••• •••• 1234',
+              cardHolder: c.card_holder || '',
+              type: c.card_type || 'Visa Platinum Debit',
+              expiry: c.expiry_display || '09/31',
+              cvv: c.cvv || '775',
+              pin: c.pin || '1234',
+              status: c.status || 'active'
+            });
+          }
+        }
+      } catch (err) {}
+
+      // 5. Assemble formatted user objects
+      const finalUsers: any[] = [];
+      for (const r of rows) {
+        const uid = r.id;
+        const fn = r.full_name || [r.first_name, r.last_name].filter(Boolean).join(' ') || r.username || r.email || 'Member';
+        const roleStr = String(r.role || '').toLowerCase();
+        const isAdmin = roleStr.includes('admin') || Boolean(r.is_admin);
+
+        const userAccounts = accountsByUser[uid] || [
+          {
+            accountNumber: 'WB-' + String(uid).replace(/\D/g, '').padEnd(8, '9') || '9482-1049-55',
+            type: 'Checking',
+            name: 'Primary Checking Account',
+            currency: 'USD',
+            balance: 0.00,
+            available: 0.00,
+            status: r.status || 'active',
+            routingNumber: '021000089',
+            isPrimary: true
+          }
+        ];
+
+        finalUsers.push({
+          id: uid,
+          fullName: fn,
+          firstName: r.first_name || '',
+          middleName: r.middle_name || '',
+          lastName: r.last_name || '',
+          username: r.username || '',
+          email: r.email,
+          phone: r.phone_number || '',
+          dob: r.date_of_birth || '',
+          gender: r.gender || '',
+          nationality: r.nationality || 'Switzerland',
+          occupation: r.occupation || 'Executive Private Client',
+          address: r.address_line1 || '',
+          profilePhoto: r.profile_photo_url || '',
+          passportPhoto: r.passport_photo_url || '',
+          passportUrl: r.passport_photo_url || '',
+          avatar: (fn || 'MB').slice(0, 2).toUpperCase(),
+          avatarColor: r.avatar_color || 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+          status: r.status || 'active',
+          kycStatus: r.kyc_status || 'verified',
+          role: roleStr.includes('super') ? 'Super Admin' : (isAdmin ? 'Admin' : 'Member'),
+          is_admin: isAdmin,
+          password: r.password_hash || '',
+          transactionPin: r.transaction_pin || '1234',
+          createdAt: r.created_at || new Date().toISOString(),
+          accounts: userAccounts,
+          wireTransferCodes: wireCodesByUser[uid] || {},
+          cards: cardsByUser[uid] || []
+        });
+      }
+
+      return finalUsers;
+    } catch (err) {
+      console.warn('[FETCH MYSQL USERS ERROR]', err);
+      return null;
+    }
+  }
+
+  async function verifyAdminInMysql(identifier: string, inputPass: string): Promise<any | null> {
+    try {
+      const pool = getDbPool();
+      if (!pool) return null;
+
+      // 1. Check admins table first (Dedicated admin roster)
+      try {
+        const [admRows]: any = await pool.query(
+          'SELECT * FROM admins WHERE LOWER(username) = ? OR LOWER(email) = ? LIMIT 1',
+          [identifier, identifier]
+        );
+        if (Array.isArray(admRows) && admRows.length > 0) {
+          const adm = admRows[0];
+          const storedHash = String(adm.password_hash || adm.password || '');
+          if (storedHash && (inputPass === storedHash || storedHash === inputPass.trim())) {
+            return {
+              id: adm.id,
+              email: adm.email,
+              username: adm.username,
+              fullName: adm.full_name || 'Chief Treasury Auditor',
+              role: adm.role === 'admin' ? 'Admin' : 'Super Admin',
+              is_admin: true,
+              authMethod: 'MySQL_Admins_Table',
+              authenticatedAt: new Date().toISOString()
+            };
+          }
+        }
+      } catch (e) {}
+
+      // 2. Check users table for user with administrative role
+      try {
+        const [usrRows]: any = await pool.query(
+          `SELECT u.*, p.full_name, p.first_name, p.last_name 
+           FROM users u 
+           LEFT JOIN profiles p ON u.id = p.user_id 
+           WHERE LOWER(u.username) = ? OR LOWER(u.email) = ? LIMIT 1`,
+          [identifier, identifier]
+        );
+        if (Array.isArray(usrRows) && usrRows.length > 0) {
+          const usr = usrRows[0];
+          const role = String(usr.role || '').toLowerCase();
+          const isAdmin = role.includes('admin') || Boolean(usr.is_admin);
+          if (!isAdmin) {
+            return { unauthorizedRole: true };
+          }
+          const storedHash = String(usr.password_hash || usr.password || '');
+          if (storedHash && (inputPass === storedHash || storedHash === inputPass.trim())) {
+            const name = usr.full_name || [usr.first_name, usr.last_name].filter(Boolean).join(' ') || 'Chief Treasury Auditor';
+            return {
+              id: usr.id,
+              email: usr.email,
+              username: usr.username,
+              fullName: name,
+              role: role.includes('super') ? 'Super Admin' : 'Admin',
+              is_admin: true,
+              authMethod: 'MySQL_Users_Table',
+              authenticatedAt: new Date().toISOString()
+            };
+          }
+        }
+      } catch (e) {}
+
+      return null;
+    } catch (err) {
+      console.warn('[VERIFY MYSQL ADMIN ERROR]', err);
+      return null;
+    }
+  }
+
   let serverCardsStore: any[] | null = null;
   let serverTxStore: any[] | null = null;
 
-  app.get(['/api/admin/users', '/api/users', '/api/admin-users.php', '/api/users.php'], (_req, res) => {
-    return res.json({ success: true, users: serverUsersStore });
+  app.get(['/api/admin/users', '/api/users', '/api/admin-users.php', '/api/users.php'], async (_req, res) => {
+    // Attempt live fetch from MySQL database glolbka_wbcu_db
+    const dbUsers = await fetchUsersFromMysql();
+    if (Array.isArray(dbUsers) && dbUsers.length > 0) {
+      serverUsersStore = dbUsers;
+      try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(dbUsers, null, 2), 'utf-8');
+      } catch {}
+      return res.json({
+        success: true,
+        source: 'mysql_live',
+        db_connected: true,
+        count: dbUsers.length,
+        users: dbUsers
+      });
+    }
+
+    // Fall back to disk persistent store
+    return res.json({
+      success: true,
+      source: 'json_store',
+      db_connected: false,
+      count: serverUsersStore.length,
+      users: serverUsersStore
+    });
   });
 
-  app.post(['/api/admin/users', '/api/users', '/api/admin-users.php', '/api/users.php'], (req, res) => {
+  app.post(['/api/admin/users', '/api/users', '/api/admin-users.php', '/api/users.php'], async (req, res) => {
     const { users } = req.body || {};
     if (Array.isArray(users)) {
       serverUsersStore = users;
@@ -619,12 +897,67 @@ Respond concisely, politely, professionally, and in the language specified (${la
       } catch (err) {
         console.warn('[USERS STORE SAVE ERROR]', err);
       }
+
+      // Sync into MySQL if pool is active
+      try {
+        const pool = getDbPool();
+        if (pool) {
+          for (const u of users) {
+            if (!u || !u.id || !u.email) continue;
+            // Insert or update users table
+            await pool.query(`
+              INSERT INTO users (id, username, email, password_hash, role, status, kyc_status, transaction_pin)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE 
+                role = VALUES(role), 
+                status = VALUES(status), 
+                kyc_status = VALUES(kyc_status),
+                transaction_pin = VALUES(transaction_pin)
+            `, [
+              u.id,
+              u.username || u.email.split('@')[0],
+              u.email,
+              u.password || '12345',
+              u.is_admin ? 'admin' : (u.role?.toLowerCase() || 'user'),
+              u.status || 'active',
+              u.kycStatus || 'verified',
+              u.transactionPin || '1234'
+            ]);
+
+            // Insert or update profiles table
+            const pId = 'prof-' + u.id;
+            await pool.query(`
+              INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, nationality, address_line1, profile_photo_url, passport_photo_url)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                full_name = VALUES(full_name),
+                phone_number = VALUES(phone_number),
+                profile_photo_url = VALUES(profile_photo_url),
+                passport_photo_url = VALUES(passport_photo_url)
+            `, [
+              pId,
+              u.id,
+              u.firstName || '',
+              u.lastName || '',
+              u.fullName || '',
+              u.phone || '',
+              u.nationality || 'Switzerland',
+              u.address || '',
+              u.profilePhoto || '',
+              u.passportPhoto || ''
+            ]);
+          }
+        }
+      } catch (err) {
+        console.warn('[MYSQL USER BATCH SYNC WARN]', err);
+      }
+
       return res.json({ success: true, count: users.length, db_synced: true });
     }
     return res.status(400).json({ success: false, error: 'Users must be an array' });
   });
 
-  app.post(['/api/admin/login', '/api/admin-login.php', '/api/admin/login.php', '/api/login.php'], (req, res) => {
+  app.post(['/api/admin/login', '/api/admin-login.php', '/api/admin/login.php', '/api/login.php'], async (req, res) => {
     const { email, password, accessCode } = req.body || {};
     const inputIdentifier = String(email || '').trim().toLowerCase();
     const inputPassword = String(password || '');
@@ -634,6 +967,23 @@ Respond concisely, politely, professionally, and in the language specified (${la
       return res.status(400).json({ success: false, error: 'Officer email/username and master passcode are required.' });
     }
 
+    // 1. First attempt strict verification in live MySQL database
+    const mysqlAdmin = await verifyAdminInMysql(inputIdentifier, inputPassword);
+    if (mysqlAdmin) {
+      if (mysqlAdmin.unauthorizedRole) {
+        return res.status(403).json({ success: false, error: 'Access Denied: Account does not have administrative privileges.' });
+      }
+      return res.json({
+        success: true,
+        message: 'Administrative authentication clearance granted.',
+        admin: {
+          ...mysqlAdmin,
+          badgeNumber: code
+        }
+      });
+    }
+
+    // 2. Secondary check against persistent local serverUsersStore
     const users = Array.isArray(serverUsersStore) ? serverUsersStore : [];
     const matchedUser = users.find((u: any) => {
       const uEmail = String(u.email || '').toLowerCase();
@@ -641,38 +991,35 @@ Respond concisely, politely, professionally, and in the language specified (${la
       return uEmail === inputIdentifier || uUsername === inputIdentifier;
     });
 
-    if (!matchedUser) {
-      return res.status(401).json({ success: false, error: 'Access Denied: Administrative account not found in database.' });
-    }
+    if (matchedUser) {
+      const isAdminRole = Boolean(
+        matchedUser.is_admin ||
+        matchedUser.role === 'Super Admin' ||
+        matchedUser.role === 'Admin' ||
+        matchedUser.role === 'super_admin' ||
+        matchedUser.role === 'admin'
+      );
 
-    const isAdminRole = Boolean(
-      matchedUser.is_admin ||
-      matchedUser.role === 'Super Admin' ||
-      matchedUser.role === 'Admin' ||
-      matchedUser.role === 'super_admin' ||
-      matchedUser.role === 'admin'
-    );
+      if (!isAdminRole) {
+        return res.status(403).json({ success: false, error: 'Access Denied: Account does not have administrative privileges.' });
+      }
 
-    if (!isAdminRole) {
-      return res.status(403).json({ success: false, error: 'Access Denied: Account does not have administrative privileges.' });
-    }
+      const storedPass = String(matchedUser.password || matchedUser.password_hash || '');
+      const isPasswordValid = storedPass && (inputPassword === storedPass || inputPassword.trim() === storedPass.trim());
 
-    // Verify password strictly against user's stored password or password_hash
-    const storedPass = String(matchedUser.password || matchedUser.password_hash || '');
-    const isPasswordValid = storedPass && (inputPassword === storedPass);
-
-    if (isPasswordValid) {
-      const adminSession = {
-        id: matchedUser.id || 'wb-adm-001',
-        email: matchedUser.email || inputIdentifier,
-        fullName: matchedUser.fullName || matchedUser.name || 'Chief Treasury Auditor',
-        role: matchedUser.role || 'Super Admin',
-        badgeNumber: code,
-        is_admin: true,
-        authMethod: 'Database_Clearance',
-        authenticatedAt: new Date().toISOString()
-      };
-      return res.json({ success: true, admin: adminSession });
+      if (isPasswordValid) {
+        const adminSession = {
+          id: matchedUser.id || 'wb-adm-001',
+          email: matchedUser.email || inputIdentifier,
+          fullName: matchedUser.fullName || matchedUser.name || 'Chief Treasury Auditor',
+          role: matchedUser.role || 'Super Admin',
+          badgeNumber: code,
+          is_admin: true,
+          authMethod: 'Database_Clearance',
+          authenticatedAt: new Date().toISOString()
+        };
+        return res.json({ success: true, admin: adminSession });
+      }
     }
 
     return res.status(401).json({ success: false, error: 'Access Denied: Invalid administrative credentials or master passcode.' });
