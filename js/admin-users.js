@@ -4235,6 +4235,267 @@ function setupDrawerActionButtons() {
 /* ----------------------------------------------------------------------------
  * 10. CREATE NEW USER MODAL HANDLER
  * ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+ * 10. CREATE NEW USER MODAL HANDLERS
+ * ---------------------------------------------------------------------------- */
+export function wbRandomizeCreateUserModalFields() {
+  const acctTypeInput = document.getElementById('adminNewUserAcctType');
+  const pwdInput = document.getElementById('adminNewUserPassword');
+  const pwdConfirmInput = document.getElementById('adminNewUserConfirmPassword');
+  const acctNumInput = document.getElementById('adminNewUserAccountNum');
+  const cotInput = document.getElementById('adminNewUserCotCode');
+  const imfInput = document.getElementById('adminNewUserImfCode');
+  const taxInput = document.getElementById('adminNewUserTaxCode');
+  const pinInput = document.getElementById('adminNewUserTxPin');
+  const dobInput = document.getElementById('adminNewUserDob');
+  const occInput = document.getElementById('adminNewUserOccupation');
+  const addrInput = document.getElementById('adminNewUserAddress');
+  const phoneInput = document.getElementById('adminNewUserPhone');
+
+  if (acctTypeInput) acctTypeInput.value = 'Checking';
+  if (dobInput && !dobInput.value) dobInput.value = '01/15/1988';
+  if (occInput && !occInput.value) occInput.value = 'Private Wealth Client';
+  if (addrInput && !addrInput.value) addrInput.value = 'Zurich, Switzerland';
+  if (phoneInput && !phoneInput.value) phoneInput.value = '+41 44 915 ' + Math.floor(1000 + Math.random() * 9000);
+
+  const generatedPwd = 'MemberPass' + Math.floor(100 + Math.random() * 900) + '!';
+  if (pwdInput) pwdInput.value = generatedPwd;
+  if (pwdConfirmInput) pwdConfirmInput.value = generatedPwd;
+  
+  if (acctNumInput) acctNumInput.value = generateRandomAccountNumber();
+  if (cotInput) cotInput.value = generateRandomCotCode();
+  if (imfInput) imfInput.value = generateRandomImfCode();
+  if (taxInput) taxInput.value = generateRandomTaxCode();
+  if (pinInput) pinInput.value = generateRandomPin();
+
+  const unInput = document.getElementById('adminNewUserUsername');
+  if (unInput) {
+    const base = (document.getElementById('adminNewUserFirstName')?.value || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
+    unInput.value = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+    unInput.setAttribute('data-auto', 'true');
+  }
+}
+
+export function openCreateUserModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  wbRandomizeCreateUserModalFields();
+  const targetModal = document.getElementById('createUserFullModal');
+  if (targetModal) {
+    targetModal.classList.add('show');
+    targetModal.style.display = 'flex';
+    const fnInput = document.getElementById('adminNewUserFirstName');
+    if (fnInput) setTimeout(() => fnInput.focus(), 80);
+  }
+}
+
+export function closeCreateUserModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const targetModal = document.getElementById('createUserFullModal');
+  if (targetModal) {
+    targetModal.classList.remove('show');
+    targetModal.style.display = 'none';
+  }
+}
+
+export function handleAdminCreateUserSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  try {
+    const fnInput = document.getElementById('adminNewUserFirstName');
+    const lnInput = document.getElementById('adminNewUserLastName');
+    const emailInput = document.getElementById('adminNewUserEmail');
+
+    let fn = (fnInput?.value || '').trim();
+    const mn = (document.getElementById('adminNewUserMiddleName')?.value || '').trim();
+    let ln = (lnInput?.value || '').trim();
+
+    if (!fn && !ln) {
+      fn = 'New';
+      ln = 'Member';
+    } else if (!fn) {
+      fn = 'Member';
+    } else if (!ln) {
+      ln = 'User';
+    }
+
+    const fullName = [fn, mn, ln].filter(Boolean).join(' ');
+    const username = (document.getElementById('adminNewUserUsername')?.value || '').trim() || `${fn.toLowerCase()}${Math.floor(100 + Math.random() * 900)}`;
+    const email = (emailInput?.value || '').trim() || `${username}@wbcu.net`;
+    const phone = (document.getElementById('adminNewUserPhone')?.value || '').trim() || '+41 44 915 8901';
+    const dob = (document.getElementById('adminNewUserDob')?.value || '').trim() || '01/15/1988';
+    const occupation = (document.getElementById('adminNewUserOccupation')?.value || '').trim() || 'Private Wealth Client';
+    const nationality = document.getElementById('adminNewUserNationality')?.value || 'Switzerland';
+    const address = (document.getElementById('adminNewUserAddress')?.value || '').trim() || 'Zurich, Switzerland';
+    const acctType = (document.getElementById('adminNewUserAcctType')?.value || '').trim() || 'Checking';
+
+    let acctNum = (document.getElementById('adminNewUserAccountNum')?.value || '').trim();
+    if (!acctNum) acctNum = generateRandomAccountNumber();
+    let cotCode = (document.getElementById('adminNewUserCotCode')?.value || '').trim() || generateRandomCotCode();
+    let imfCode = (document.getElementById('adminNewUserImfCode')?.value || '').trim() || generateRandomImfCode();
+    let taxCode = (document.getElementById('adminNewUserTaxCode')?.value || '').trim() || generateRandomTaxCode();
+    let txPin = (document.getElementById('adminNewUserTxPin')?.value || '').trim() || generateRandomPin();
+
+    const amlCode = generateRandomAmlCode();
+    const papCode = generateRandomPapCode();
+    const otpCode = generateRandomOtpCode();
+
+    const profilePhoto = document.getElementById('adminNewUserProfilePhotoUrl')?.value || '';
+    const passportPhoto = document.getElementById('adminNewUserPassportUrl')?.value || profilePhoto;
+    const password = document.getElementById('adminNewUserPassword')?.value || 'MemberPass123!';
+
+    const randomId = `usr-${Date.now().toString(36)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    const cardFormatted = cardRawNum.replace(/(.{4})/g, '$1 ').trim();
+    const expYear = String((new Date().getFullYear() + 5) % 100).padStart(2, '0');
+
+    const newAtmCard = {
+      id: `crd-${Date.now()}`,
+      cardNumber: cardFormatted,
+      cardMasked: `•••• •••• •••• ${cardRawNum.slice(-4)}`,
+      card_number: cardRawNum,
+      cardHolder: fullName.toUpperCase(),
+      cardholder_name: fullName.toUpperCase(),
+      userEmail: email,
+      accountNumber: acctNum,
+      cardType: 'Sovereign Visa Platinum Debit',
+      theme: 'card-theme-corporate',
+      expiry: `09/${expYear}`,
+      expiry_month: '09',
+      expiry_year: expYear,
+      cvv: String(Math.floor(100 + Math.random() * 900)),
+      pin: txPin,
+      status: 'pending_approval'
+    };
+
+    const newUser = {
+      id: randomId,
+      firstName: fn,
+      middleName: mn,
+      lastName: ln,
+      fullName,
+      username,
+      email,
+      phone,
+      dob,
+      occupation,
+      address,
+      nationality,
+      profilePhoto,
+      avatarUrl: profilePhoto,
+      passportPhoto,
+      passportUrl: passportPhoto,
+      kycDocument: passportPhoto,
+      password: password || 'MemberPass123!',
+      avatar: (fullName || 'MB').split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
+      avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+      status: 'inactive',
+      statusReason: 'Pending Administrative Credit & Activation',
+      kycStatus: passportPhoto ? 'verified' : 'pending',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+      pin: txPin,
+      transactionPin: txPin,
+      accounts: [
+        { accountNumber: acctNum, type: acctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089', isPrimary: true },
+        { accountNumber: `EUR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' }
+      ],
+      cards: [newAtmCard],
+      wireTransferCodes: {
+        COT: { code: cotCode, active: true, notes: 'Automated Cost of Transfer clearance token' },
+        TAX: { code: taxCode, active: true, notes: 'Automated Federal Tax clearance token' },
+        IMF: { code: imfCode, active: true, notes: 'Automated IMF regulatory signoff token' },
+        AML: { code: amlCode, active: true, notes: 'Automated Anti-Money Laundering verification key' },
+        PAP: { code: papCode, active: true, notes: 'Automated Proof of Anti-Piracy clearance token' },
+        OTP: { code: otpCode, active: true, notes: 'Automated One-Time Passcode clearance' }
+      },
+      transactions: [],
+      activityLog: [
+        { date: new Date().toISOString().replace('T', ' ').slice(0, 19), action: 'Account opened in INACTIVE state ($0.00 balance)', ip: 'Admin Console', officer: 'Chief Treasury Auditor' }
+      ]
+    };
+
+    if (!Array.isArray(currentUsers)) currentUsers = getAdminUsersList();
+    currentUsers.unshift(newUser);
+    saveAdminUsersList(currentUsers);
+
+    // Post to backend
+    fetch('/api/admin-users.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ users: [newUser], is_chunk: true })
+    }).catch(err => console.warn('Background sync notice:', err));
+
+    // Reset search inputs
+    const searchInput = document.getElementById('userSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    filteredUsers = [...currentUsers];
+    currentPage = 1;
+
+    renderUsersTable();
+    const userBadge = document.getElementById('sidebarUserBadge');
+    if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
+
+    const totalCountBadge = document.getElementById('userTotalCountBadge');
+    if (totalCountBadge) totalCountBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
+
+    const form = document.getElementById('adminFullCreateUserForm');
+    if (form) form.reset();
+    wbRandomizeCreateUserModalFields();
+
+    closeCreateUserModal();
+
+    // Switch view to Users view so admin sees the table immediately!
+    if (typeof window.switchAdminView === 'function') {
+      window.switchAdminView('users');
+    }
+
+    // Highlight newly created user row
+    setTimeout(() => {
+      const firstRow = document.querySelector('#adminUsersTableBody tr:first-child');
+      if (firstRow) {
+        firstRow.style.transition = 'all 0.5s ease';
+        firstRow.style.backgroundColor = 'rgba(16, 185, 129, 0.35)';
+        firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => { firstRow.style.backgroundColor = ''; }, 3500);
+      }
+    }, 100);
+
+    // Prominent Success Banner
+    const alertBanner = document.createElement('div');
+    alertBanner.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999; background: #065f46; color: #fff; padding: 18px 24px; border-radius: 14px; border: 2px solid #34d399; box-shadow: 0 10px 35px rgba(0,0,0,0.85); font-size: 0.95rem; font-family: inherit; max-width: 450px;';
+    alertBanner.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-weight:bold;font-size:1.05rem;">🎉 MEMBER CREATED SUCCESSFULLY!</div><div style="font-size:0.88rem; opacity:0.95; margin-top:4px;"><b>${escapeHtml(fullName)}</b> (${escapeHtml(email)}) registered with Account <b>${acctNum}</b> and added to roster.</div>`;
+    document.body.appendChild(alertBanner);
+    setTimeout(() => alertBanner.remove(), 7000);
+
+    showToast(`SUCCESS! Member account created for ${fullName} (${username}). Added to roster.`, 'success', 'User Registered Successfully');
+
+  } catch (err) {
+    console.error('[ADMIN CREATE USER] Submission error:', err);
+    showToast('An error occurred while creating the user.', 'error', 'Submission Failed');
+  }
+  return false;
+}
+
+// Bind immediately to window
+if (typeof window !== 'undefined') {
+  window.handleAdminCreateUserSubmit = handleAdminCreateUserSubmit;
+  window.openCreateUserModal = openCreateUserModal;
+  window.closeCreateUserModal = closeCreateUserModal;
+  window.wbRandomizeCreateUserModalFields = wbRandomizeCreateUserModalFields;
+}
+
+// Global click event delegation for #btnExecuteCreateUserAccount
+document.addEventListener('click', (e) => {
+  if (!e.target) return;
+  const execBtn = e.target.id === 'btnExecuteCreateUserAccount' ? e.target : e.target.closest('#btnExecuteCreateUserAccount');
+  if (execBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    handleAdminCreateUserSubmit(e);
+  }
+});
+
 function setupCreateUserModal() {
   const form = document.getElementById('adminFullCreateUserForm');
   const modal = document.getElementById('createUserFullModal');
@@ -4245,53 +4506,8 @@ function setupCreateUserModal() {
     populateWorldCountriesDropdown(natSelect, 'Afghanistan');
   }
 
-  // Auto-randomize account numbers and clearance codes without pre-filling fake names
-  const randomizeCreateUserModalFields = () => {
-    const acctTypeInput = document.getElementById('adminNewUserAcctType');
-    const pwdInput = document.getElementById('adminNewUserPassword');
-    const pwdConfirmInput = document.getElementById('adminNewUserConfirmPassword');
-    const acctNumInput = document.getElementById('adminNewUserAccountNum');
-    const cotInput = document.getElementById('adminNewUserCotCode');
-    const imfInput = document.getElementById('adminNewUserImfCode');
-    const taxInput = document.getElementById('adminNewUserTaxCode');
-    const pinInput = document.getElementById('adminNewUserTxPin');
-    const dobInput = document.getElementById('adminNewUserDob');
-    const occInput = document.getElementById('adminNewUserOccupation');
-    const addrInput = document.getElementById('adminNewUserAddress');
-    const phoneInput = document.getElementById('adminNewUserPhone');
-
-    if (acctTypeInput) acctTypeInput.value = 'Checking';
-    if (dobInput && !dobInput.value) dobInput.value = '01/15/1988';
-    if (occInput && !occInput.value) occInput.value = 'Private Wealth Client';
-    if (addrInput && !addrInput.value) addrInput.value = 'Zurich, Switzerland';
-    if (phoneInput && !phoneInput.value) phoneInput.value = '+41 44 915 ' + Math.floor(1000 + Math.random() * 9000);
-
-    const generatedPwd = 'MemberPass' + Math.floor(100 + Math.random() * 900) + '!';
-    if (pwdInput) pwdInput.value = generatedPwd;
-    if (pwdConfirmInput) pwdConfirmInput.value = generatedPwd;
-    
-    if (acctNumInput) acctNumInput.value = generateRandomAccountNumber();
-    if (cotInput) cotInput.value = generateRandomCotCode();
-    if (imfInput) imfInput.value = generateRandomImfCode();
-    if (taxInput) taxInput.value = generateRandomTaxCode();
-    if (pinInput) pinInput.value = generateRandomPin();
-
-    // Also randomize username if it was auto-generated before
-    const unInput = document.getElementById('adminNewUserUsername');
-    if (unInput) {
-      const base = (document.getElementById('adminNewUserFirstName')?.value || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
-      unInput.value = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
-      unInput.setAttribute('data-auto', 'true');
-    }
-  };
-
-  // Expose to window for global access
-  if (typeof window !== 'undefined') {
-    window.wbRandomizeCreateUserModalFields = randomizeCreateUserModalFields;
-  }
-
   // Pre-seed with fresh random codes immediately
-  randomizeCreateUserModalFields();
+  wbRandomizeCreateUserModalFields();
 
   // Randomize button listeners
   const genAcctBtn = document.getElementById('btnAdminGenAccountNum');
@@ -4308,405 +4524,20 @@ function setupCreateUserModal() {
   const genAllCodesBtn = document.getElementById('btnAdminGenAllCodes');
   if (genAllCodesBtn) {
     genAllCodesBtn.addEventListener('click', () => {
-      randomizeCreateUserModalFields();
+      wbRandomizeCreateUserModalFields();
       showToast('Re-generated clearance codes & security tokens', 'info', 'Codes Randomized');
     });
   }
 
-  // Open Full Create User Modal triggers
-  const openFullModal = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    randomizeCreateUserModalFields();
-    const targetModal = document.getElementById('createUserFullModal') || modal;
-    if (targetModal) {
-      targetModal.classList.add('show');
-      targetModal.style.display = 'flex';
-      const fnInput = document.getElementById('adminNewUserFirstName');
-      if (fnInput) setTimeout(() => fnInput.focus(), 80);
-    }
-  };
-
-  window.openCreateUserModal = openFullModal;
-  window.wbRandomizeCreateUserModalFields = randomizeCreateUserModalFields;
-
   const fullBtn = document.getElementById('btnOpenFullCreateUserModal');
-  if (fullBtn) fullBtn.addEventListener('click', openFullModal);
+  if (fullBtn) fullBtn.addEventListener('click', openCreateUserModal);
 
   const quickBtn = document.getElementById('btnOpenCreateUserModal');
-  if (quickBtn) quickBtn.addEventListener('click', openFullModal);
+  if (quickBtn) quickBtn.addEventListener('click', openCreateUserModal);
 
   document.querySelectorAll('[data-open-modal="createUserFullModal"], [data-open-modal="createUserModal"]').forEach((el) => {
-    el.addEventListener('click', openFullModal);
+    el.addEventListener('click', openCreateUserModal);
   });
-
-  // Handle Photo & Passport/ID File Uploads (Universal Delegation)
-  if (!window._wbPhotoUploadDelegated) {
-    window._wbPhotoUploadDelegated = true;
-    document.addEventListener('change', (e) => {
-      if (!e.target || e.target.type !== 'file') return;
-      const targetId = e.target.id || '';
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const dataUrl = evt.target?.result;
-        if (!dataUrl) return;
-
-        if (targetId === 'adminNewUserPassportFile') {
-          const urlEl = document.getElementById('adminNewUserPassportUrl');
-          const previewEl = document.getElementById('adminNewUserPassportPreview');
-          if (urlEl) urlEl.value = dataUrl;
-          if (previewEl) {
-            previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport/ID" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
-          }
-          showToast('Biometric Passport/ID uploaded for registration.', 'success', 'ID Uploaded');
-        } else if (targetId === 'editUserPassportFile') {
-          const urlEl = document.getElementById('editUserPassport');
-          const previewEl = document.getElementById('editUserPassportPreview');
-          if (urlEl) urlEl.value = dataUrl;
-          if (previewEl) {
-            previewEl.innerHTML = `<img src="${dataUrl}" alt="Passport/ID" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" />`;
-          }
-          if (typeof activeDetailUser !== 'undefined' && activeDetailUser) {
-            activeDetailUser.passportPhoto = dataUrl;
-            activeDetailUser.passportUrl = dataUrl;
-            activeDetailUser.kycDocument = dataUrl;
-            activeDetailUser.kycStatus = 'verified';
-            activeDetailUser.kyc_status = 'verified';
-            try { updateUser(activeDetailUser); } catch(err) {}
-          }
-          showToast('Biometric Passport/ID updated and verified for member.', 'success', 'Passport Saved');
-        } else if (targetId === 'adminNewUserProfilePhotoFile') {
-          const urlEl = document.getElementById('adminNewUserProfilePhotoUrl');
-          const previewEl = document.getElementById('adminNewUserPhotoPreview');
-          if (urlEl) urlEl.value = dataUrl;
-          if (previewEl) {
-            previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-          }
-          showToast('Profile photo uploaded successfully.', 'success', 'Photo Uploaded');
-        } else if (targetId === 'editUserProfilePhotoFile') {
-          const urlEl = document.getElementById('editUserProfilePhoto');
-          const previewEl = document.getElementById('editUserPhotoPreview');
-          if (urlEl) urlEl.value = dataUrl;
-          if (previewEl) {
-            previewEl.innerHTML = `<img src="${dataUrl}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-          }
-          if (typeof activeDetailUser !== 'undefined' && activeDetailUser) {
-            activeDetailUser.profilePhoto = dataUrl;
-            activeDetailUser.avatarUrl = dataUrl;
-            try { updateUser(activeDetailUser); } catch(err) {}
-          }
-          showToast('Profile photo updated for member.', 'success', 'Photo Saved');
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  const photoUrlInput = document.getElementById('adminNewUserProfilePhotoUrl');
-  const photoPreview = document.getElementById('adminNewUserPhotoPreview');
-  const clearPhotoBtn = document.getElementById('btnClearAdminNewUserPhoto');
-
-  if (photoUrlInput) {
-    photoUrlInput.addEventListener('input', () => {
-      const url = photoUrlInput.value.trim();
-      if (photoPreview) {
-        if (url) {
-          photoPreview.innerHTML = `<img src="${escapeHtml(url)}" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#f87171;font-size:0.65rem;\\'>Invalid</span>';" />`;
-        } else {
-          photoPreview.textContent = 'No photo';
-        }
-      }
-    });
-  }
-
-  if (clearPhotoBtn) {
-    clearPhotoBtn.addEventListener('click', () => {
-      const photoFile = document.getElementById('adminNewUserProfilePhotoFile');
-      if (photoFile) photoFile.value = '';
-      if (photoUrlInput) photoUrlInput.value = '';
-      if (photoPreview) photoPreview.innerHTML = 'No photo';
-    });
-  }
-
-  const clearPassportBtn = document.getElementById('btnClearAdminNewUserPassport');
-  const passportUrlInput = document.getElementById('adminNewUserPassportUrl');
-  const passportPreview = document.getElementById('adminNewUserPassportPreview');
-
-  if (clearPassportBtn) {
-    clearPassportBtn.addEventListener('click', () => {
-      const passFile = document.getElementById('adminNewUserPassportFile');
-      if (passFile) passFile.value = '';
-      if (passportUrlInput) passportUrlInput.value = '';
-      if (passportPreview) passportPreview.innerHTML = 'No ID';
-    });
-  }
-
-  if (passportUrlInput) {
-    passportUrlInput.addEventListener('input', () => {
-      const url = passportUrlInput.value.trim();
-      if (passportPreview) {
-        if (url) {
-          passportPreview.innerHTML = `<img src="${escapeHtml(url)}" alt="Passport" style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#f87171;font-size:0.65rem;\\'>Invalid</span>';" />`;
-        } else {
-          passportPreview.innerHTML = 'No ID';
-        }
-      }
-    });
-  }
-
-  // Handle New User Password Show/Hide & Generator
-  const newPwdInput = document.getElementById('adminNewUserPassword');
-  const newConfirmPwdInput = document.getElementById('adminNewUserConfirmPassword');
-  const toggleNewPwdBtn = document.getElementById('btnToggleAdminNewUserPwd');
-  const genNewPwdBtn = document.getElementById('btnAdminNewUserGenPwd');
-
-  if (toggleNewPwdBtn && newPwdInput) {
-    toggleNewPwdBtn.addEventListener('click', () => {
-      const isPwd = newPwdInput.type === 'password';
-      newPwdInput.type = isPwd ? 'text' : 'password';
-      if (newConfirmPwdInput) newConfirmPwdInput.type = isPwd ? 'text' : 'password';
-      toggleNewPwdBtn.textContent = isPwd ? '🙈 Hide' : '👁️ Show';
-    });
-  }
-
-  if (genNewPwdBtn && newPwdInput) {
-    genNewPwdBtn.addEventListener('click', () => {
-      const prefixList = ['SwissVault', 'Sovereign', 'Alpine', 'Zurich', 'CreditUnion', 'Premier'];
-      const prefix = prefixList[Math.floor(Math.random() * prefixList.length)];
-      const num = Math.floor(1000 + Math.random() * 9000);
-      const symbols = ['!', '@', '#', '$', '%', '&', '*'];
-      const sym = symbols[Math.floor(Math.random() * symbols.length)];
-      const newGeneratedPwd = `${prefix}#${num}${sym}`;
-      newPwdInput.value = newGeneratedPwd;
-      if (newConfirmPwdInput) newConfirmPwdInput.value = newGeneratedPwd;
-      newPwdInput.type = 'text';
-      if (newConfirmPwdInput) newConfirmPwdInput.type = 'text';
-      if (toggleNewPwdBtn) toggleNewPwdBtn.textContent = '🙈 Hide';
-      showToast(`Generated secure password: ${newGeneratedPwd}`, 'success', 'Password Ready');
-    });
-  }
-
-  // Auto-suggest username as user types name or email
-  const fnInput = document.getElementById('adminNewUserFirstName');
-  const lnInput = document.getElementById('adminNewUserLastName');
-  const emailInput = document.getElementById('adminNewUserEmail');
-  const unInput = document.getElementById('adminNewUserUsername');
-
-  function updateSuggestedUsername(force = false) {
-    if (!unInput) return;
-    if (force || !unInput.value || unInput.getAttribute('data-auto') === 'true' || unInput.value === 'mbrymo88') {
-      const fn = (fnInput?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const ln = (lnInput?.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const em = (emailInput?.value || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-      const base = (fn + ln) || em || 'mbrymo';
-      unInput.value = `${base}${Math.floor(10 + Math.random() * 90)}`;
-      unInput.setAttribute('data-auto', 'true');
-    }
-  }
-
-  window.wbGenUsername = () => updateSuggestedUsername(true);
-
-  const genUsernameBtn = document.getElementById('btnAdminGenUsername');
-  if (genUsernameBtn) {
-    genUsernameBtn.addEventListener('click', () => {
-      updateSuggestedUsername(true);
-      showToast('Generated new random Username', 'info', 'Username Randomized');
-    });
-  }
-
-  if (fnInput) fnInput.addEventListener('input', () => updateSuggestedUsername(false));
-  if (lnInput) lnInput.addEventListener('input', () => updateSuggestedUsername(false));
-  if (emailInput) emailInput.addEventListener('input', () => updateSuggestedUsername(false));
-  if (unInput) {
-    unInput.addEventListener('input', () => { unInput.removeAttribute('data-auto'); });
-  }
-
-  const handleAdminCreateUserSubmit = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    try {
-      const fnInput = document.getElementById('adminNewUserFirstName');
-      const lnInput = document.getElementById('adminNewUserLastName');
-      const emailInput = document.getElementById('adminNewUserEmail');
-
-      let fn = (fnInput?.value || '').trim();
-      const mn = (document.getElementById('adminNewUserMiddleName')?.value || '').trim();
-      let ln = (lnInput?.value || '').trim();
-
-      if (!fn && !ln) {
-        fn = 'New';
-        ln = 'Member';
-      } else if (!fn) {
-        fn = 'Member';
-      } else if (!ln) {
-        ln = 'User';
-      }
-
-      const fullName = [fn, mn, ln].filter(Boolean).join(' ');
-      const username = (document.getElementById('adminNewUserUsername')?.value || '').trim() || `${fn.toLowerCase()}${Math.floor(100 + Math.random() * 900)}`;
-      const email = (emailInput?.value || '').trim() || `${username}@wbcu.net`;
-      const phone = (document.getElementById('adminNewUserPhone')?.value || '').trim() || '+41 44 915 8901';
-      const dob = (document.getElementById('adminNewUserDob')?.value || '').trim() || '01/15/1988';
-      const occupation = (document.getElementById('adminNewUserOccupation')?.value || '').trim() || 'Private Wealth Client';
-      const nationality = document.getElementById('adminNewUserNationality')?.value || 'Switzerland';
-      const address = (document.getElementById('adminNewUserAddress')?.value || '').trim() || 'Zurich, Switzerland';
-      const acctType = (document.getElementById('adminNewUserAcctType')?.value || '').trim() || 'Checking';
-
-      let acctNum = (document.getElementById('adminNewUserAccountNum')?.value || '').trim();
-      if (!acctNum) acctNum = generateRandomAccountNumber();
-      let cotCode = (document.getElementById('adminNewUserCotCode')?.value || '').trim() || generateRandomCotCode();
-      let imfCode = (document.getElementById('adminNewUserImfCode')?.value || '').trim() || generateRandomImfCode();
-      let taxCode = (document.getElementById('adminNewUserTaxCode')?.value || '').trim() || generateRandomTaxCode();
-      let txPin = (document.getElementById('adminNewUserTxPin')?.value || '').trim() || generateRandomPin();
-
-      const amlCode = generateRandomAmlCode();
-      const papCode = generateRandomPapCode();
-      const otpCode = generateRandomOtpCode();
-
-      const profilePhoto = document.getElementById('adminNewUserProfilePhotoUrl')?.value || '';
-      const passportPhoto = document.getElementById('adminNewUserPassportUrl')?.value || profilePhoto;
-      const password = document.getElementById('adminNewUserPassword')?.value || 'MemberPass123!';
-
-      const randomId = `usr-${Date.now().toString(36)}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const cardRawNum = '4532' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
-      const cardFormatted = cardRawNum.replace(/(.{4})/g, '$1 ').trim();
-      const expYear = String((new Date().getFullYear() + 5) % 100).padStart(2, '0');
-
-      const newAtmCard = {
-        id: `crd-${Date.now()}`,
-        cardNumber: cardFormatted,
-        cardMasked: `•••• •••• •••• ${cardRawNum.slice(-4)}`,
-        card_number: cardRawNum,
-        cardHolder: fullName.toUpperCase(),
-        cardholder_name: fullName.toUpperCase(),
-        userEmail: email,
-        accountNumber: acctNum,
-        cardType: 'Sovereign Visa Platinum Debit',
-        theme: 'card-theme-corporate',
-        expiry: `09/${expYear}`,
-        expiry_month: '09',
-        expiry_year: expYear,
-        cvv: String(Math.floor(100 + Math.random() * 900)),
-        pin: txPin,
-        status: 'pending_approval'
-      };
-
-      const newUser = {
-        id: randomId,
-        firstName: fn,
-        middleName: mn,
-        lastName: ln,
-        fullName,
-        username,
-        email,
-        phone,
-        dob,
-        occupation,
-        address,
-        nationality,
-        profilePhoto,
-        avatarUrl: profilePhoto,
-        passportPhoto,
-        passportUrl: passportPhoto,
-        kycDocument: passportPhoto,
-        password: password || 'MemberPass123!',
-        avatar: (fullName || 'MB').split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'MB',
-        avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-        status: 'inactive',
-        statusReason: 'Pending Administrative Credit & Activation',
-        kycStatus: passportPhoto ? 'verified' : 'pending',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        pin: txPin,
-        transactionPin: txPin,
-        accounts: [
-          { accountNumber: acctNum, type: acctType || 'Checking', name: 'US Dollar Primary Vault', currency: 'USD', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089', isPrimary: true },
-          { accountNumber: `EUR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 90)}`, type: 'Offshore', name: 'Euro Global Holding Vault', currency: 'EUR', balance: 0.00, available: 0.00, status: 'inactive', routingNumber: '021000089' }
-        ],
-        cards: [newAtmCard],
-        wireTransferCodes: {
-          COT: { code: cotCode, active: true, notes: 'Automated Cost of Transfer clearance token' },
-          TAX: { code: taxCode, active: true, notes: 'Automated Federal Tax clearance token' },
-          IMF: { code: imfCode, active: true, notes: 'Automated IMF regulatory signoff token' },
-          AML: { code: amlCode, active: true, notes: 'Automated Anti-Money Laundering verification key' },
-          PAP: { code: papCode, active: true, notes: 'Automated Proof of Anti-Piracy clearance token' },
-          OTP: { code: otpCode, active: true, notes: 'Automated One-Time Passcode clearance' }
-        },
-        transactions: [],
-        activityLog: [
-          { date: new Date().toISOString().replace('T', ' ').slice(0, 19), action: 'Account opened in INACTIVE state ($0.00 balance)', ip: 'Admin Console', officer: 'Chief Treasury Auditor' }
-        ]
-      };
-
-      currentUsers.unshift(newUser);
-      saveAdminUsersList(currentUsers);
-
-      // Post to backend
-      fetch('/api/admin-users.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ users: [newUser], is_chunk: true })
-      }).catch(err => console.warn('Background sync notice:', err));
-
-      // Reset search inputs
-      const searchInput = document.getElementById('userSearchInput');
-      if (searchInput) searchInput.value = '';
-
-      filteredUsers = [...currentUsers];
-      currentPage = 1;
-
-      renderUsersTable();
-      const userBadge = document.getElementById('sidebarUserBadge');
-      if (userBadge) userBadge.textContent = currentUsers.length.toLocaleString();
-      const totalCountBadge = document.getElementById('userTotalCountBadge');
-      if (totalCountBadge) totalCountBadge.textContent = `${currentUsers.length.toLocaleString()} Users`;
-
-      if (form) form.reset();
-      if (window.wbRandomizeCreateUserModalFields) window.wbRandomizeCreateUserModalFields();
-
-      const targetModal = document.getElementById('createUserFullModal') || modal;
-      if (targetModal) {
-        targetModal.classList.remove('show');
-        targetModal.style.display = 'none';
-      }
-
-      // Switch view to Users view so admin sees the table immediately!
-      if (typeof window.switchAdminView === 'function') {
-        window.switchAdminView('users');
-      }
-
-      // Highlight newly created user row
-      setTimeout(() => {
-        const firstRow = document.querySelector('#adminUsersTableBody tr:first-child');
-        if (firstRow) {
-          firstRow.style.transition = 'all 0.5s ease';
-          firstRow.style.backgroundColor = 'rgba(16, 185, 129, 0.35)';
-          firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => { firstRow.style.backgroundColor = ''; }, 3500);
-        }
-      }, 100);
-
-      // Prominent Success Banner
-      const alertBanner = document.createElement('div');
-      alertBanner.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999; background: #065f46; color: #fff; padding: 18px 24px; border-radius: 14px; border: 2px solid #34d399; box-shadow: 0 10px 35px rgba(0,0,0,0.85); font-size: 0.95rem; font-family: inherit; max-width: 450px;';
-      alertBanner.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-weight:bold;font-size:1.05rem;">🎉 MEMBER CREATED SUCCESSFULLY!</div><div style="font-size:0.88rem; opacity:0.95; margin-top:4px;"><b>${escapeHtml(fullName)}</b> (${escapeHtml(email)}) registered with Account <b>${acctNum}</b> and added to roster.</div>`;
-      document.body.appendChild(alertBanner);
-      setTimeout(() => alertBanner.remove(), 7000);
-
-      showToast(`SUCCESS! Member account created for ${fullName} (${username}). Added to roster.`, 'success', 'User Registered Successfully');
-
-    } catch (err) {
-      console.error('[ADMIN CREATE USER] Submission error:', err);
-      showToast('An error occurred while creating the user.', 'error', 'Submission Failed');
-    }
-    return false;
-  };
-
-  if (typeof window !== 'undefined') {
-    window.handleAdminCreateUserSubmit = handleAdminCreateUserSubmit;
-  }
 
   if (form) {
     form.addEventListener('submit', handleAdminCreateUserSubmit);
