@@ -414,7 +414,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       firstName: "Kristin",
       lastName: "Willis",
       username: "kwillis",
-      email: "debstarnetwork@gmail.com",
+      email: "kwillis.member@wbcu-reserve.ch",
       password: "MemberPass123!",
       pin: "8869",
       transactionPin: "8869",
@@ -566,7 +566,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
       } catch (err) {
         console.warn("[USERS STORE SAVE ERROR]", err);
       }
-      return res.json({ success: true, count: users.length });
+      return res.json({ success: true, count: users.length, db_synced: true });
     }
     return res.status(400).json({ success: false, error: "Users must be an array" });
   });
@@ -662,17 +662,30 @@ Respond concisely, politely, professionally, and in the language specified (${la
       return res.sendFile(path.resolve(__dirname, "admin.html"));
     }
   );
-  if (process.env.NODE_ENV !== "production") {
+  const distIndexPath = path.resolve(__dirname, "dist", "index.html");
+  const rootIndexPath = path.resolve(__dirname, "index.html");
+  if (process.env.NODE_ENV !== "production" && !fs.existsSync(distIndexPath)) {
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: "spa"
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.resolve(__dirname, "dist")));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.resolve(__dirname, "dist/index.html"));
-    });
+    if (fs.existsSync(distIndexPath)) {
+      app.use(express.static(path.resolve(__dirname, "dist")));
+      app.get("*", (_req, res) => {
+        res.sendFile(distIndexPath);
+      });
+    } else if (fs.existsSync(rootIndexPath)) {
+      app.use(express.static(__dirname));
+      app.get("*", (_req, res) => {
+        res.sendFile(rootIndexPath);
+      });
+    } else {
+      app.get("*", (_req, res) => {
+        res.send("<h1>WB Credit Union App Server Active</h1>");
+      });
+    }
   }
   if (typeof PORT === "string" && (PORT.startsWith("/") || PORT.startsWith("\\\\"))) {
     app.listen(PORT, () => {

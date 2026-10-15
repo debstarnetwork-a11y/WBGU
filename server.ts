@@ -13,7 +13,7 @@ async function startServer() {
   const app = express();
 
   // Support --port and --host CLI arguments or dev default (3000 on 0.0.0.0)
-  let portVal: number | string = 3000;
+  let portVal = 3000;
   const portIdx = process.argv.indexOf('--port');
   if (portIdx !== -1 && process.argv[portIdx + 1]) {
     portVal = parseInt(process.argv[portIdx + 1], 10);
@@ -35,7 +35,7 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
   // Helper function to sanitize host (e.g. if user typed mail.info@wbcu.net or info@wbcu.net)
-  function sanitizeHost(rawHost: string): string {
+  function sanitizeHost(rawHost) {
     let h = (rawHost || '').trim();
     if (h.includes('@')) {
       const parts = h.split('@');
@@ -46,13 +46,7 @@ async function startServer() {
   }
 
   // Helper function to create nodemailer transporter
-  function createTransporter(smtpConfig: {
-    host: string;
-    port: number;
-    user?: string;
-    pass?: string;
-    secure?: boolean;
-  }) {
+  function createTransporter(smtpConfig) {
     const cleanHost = sanitizeHost(smtpConfig.host);
     const port = Number(smtpConfig.port) || 587;
     const isSecure = smtpConfig.secure ?? (port === 465);
@@ -735,17 +729,31 @@ Respond concisely, politely, professionally, and in the language specified (${la
     }
   );
 
-  if (process.env.NODE_ENV !== 'production') {
+  const distIndexPath = path.resolve(__dirname, 'dist', 'index.html');
+  const rootIndexPath = path.resolve(__dirname, 'index.html');
+
+  if (process.env.NODE_ENV !== 'production' && !fs.existsSync(distIndexPath)) {
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist/index.html'));
-    });
+    if (fs.existsSync(distIndexPath)) {
+      app.use(express.static(path.resolve(__dirname, 'dist')));
+      app.get('*', (_req, res) => {
+        res.sendFile(distIndexPath);
+      });
+    } else if (fs.existsSync(rootIndexPath)) {
+      app.use(express.static(__dirname));
+      app.get('*', (_req, res) => {
+        res.sendFile(rootIndexPath);
+      });
+    } else {
+      app.get('*', (_req, res) => {
+        res.send('<h1>WB Credit Union App Server Active</h1>');
+      });
+    }
   }
 
   if (typeof PORT === 'string' && (PORT.startsWith('/') || PORT.startsWith('\\\\'))) {

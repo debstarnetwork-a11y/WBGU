@@ -4297,8 +4297,13 @@ export function closeCreateUserModal(e) {
   }
 }
 
+let isSubmittingUser = false;
+
 export function handleAdminCreateUserSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
+  if (isSubmittingUser) return false;
+  isSubmittingUser = true;
+
   try {
     const fnInput = document.getElementById('adminNewUserFirstName');
     const lnInput = document.getElementById('adminNewUserLastName');
@@ -4318,7 +4323,7 @@ export function handleAdminCreateUserSubmit(e) {
     }
 
     const fullName = [fn, mn, ln].filter(Boolean).join(' ');
-    const username = (document.getElementById('adminNewUserUsername')?.value || '').trim() || `${fn.toLowerCase()}${Math.floor(100 + Math.random() * 900)}`;
+    const username = (document.getElementById('adminNewUserUsername')?.value || '').trim() || `${fn.toLowerCase().replace(/[^a-z0-9]/g, '')}${Math.floor(1000 + Math.random() * 9000)}`;
     const email = (emailInput?.value || '').trim() || `${username}@wbcu.net`;
     const phone = (document.getElementById('adminNewUserPhone')?.value || '').trim() || '+41 44 915 8901';
     const dob = (document.getElementById('adminNewUserDob')?.value || '').trim() || '01/15/1988';
@@ -4418,7 +4423,7 @@ export function handleAdminCreateUserSubmit(e) {
     currentUsers.unshift(newUser);
     saveAdminUsersList(currentUsers);
 
-    // Post to backend
+    // Post to backend database
     fetch('/api/admin-users.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -4473,6 +4478,8 @@ export function handleAdminCreateUserSubmit(e) {
   } catch (err) {
     console.error('[ADMIN CREATE USER] Submission error:', err);
     showToast('An error occurred while creating the user.', 'error', 'Submission Failed');
+  } finally {
+    setTimeout(() => { isSubmittingUser = false; }, 800);
   }
   return false;
 }
@@ -4490,9 +4497,16 @@ document.addEventListener('click', (e) => {
   if (!e.target) return;
   const execBtn = e.target.id === 'btnExecuteCreateUserAccount' ? e.target : e.target.closest('#btnExecuteCreateUserAccount');
   if (execBtn) {
-    e.preventDefault();
-    e.stopPropagation();
-    handleAdminCreateUserSubmit(e);
+    const form = document.getElementById('adminFullCreateUserForm');
+    if (form) {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        handleAdminCreateUserSubmit(e);
+      }
+    } else {
+      handleAdminCreateUserSubmit(e);
+    }
   }
 });
 
