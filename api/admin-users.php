@@ -237,13 +237,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email = $u['email'] ?? ($uid . '@wbcu.net');
                 $username = $u['username'] ?? explode('@', $email)[0];
                 
+                // Map ENUM values strictly matching DESCRIBE users; schema
+                $roleRaw = strtolower($u['role'] ?? '');
+                $safeRole = 'user';
+                if (!empty($u['is_admin']) || strpos($roleRaw, 'super') !== false) {
+                    $safeRole = 'super_admin';
+                } else if (strpos($roleRaw, 'admin') !== false) {
+                    $safeRole = 'admin';
+                } else if (strpos($roleRaw, 'audit') !== false) {
+                    $safeRole = 'auditor';
+                }
+
+                $statusRaw = strtolower($u['status'] ?? 'active');
+                $allowedStatus = ['active', 'inactive', 'suspended', 'frozen', 'pending_approval'];
+                if ($statusRaw === 'pending' || $statusRaw === 'pending_credit') {
+                    $safeStatus = 'pending_approval';
+                } else if ($statusRaw === 'dormant') {
+                    $safeStatus = 'inactive';
+                } else if (in_array($statusRaw, $allowedStatus)) {
+                    $safeStatus = $statusRaw;
+                } else {
+                    $safeStatus = 'active';
+                }
+
+                $kycRaw = strtolower($u['kycStatus'] ?? $u['kyc_status'] ?? 'verified');
+                $allowedKyc = ['unverified', 'pending', 'verified', 'rejected'];
+                $safeKyc = in_array($kycRaw, $allowedKyc) ? $kycRaw : 'verified';
+
                 // 1. Users Table
                 $uFields = ['id', 'username', 'email', 'role', 'transaction_pin', 'status', 'kyc_status', 'created_at'];
-                $uVals = [$uid, $username, $email, (!empty($u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' || ($u['role'] ?? '') === 'super_admin' ? 'super_admin' : 'user'), $u['transactionPin'] ?? '8869', $u['status'] ?? 'active', $u['kycStatus'] ?? 'verified', $u['createdAt'] ?? date('Y-m-d H:i:s')];
+                $uVals = [$uid, $username, $email, $safeRole, $u['transactionPin'] ?? '8869', $safeStatus, $safeKyc, $u['createdAt'] ?? date('Y-m-d H:i:s')];
                 
                 if (in_array('password_hash', $uCols)) { $uFields[] = 'password_hash'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
                 if (in_array('password', $uCols)) { $uFields[] = 'password'; $uVals[] = !empty($u['password']) ? $u['password'] : '12345'; }
-                if (in_array('is_admin', $uCols)) { $uFields[] = 'is_admin'; $uVals[] = (!empty($u['is_admin']) || ($u['role'] ?? '') === 'Super Admin' || ($u['role'] ?? '') === 'super_admin') ? 1 : 0; }
+                if (in_array('is_admin', $uCols)) { $uFields[] = 'is_admin'; $uVals[] = ($safeRole === 'super_admin' || $safeRole === 'admin') ? 1 : 0; }
                 if (in_array('two_factor_enabled', $uCols)) { $uFields[] = 'two_factor_enabled'; $uVals[] = 1; }
                 
                 $placeholders = str_repeat('?,', count($uFields) - 1) . '?';
