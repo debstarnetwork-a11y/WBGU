@@ -39,7 +39,8 @@
         if (sess) {
           try { auth = JSON.parse(sess); } catch (e) {}
         }
-        var isAuthorized = auth && (auth.is_admin === true || auth.role === 'Super Admin' || auth.role === 'Admin');
+        var r = String(auth && auth.role || '').toLowerCase();
+        var isAuthorized = auth && (auth.is_admin === true || auth.is_admin === 1 || auth.is_admin === '1' || r.includes('admin') || r.includes('super') || r.includes('auditor') || r.includes('officer'));
         if (!isAuthorized) {
           // Deny direct access and redirect immediately to Admin Login
           sessionStorage.removeItem('wb_credit_union_admin_session');

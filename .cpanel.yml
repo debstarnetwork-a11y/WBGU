@@ -21,6 +21,9 @@ deployment:
     - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/admin/index.html ; fi
     - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/pages/admin-dashboard.html ; fi
     - if [ -f admin.html ]; then /bin/cp admin.html $DEPLOYPATH/pages/admin.html ; fi
+    - if [ -f admin-login.html ]; then /bin/cp admin-login.html $DEPLOYPATH/ ; fi
+    - if [ -f admin-login.html ]; then /bin/cp admin-login.html $DEPLOYPATH/pages/admin-login.html ; fi
+    - if [ -f login-admin.html ]; then /bin/cp login-admin.html $DEPLOYPATH/ ; fi
     - if [ -f index.html ]; then /bin/cp index.html $DEPLOYPATH/ ; fi
     - if [ -f .htaccess ]; then /bin/cp .htaccess $DEPLOYPATH/ ; fi
     - if [ -f admin-users.json ]; then /bin/cp admin-users.json $DEPLOYPATH/ ; fi
@@ -28,6 +31,8 @@ deployment:
     - # Also synchronize to WBCU application root if present
     - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u server.js /home/glolbka/WBCU/ 2>/dev/null || true; fi
     - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u admin-users.json /home/glolbka/WBCU/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u admin-login.html /home/glolbka/WBCU/ 2>/dev/null || true; fi
+    - if [ -d /home/glolbka/WBCU ]; then /bin/cp -u admin.html /home/glolbka/WBCU/ 2>/dev/null || true; fi
     - if [ -d /home/glolbka/WBCU/api ]; then /bin/cp -Ru api/* /home/glolbka/WBCU/api/ 2>/dev/null || true; fi
     - if [ -d /home/glolbka/WBCU/js ]; then /bin/cp -Ru js/* /home/glolbka/WBCU/js/ 2>/dev/null || true; fi
     - if [ -d /home/glolbka/WBCU/pages ]; then /bin/cp -Ru pages/* /home/glolbka/WBCU/pages/ 2>/dev/null || true; fi

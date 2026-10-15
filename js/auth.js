@@ -2712,16 +2712,17 @@ export function initAdminLoginForm() {
       // 1. Authenticate against Live Database Endpoint
       let srvErrorMessage = '';
       try {
+        const authPayload = JSON.stringify({ email: normalizedEmail, username: normalizedEmail, identifier: normalizedEmail, password });
         let srvRes = await fetch('/api/admin-login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: normalizedEmail, password }),
+          body: authPayload,
         });
         if (!srvRes.ok) {
           srvRes = await fetch('/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: normalizedEmail, password }),
+            body: authPayload,
           });
         }
         if (srvRes) {
@@ -2744,6 +2745,8 @@ export function initAdminLoginForm() {
       // Credentials confirmed! Immediately grant admin session & redirect instantly
       const authenticatedAdmin = {
         ...validatedAdmin,
+        is_admin: true,
+        role: validatedAdmin.role || 'Super Admin',
         authMethod: 'Password_And_Biometric_2FA',
         biometricVerifiedAt: new Date().toISOString()
       };

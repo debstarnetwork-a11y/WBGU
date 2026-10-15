@@ -94,65 +94,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($pdo) {
         try {
-            $stmt = $pdo->query("SELECT u.*, p.first_name, p.middle_name, p.last_name, p.full_name, p.phone_number, p.date_of_birth, p.nationality, p.occupation, p.address_line1, p.city, p.country, p.profile_photo_url, p.passport_photo_url FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.created_at DESC");
+            // Safe query of users table
+            $stmt = $pdo->query("SELECT * FROM users");
             $dbUsers = $stmt ? $stmt->fetchAll() : [];
 
-            foreach ($dbUsers as $row) {
-                $uid = $row['id'];
-                
-                // Fetch accounts
-                $acctStmt = $pdo->prepare("SELECT * FROM accounts WHERE user_id = ?");
-                $acctStmt->execute([$uid]);
-                $accounts = $acctStmt->fetchAll();
-
-                // Fetch wire codes
-                $wireStmt = $pdo->prepare("SELECT * FROM wire_transfer_codes WHERE user_id = ?");
-                $wireStmt->execute([$uid]);
-                $wireCodesRaw = $wireStmt->fetchAll();
-                $wireCodes = [];
-                foreach ($wireCodesRaw as $wc) {
-                    $wireCodes[$wc['code_type']] = [
-                        'code' => $wc['code_value'],
-                        'active' => (bool)$wc['is_active'],
-                        'notes' => $wc['description'] ?? ''
-                    ];
+            // Fetch profiles in bulk
+            $profilesMap = [];
+            try {
+                $pStmt = $pdo->query("SELECT * FROM profiles");
+                if ($pStmt) {
+                    while ($pRow = $pStmt->fetch()) {
+                        if (!empty($pRow['user_id'])) $profilesMap[$pRow['user_id']] = $pRow;
+                    }
                 }
+            } catch (Throwable $e) {}
 
-                // Fetch cards
-                $cardStmt = $pdo->prepare("SELECT * FROM cards WHERE user_id = ?");
-                $cardStmt->execute([$uid]);
-                $cards = $cardStmt->fetchAll();
-
-                $fullName = !empty($row['full_name']) ? $row['full_name'] : trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
-                if (empty($fullName)) $fullName = $row['username'] ?? $row['email'];
-
-                $users[] = [
-                    'id' => $row['id'],
-                    'fullName' => $fullName,
-                    'firstName' => $row['first_name'] ?? '',
-                    'middleName' => $row['middle_name'] ?? '',
-                    'lastName' => $row['last_name'] ?? '',
-                    'username' => $row['username'] ?? '',
-                    'email' => $row['email'],
-                    'phone' => $row['phone_number'] ?? '',
-                    'dob' => $row['date_of_birth'] ?? '',
-                    'address' => $row['address_line1'] ?? '',
-                    'nationality' => $row['nationality'] ?? 'Switzerland',
-                    'occupation' => $row['occupation'] ?? '',
-                    'profilePhoto' => $row['profile_photo_url'] ?? '',
-                    'passportPhoto' => $row['passport_photo_url'] ?? '',
-                    'passportUrl' => $row['passport_photo_url'] ?? '',
-                    'status' => $row['status'] ?? 'active',
-                    'kycStatus' => $row['kyc_status'] ?? 'verified',
-                    'role' => $row['role'] === 'super_admin' ? 'Super Admin' : ($row['role'] === 'admin' ? 'Admin' : 'Member'),
-                    'is_admin' => in_array($row['role'], ['admin', 'super_admin']),
-                    'transactionPin' => $row['transaction_pin'] ?? '1234',
-                    'pin' => $row['transaction_pin'] ?? '1234',
-                    'password' => $row['password_hash'] ?? '12345',
-                    'createdAt' => $row['created_at'] ?? date('c'),
-                    'lastLogin' => $row['last_login'] ?? date('c'),
-                    'accounts' => array_map(function($a) {
-                        return [
+            // Fetch accounts in bulk
+            $accountsMap = [];
+            try {
+                $acctStmt = $pdo->query("SELECT * FROM accounts");
+                if ($acctStmt) {
+                    while ($a = $acctStmt->fetch()) {
+                        $accountsMap[$a['user_id']][] = [
                             'accountNumber' => $a['account_number'],
                             'type' => $a['account_type'] ?? 'Checking',
                             'name' => $a['account_name'] ?? 'Primary Vault',
@@ -161,10 +124,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                             'status' => $a['status'] ?? 'active',
                             'routingNumber' => $a['routing_number'] ?? '021000089'
                         ];
-                    }, $accounts),
-                    'wireTransferCodes' => $wireCodes,
-                    'cards' => array_map(function($c) {
-                        return [
+                    }
+                }
+            } catch (Throwable $e) {}
+
+            // Fetch wire codes in bulk
+            $wireCodesMap = [];
+            try {
+                $wireStmt = $pdo->query("SELECT * FROM wire_transfer_codes");
+                if ($wireStmt) {
+                    while ($wc = $wireStmt->fetch()) {
+                        $wireCodesMap[$wc['user_id']][$wc['code_type']] = [
+                            'code' => $wc['code_value'],
+                            'active' => (bool)$wc['is_active'],
+                            'notes' => $wc['description'] ?? ''
+                        ];
+                    }
+                }
+            } catch (Throwable $e) {}
+
+            // Fetch cards in bulk
+            $cardsMap = [];
+            try {
+                $cardStmt = $pdo->query("SELECT * FROM cards");
+                if ($cardStmt) {
+                    while ($c = $cardStmt->fetch()) {
+                        $cardsMap[$c['user_id']][] = [
                             'id' => $c['id'],
                             'cardNumber' => $c['card_number'] ?? '•••• •••• •••• 1234',
                             'cardMasked' => $c['card_masked'] ?? '•••• •••• •••• 1234',
@@ -175,11 +160,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                             'pin' => $c['pin'] ?? '1234',
                             'status' => $c['status'] ?? 'active'
                         ];
-                    }, $cards),
+                    }
+                }
+            } catch (Throwable $e) {}
+
+            $userIdsSeen = [];
+
+            foreach ($dbUsers as $row) {
+                $uid = $row['id'];
+                $userIdsSeen[$uid] = true;
+                $p = $profilesMap[$uid] ?? [];
+
+                $fullName = !empty($p['full_name']) ? $p['full_name'] : trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+                if (empty($fullName)) $fullName = $row['username'] ?? $row['email'] ?? 'Member';
+
+                $roleStr = strtolower($row['role'] ?? '');
+                $isAdmin = (strpos($roleStr, 'admin') !== false) || (strpos($roleStr, 'super') !== false) || !empty($row['is_admin']);
+
+                $users[] = [
+                    'id' => $row['id'],
+                    'fullName' => $fullName,
+                    'firstName' => $p['first_name'] ?? '',
+                    'middleName' => $p['middle_name'] ?? '',
+                    'lastName' => $p['last_name'] ?? '',
+                    'username' => $row['username'] ?? '',
+                    'email' => $row['email'],
+                    'phone' => $p['phone_number'] ?? $row['phone'] ?? '',
+                    'dob' => $p['date_of_birth'] ?? '',
+                    'address' => $p['address_line1'] ?? '',
+                    'nationality' => $p['nationality'] ?? 'Switzerland',
+                    'occupation' => $p['occupation'] ?? 'Executive Private Client',
+                    'profilePhoto' => $p['profile_photo_url'] ?? '',
+                    'passportPhoto' => $p['passport_photo_url'] ?? '',
+                    'passportUrl' => $p['passport_photo_url'] ?? '',
+                    'status' => $row['status'] ?? 'active',
+                    'kycStatus' => $row['kyc_status'] ?? 'verified',
+                    'role' => (stripos($roleStr, 'super') !== false) ? 'Super Admin' : ($isAdmin ? 'Admin' : 'Member'),
+                    'is_admin' => $isAdmin,
+                    'pin' => $row['transaction_pin'] ?? '1234',
+                    'transactionPin' => $row['transaction_pin'] ?? '1234',
+                    'password' => $row['password_hash'] ?? $row['password'] ?? '',
+                    'createdAt' => $row['created_at'] ?? date('c'),
+                    'lastLogin' => $row['last_login'] ?? date('c'),
+                    'accounts' => $accountsMap[$uid] ?? [
+                        [
+                            'accountNumber' => 'WB-' . substr(preg_replace('/[^0-9]/', '', $uid) . '94821049', 0, 10),
+                            'type' => 'Checking',
+                            'name' => 'Primary Checking Account',
+                            'currency' => 'USD',
+                            'balance' => 0.00,
+                            'status' => $row['status'] ?? 'active',
+                            'routingNumber' => '021000089',
+                            'isPrimary' => true
+                        ]
+                    ],
+                    'wireTransferCodes' => $wireCodesMap[$uid] ?? [],
+                    'cards' => $cardsMap[$uid] ?? [],
                     'cryptoWallets' => [],
                     'activityLog' => []
                 ];
             }
+
+            // Also load dedicated officers from admins table
+            try {
+                $admStmt = $pdo->query("SELECT * FROM admins");
+                if ($admStmt) {
+                    while ($adm = $admStmt->fetch()) {
+                        $aid = $adm['id'] ?? 'adm-001';
+                        if (!isset($userIdsSeen[$aid])) {
+                            $admFn = $adm['full_name'] ?? $adm['name'] ?? $adm['username'] ?? 'Chief Treasury Auditor';
+                            $parts = explode(' ', trim($admFn));
+                            array_unshift($users, [
+                                'id' => $aid,
+                                'fullName' => $admFn,
+                                'firstName' => $parts[0] ?? 'Chief',
+                                'lastName' => $parts[count($parts) - 1] ?? 'Auditor',
+                                'username' => $adm['username'] ?? 'admin',
+                                'email' => $adm['email'] ?? 'admin@wbcu.net',
+                                'phone' => $adm['phone'] ?? '+41 44 915 8901',
+                                'dob' => '06/14/1984',
+                                'address' => '109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland',
+                                'nationality' => 'Switzerland',
+                                'profilePhoto' => '',
+                                'passportPhoto' => '',
+                                'passportUrl' => '',
+                                'status' => $adm['status'] ?? 'active',
+                                'kycStatus' => 'verified',
+                                'role' => ($adm['role'] === 'admin') ? 'Admin' : 'Super Admin',
+                                'is_admin' => true,
+                                'pin' => '8869',
+                                'transactionPin' => '8869',
+                                'password' => $adm['password_hash'] ?? $adm['password'] ?? '',
+                                'createdAt' => $adm['created_at'] ?? date('c'),
+                                'lastLogin' => $adm['last_login'] ?? date('c'),
+                                'accounts' => $accountsMap[$aid] ?? [
+                                    [
+                                        'accountNumber' => 'WB-9482-1049-55',
+                                        'type' => 'Checking',
+                                        'name' => 'Premier Treasury Vault',
+                                        'currency' => 'USD',
+                                        'balance' => 248500.00,
+                                        'status' => 'active',
+                                        'routingNumber' => '021000089',
+                                        'isPrimary' => true
+                                    ]
+                                ],
+                                'wireTransferCodes' => $wireCodesMap[$aid] ?? [],
+                                'cards' => $cardsMap[$aid] ?? [],
+                                'cryptoWallets' => [],
+                                'activityLog' => []
+                            ]);
+                        }
+                    }
+                }
+            } catch (Throwable $e) {}
         } catch (Exception $e) {
             $users = [];
         }

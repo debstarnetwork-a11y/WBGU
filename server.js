@@ -6,8 +6,68 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import { GoogleGenAI } from "@google/genai";
+import mysql from "mysql2/promise";
+import crypto from "crypto";
+import dotenv from "dotenv";
+import bcryptjs from "bcryptjs";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
+var envFileCandidates = [
+  path.resolve(__dirname, ".env"),
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(__dirname, "../.env"),
+  "/home/glolbka/WBCU/.env",
+  "/home/glolbka/public_html/.env"
+];
+for (const envF of envFileCandidates) {
+  if (fs.existsSync(envF)) {
+    try {
+      dotenv.config({ path: envF });
+    } catch {
+    }
+  }
+}
+function verifyPasswordHash(inputPass, storedHash) {
+  if (!storedHash || !inputPass) return false;
+  const rawInput = String(inputPass);
+  const rawStored = String(storedHash).trim();
+  if (rawInput === rawStored || rawInput.trim() === rawStored) return true;
+  if (rawStored.startsWith("$2")) {
+    try {
+      if (bcryptjs.compareSync(rawInput, rawStored)) return true;
+      if (bcryptjs.compareSync(rawInput.trim(), rawStored)) return true;
+    } catch {
+    }
+  }
+  try {
+    const md5Hash = crypto.createHash("md5").update(rawInput).digest("hex").toLowerCase();
+    if (md5Hash === rawStored.toLowerCase()) return true;
+  } catch {
+  }
+  try {
+    const sha256Hash = crypto.createHash("sha256").update(rawInput).digest("hex").toLowerCase();
+    if (sha256Hash === rawStored.toLowerCase()) return true;
+  } catch {
+  }
+  try {
+    const sha1Hash = crypto.createHash("sha1").update(rawInput).digest("hex").toLowerCase();
+    if (sha1Hash === rawStored.toLowerCase()) return true;
+  } catch {
+  }
+  try {
+    const s1 = crypto.createHash("sha1").update(rawInput).digest();
+    const s2 = "*" + crypto.createHash("sha1").update(s1).digest("hex").toUpperCase();
+    if (s2 === rawStored.toUpperCase()) return true;
+  } catch {
+  }
+  return false;
+}
+function getRowPasswordHash(row) {
+  if (!row) return "";
+  return String(
+    row.password_hash || row.password || row.pass || row.pwd || row.passcode || row.master_passcode || row.admin_password || ""
+  );
+}
 async function startServer() {
   const app = express();
   let portVal = 3e3;
@@ -343,72 +403,6 @@ Respond concisely, politely, professionally, and in the language specified (${la
   const USERS_FILE = path.resolve(__dirname, "admin-users.json");
   const defaultSeedUsers = [
     {
-      id: "usr-101",
-      fullName: "Miz Brymo",
-      email: "mizbrymo@gmail.com",
-      password: "12345",
-      pin: "1234",
-      transactionPin: "8869",
-      role: "Super Admin",
-      is_admin: true,
-      phone: "+41 44 915 8901",
-      avatar: "MB",
-      avatarColor: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-      dob: "1984-06-14",
-      address: "109, Feldg\xFCetliweg, Meilen, Zurich 8706, Switzerland",
-      status: "active",
-      statusReason: "Super Admin Clearance",
-      kycStatus: "verified",
-      createdAt: "2025-01-15T09:30:00Z",
-      lastLogin: (/* @__PURE__ */ new Date()).toISOString(),
-      accounts: [
-        {
-          accountNumber: "WB-9482-1049-55",
-          type: "Checking",
-          name: "Premier Checking Account",
-          currency: "USD",
-          balance: 248500,
-          status: "active",
-          routingNumber: "021000089"
-        },
-        {
-          accountNumber: "WB-9482-1049-56",
-          type: "Savings",
-          name: "Swiss High-Yield Wealth Reserve",
-          currency: "CHF",
-          balance: 145e4,
-          status: "active",
-          routingNumber: "021000089"
-        }
-      ],
-      transactions: [],
-      cards: [
-        {
-          id: "crd-1",
-          cardNumber: "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1234",
-          cardHolder: "MIZ BRYMO",
-          type: "Black Metal Premier",
-          expiry: "09/29",
-          status: "active",
-          dailyAtmLimit: 1e4,
-          onlineLimit: 5e4
-        }
-      ],
-      cryptoWallets: [
-        { currency: "BTC", balance: 4.85, address: "bc1q9x48v2m9sl3k0pw84mz789xq4e9", status: "active" },
-        { currency: "ETH", balance: 32.4, address: "0x71C...9B28", status: "active" },
-        { currency: "USDT", balance: 125e3, address: "0x99A...11C4", status: "active" }
-      ],
-      wireTransferCodes: {
-        COT: { code: "CT-78234", active: true, notes: "Cost of Transfer clearance token" },
-        TAX: { code: "TX-99120", active: true, notes: "Federal Tax Clearance certificate" },
-        IMF: { code: "IMF-44912", active: true, notes: "IMF regulatory signoff" },
-        AML: { code: "AML-00821", active: true, notes: "Anti-Money Laundering key" },
-        PAP: { code: "PAP-33810", active: true, notes: "Proof of Anti-Piracy clearance" }
-      },
-      activityLog: []
-    },
-    {
       id: "usr-34400",
       fullName: "Kristin Willis",
       firstName: "Kristin",
@@ -552,12 +546,318 @@ Respond concisely, politely, professionally, and in the language specified (${la
   } catch (err) {
     console.warn("[USERS STORE LOAD ERROR]", err);
   }
+  let mysqlPool = null;
+  function getDbPool() {
+    if (mysqlPool) return mysqlPool;
+    try {
+      const dbHost = process.env.DB_HOST || "localhost";
+      const dbUser = process.env.DB_USER || "glolbka_wbcu_user";
+      const dbPassword = process.env.DB_PASSWORD || process.env.DB_PASS || "";
+      const dbName = process.env.DB_NAME || "glolbka_wbcu_db";
+      mysqlPool = mysql.createPool({
+        host: dbHost,
+        user: dbUser,
+        password: dbPassword,
+        database: dbName,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 8e3
+      });
+      return mysqlPool;
+    } catch (err) {
+      console.warn("[MYSQL POOL INIT WARN]", err);
+      return null;
+    }
+  }
+  async function fetchUsersFromMysql() {
+    try {
+      const pool = getDbPool();
+      if (!pool) return null;
+      let userRows = [];
+      try {
+        const [rows] = await pool.query("SELECT * FROM users");
+        if (Array.isArray(rows)) userRows = rows;
+      } catch (err) {
+        console.warn("[FETCH USERS FROM MYSQL ERROR]", err);
+      }
+      const profilesByUser = {};
+      try {
+        const [pRows] = await pool.query("SELECT * FROM profiles");
+        if (Array.isArray(pRows)) {
+          for (const p of pRows) {
+            if (p.user_id) profilesByUser[p.user_id] = p;
+          }
+        }
+      } catch (err) {
+      }
+      const accountsByUser = {};
+      try {
+        const [accts] = await pool.query("SELECT * FROM accounts");
+        if (Array.isArray(accts)) {
+          for (const a of accts) {
+            if (!accountsByUser[a.user_id]) accountsByUser[a.user_id] = [];
+            accountsByUser[a.user_id].push({
+              accountNumber: a.account_number,
+              type: a.account_type || "Checking",
+              name: a.account_name || "Primary Vault",
+              currency: a.currency || "USD",
+              balance: Number(a.balance) || 0,
+              available: Number(a.available_balance || a.balance) || 0,
+              status: a.status || "active",
+              routingNumber: a.routing_number || "021000089",
+              isPrimary: accountsByUser[a.user_id].length === 0
+            });
+          }
+        }
+      } catch (err) {
+      }
+      const wireCodesByUser = {};
+      try {
+        const [wCodes] = await pool.query("SELECT * FROM wire_transfer_codes");
+        if (Array.isArray(wCodes)) {
+          for (const wc of wCodes) {
+            if (!wireCodesByUser[wc.user_id]) wireCodesByUser[wc.user_id] = {};
+            wireCodesByUser[wc.user_id][wc.code_type] = {
+              code: wc.code_value,
+              active: Boolean(wc.is_active),
+              notes: wc.description || ""
+            };
+          }
+        }
+      } catch (err) {
+      }
+      const cardsByUser = {};
+      try {
+        const [cards] = await pool.query("SELECT * FROM cards");
+        if (Array.isArray(cards)) {
+          for (const c of cards) {
+            if (!cardsByUser[c.user_id]) cardsByUser[c.user_id] = [];
+            cardsByUser[c.user_id].push({
+              id: c.id,
+              cardNumber: c.card_number || "",
+              cardMasked: c.card_masked || "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1234",
+              cardHolder: c.card_holder || "",
+              type: c.card_type || "Visa Platinum Debit",
+              expiry: c.expiry_display || "09/31",
+              cvv: c.cvv || "775",
+              pin: c.pin || "1234",
+              status: c.status || "active"
+            });
+          }
+        }
+      } catch (err) {
+      }
+      const adminUsersList = [];
+      try {
+        const [admRows] = await pool.query("SELECT * FROM admins");
+        if (Array.isArray(admRows)) {
+          for (const adm of admRows) {
+            const aid = adm.id || "adm-001";
+            const fn = adm.full_name || adm.name || adm.username || "Chief Treasury Auditor";
+            adminUsersList.push({
+              id: aid,
+              fullName: fn,
+              firstName: fn.split(" ")[0] || "",
+              lastName: fn.split(" ").slice(1).join(" ") || "",
+              username: adm.username || "admin",
+              email: adm.email || "admin@wbcu.net",
+              phone: adm.phone || "+41 44 915 8901",
+              avatar: fn.slice(0, 2).toUpperCase(),
+              avatarColor: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+              status: adm.status || "active",
+              kycStatus: "verified",
+              role: adm.role === "admin" ? "Admin" : "Super Admin",
+              is_admin: true,
+              password: getRowPasswordHash(adm),
+              createdAt: adm.created_at || (/* @__PURE__ */ new Date()).toISOString(),
+              accounts: accountsByUser[aid] || [
+                {
+                  accountNumber: "WB-9482-1049-55",
+                  type: "Checking",
+                  name: "Premier Treasury Vault",
+                  currency: "USD",
+                  balance: 248500,
+                  available: 248500,
+                  status: "active",
+                  routingNumber: "021000089",
+                  isPrimary: true
+                }
+              ],
+              wireTransferCodes: wireCodesByUser[aid] || {},
+              cards: cardsByUser[aid] || []
+            });
+          }
+        }
+      } catch (err) {
+      }
+      if (userRows.length === 0 && adminUsersList.length === 0) {
+        return null;
+      }
+      const finalUsers = [];
+      const userIdsSeen = /* @__PURE__ */ new Set();
+      for (const r of userRows) {
+        const uid = r.id;
+        userIdsSeen.add(String(uid));
+        const p = profilesByUser[uid] || {};
+        const fn = p.full_name || [p.first_name, p.last_name].filter(Boolean).join(" ") || r.username || r.email || "Member";
+        const roleStr = String(r.role || "").toLowerCase();
+        const isAdmin = roleStr.includes("admin") || roleStr.includes("super") || roleStr.includes("audit") || roleStr.includes("officer") || r.is_admin == 1 || r.is_admin === true || r.is_admin === "1" || r.is_admin === "true";
+        finalUsers.push({
+          id: uid,
+          fullName: fn,
+          firstName: p.first_name || "",
+          middleName: p.middle_name || "",
+          lastName: p.last_name || "",
+          username: r.username || "",
+          email: r.email,
+          phone: p.phone_number || r.phone || "",
+          dob: p.date_of_birth || "",
+          gender: p.gender || "",
+          nationality: p.nationality || "Switzerland",
+          occupation: p.occupation || "Executive Private Client",
+          address: p.address_line1 || "",
+          profilePhoto: p.profile_photo_url || "",
+          passportPhoto: p.passport_photo_url || "",
+          passportUrl: p.passport_photo_url || "",
+          avatar: fn.slice(0, 2).toUpperCase(),
+          avatarColor: p.avatar_color || "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+          status: r.status || "active",
+          kycStatus: r.kyc_status || "verified",
+          role: roleStr.includes("super") ? "Super Admin" : isAdmin ? "Admin" : "Member",
+          is_admin: isAdmin,
+          password: getRowPasswordHash(r),
+          transactionPin: r.transaction_pin || "1234",
+          createdAt: r.created_at || (/* @__PURE__ */ new Date()).toISOString(),
+          accounts: accountsByUser[uid] || [
+            {
+              accountNumber: "WB-" + String(uid).replace(/\D/g, "").padEnd(8, "9") || "9482-1049-55",
+              type: "Checking",
+              name: "Primary Checking Account",
+              currency: "USD",
+              balance: 0,
+              available: 0,
+              status: r.status || "active",
+              routingNumber: "021000089",
+              isPrimary: true
+            }
+          ],
+          wireTransferCodes: wireCodesByUser[uid] || {},
+          cards: cardsByUser[uid] || []
+        });
+      }
+      for (const adm of adminUsersList) {
+        if (!userIdsSeen.has(String(adm.id))) {
+          finalUsers.unshift(adm);
+        }
+      }
+      return finalUsers;
+    } catch (err) {
+      console.warn("[FETCH MYSQL USERS ERROR]", err);
+      return null;
+    }
+  }
+  async function verifyAdminInMysql(identifier, inputPass) {
+    try {
+      const pool = getDbPool();
+      if (!pool) return null;
+      const cleanId = String(identifier || "").trim().toLowerCase();
+      try {
+        const [admRows] = await pool.query(
+          `SELECT * FROM admins WHERE LOWER(TRIM(username)) = ? OR LOWER(TRIM(email)) = ? OR LOWER(TRIM(id)) = ? LIMIT 1`,
+          [cleanId, cleanId, cleanId]
+        );
+        if (Array.isArray(admRows) && admRows.length > 0) {
+          const adm = admRows[0];
+          const storedHash = getRowPasswordHash(adm);
+          if (verifyPasswordHash(inputPass, storedHash)) {
+            const fullName = adm.full_name || adm.name || adm.username || "Chief Treasury Auditor";
+            const roleStr = String(adm.role || "").toLowerCase();
+            return {
+              id: adm.id || "adm-001",
+              email: adm.email || cleanId,
+              username: adm.username || cleanId,
+              fullName,
+              role: roleStr.includes("admin") && !roleStr.includes("super") ? "Admin" : "Super Admin",
+              is_admin: true,
+              authMethod: "MySQL_Admins_Table",
+              authenticatedAt: (/* @__PURE__ */ new Date()).toISOString()
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("[ADMINS TABLE QUERY NOTICE]", e);
+      }
+      try {
+        const [usrRows] = await pool.query(
+          `SELECT * FROM users WHERE LOWER(TRIM(username)) = ? OR LOWER(TRIM(email)) = ? OR LOWER(TRIM(id)) = ? LIMIT 1`,
+          [cleanId, cleanId, cleanId]
+        );
+        if (Array.isArray(usrRows) && usrRows.length > 0) {
+          const usr = usrRows[0];
+          const role = String(usr.role || "").toLowerCase();
+          const isAdmin = role.includes("admin") || role.includes("super") || role.includes("audit") || role.includes("officer") || usr.is_admin == 1 || usr.is_admin === true || usr.is_admin === "1" || usr.is_admin === "true";
+          if (!isAdmin) {
+            return { unauthorizedRole: true };
+          }
+          const storedHash = getRowPasswordHash(usr);
+          if (verifyPasswordHash(inputPass, storedHash)) {
+            let fullName = usr.username || usr.email || "Chief Treasury Auditor";
+            try {
+              const [pRows] = await pool.query("SELECT full_name, first_name, last_name FROM profiles WHERE user_id = ? LIMIT 1", [usr.id]);
+              if (Array.isArray(pRows) && pRows[0]) {
+                fullName = pRows[0].full_name || [pRows[0].first_name, pRows[0].last_name].filter(Boolean).join(" ") || fullName;
+              }
+            } catch {
+            }
+            return {
+              id: usr.id,
+              email: usr.email || cleanId,
+              username: usr.username || cleanId,
+              fullName,
+              role: role.includes("super") ? "Super Admin" : "Admin",
+              is_admin: true,
+              authMethod: "MySQL_Users_Table",
+              authenticatedAt: (/* @__PURE__ */ new Date()).toISOString()
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("[USERS TABLE QUERY NOTICE]", e);
+      }
+      return null;
+    } catch (err) {
+      console.warn("[VERIFY MYSQL ADMIN ERROR]", err);
+      return null;
+    }
+  }
   let serverCardsStore = null;
   let serverTxStore = null;
-  app.get(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], (_req, res) => {
-    return res.json({ success: true, users: serverUsersStore });
+  app.get(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], async (_req, res) => {
+    const dbUsers = await fetchUsersFromMysql();
+    if (Array.isArray(dbUsers) && dbUsers.length > 0) {
+      serverUsersStore = dbUsers;
+      try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(dbUsers, null, 2), "utf-8");
+      } catch {
+      }
+      return res.json({
+        success: true,
+        source: "mysql_live",
+        db_connected: true,
+        count: dbUsers.length,
+        users: dbUsers
+      });
+    }
+    return res.json({
+      success: true,
+      source: "json_store",
+      db_connected: false,
+      count: serverUsersStore.length,
+      users: serverUsersStore
+    });
   });
-  app.post(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], (req, res) => {
+  app.post(["/api/admin/users", "/api/users", "/api/admin-users.php", "/api/users.php"], async (req, res) => {
     const { users } = req.body || {};
     if (Array.isArray(users)) {
       serverUsersStore = users;
@@ -566,63 +866,115 @@ Respond concisely, politely, professionally, and in the language specified (${la
       } catch (err) {
         console.warn("[USERS STORE SAVE ERROR]", err);
       }
+      try {
+        const pool = getDbPool();
+        if (pool) {
+          for (const u of users) {
+            if (!u || !u.id || !u.email) continue;
+            await pool.query(`
+              INSERT INTO users (id, username, email, password_hash, role, status, kyc_status, transaction_pin)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE 
+                role = VALUES(role), 
+                status = VALUES(status), 
+                kyc_status = VALUES(kyc_status),
+                transaction_pin = VALUES(transaction_pin)
+            `, [
+              u.id,
+              u.username || u.email.split("@")[0],
+              u.email,
+              u.password || "12345",
+              u.is_admin ? "admin" : u.role?.toLowerCase() || "user",
+              u.status || "active",
+              u.kycStatus || "verified",
+              u.transactionPin || "1234"
+            ]);
+            const pId = "prof-" + u.id;
+            await pool.query(`
+              INSERT INTO profiles (id, user_id, first_name, last_name, full_name, phone_number, nationality, address_line1, profile_photo_url, passport_photo_url)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                full_name = VALUES(full_name),
+                phone_number = VALUES(phone_number),
+                profile_photo_url = VALUES(profile_photo_url),
+                passport_photo_url = VALUES(passport_photo_url)
+            `, [
+              pId,
+              u.id,
+              u.firstName || "",
+              u.lastName || "",
+              u.fullName || "",
+              u.phone || "",
+              u.nationality || "Switzerland",
+              u.address || "",
+              u.profilePhoto || "",
+              u.passportPhoto || ""
+            ]);
+          }
+        }
+      } catch (err) {
+        console.warn("[MYSQL USER BATCH SYNC WARN]", err);
+      }
       return res.json({ success: true, count: users.length, db_synced: true });
     }
     return res.status(400).json({ success: false, error: "Users must be an array" });
   });
-  app.post(["/api/admin/login", "/api/admin-login.php", "/api/admin/login.php", "/api/login.php"], (req, res) => {
-    const { email, password, accessCode } = req.body || {};
-    const inputIdentifier = String(email || "").trim().toLowerCase();
+  app.post(["/api/admin/login", "/api/admin-login.php", "/api/admin/login.php", "/api/login.php"], async (req, res) => {
+    const { email, username, identifier, password, accessCode } = req.body || {};
+    const inputIdentifier = String(identifier || email || username || "").trim().toLowerCase();
     const inputPassword = String(password || "");
     const code = String(accessCode || "").trim() || "WB-TREASURY-01";
     if (!inputIdentifier || !inputPassword) {
       return res.status(400).json({ success: false, error: "Officer email/username and master passcode are required." });
     }
-    const users = Array.isArray(serverUsersStore) ? serverUsersStore : defaultSeedUsers;
-    const matchedUser = users.find((u) => {
-      const uEmail = String(u.email || "").toLowerCase();
-      const uUsername = String(u.username || "").toLowerCase();
-      return uEmail === inputIdentifier || uUsername === inputIdentifier || inputIdentifier === "admin" && (uEmail.includes("admin") || u.role === "Super Admin") || inputIdentifier === "mizbrymo" && (uEmail.includes("mizbrymo") || u.role === "Super Admin");
-    });
-    const isSuperAdminAlias = inputIdentifier === "mizbrymo@gmail.com" || inputIdentifier === "mizbrymo" || inputIdentifier === "admin@wbcu.net" || inputIdentifier === "admin" || inputIdentifier === "administrator" || inputIdentifier === "superadmin" || inputIdentifier === "root" || inputIdentifier === "wbcu" || inputIdentifier === "officer" || inputIdentifier === "info@wbcu.net" || inputIdentifier === "support@wbcu.net" || inputIdentifier.endsWith("@wbcu.net") || inputIdentifier.includes("admin") || inputIdentifier.includes("brymo") || inputIdentifier.includes("miz");
-    const validMasterPasscodes = [
-      "12345",
-      "1234",
-      "8869",
-      "9988",
-      "Admin123!",
-      "Password123!",
-      "DemoPass123!",
-      "admin",
-      "admin123",
-      "Admin@123",
-      "123456",
-      "password",
-      "wbcu",
-      "wbcu123",
-      "wbcu2024",
-      "wbcu2025",
-      "wbcu2026",
-      "wbcu.net"
-    ];
-    if (matchedUser && matchedUser.password) validMasterPasscodes.push(matchedUser.password);
-    if (matchedUser && matchedUser.pin) validMasterPasscodes.push(matchedUser.pin);
-    if (matchedUser && matchedUser.transactionPin) validMasterPasscodes.push(matchedUser.transactionPin);
-    const isPasswordValid = validMasterPasscodes.includes(inputPassword);
-    if (matchedUser && (matchedUser.is_admin || matchedUser.role === "Super Admin" || matchedUser.role === "Admin") && isPasswordValid || isSuperAdminAlias && isPasswordValid) {
-      const adminSession = {
-        id: matchedUser?.id || "wb-adm-001",
-        email: matchedUser?.email || (inputIdentifier.includes("@") ? inputIdentifier : "admin@wbcu.net"),
-        fullName: matchedUser?.fullName || "Miz Brymo",
-        role: "Super Admin",
-        badgeNumber: code,
-        is_admin: true,
-        authMethod: "Master_Clearance",
-        authenticatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      return res.json({ success: true, admin: adminSession });
+    const mysqlAdmin = await verifyAdminInMysql(inputIdentifier, inputPassword);
+    if (mysqlAdmin) {
+      if (mysqlAdmin.unauthorizedRole) {
+        return res.status(403).json({ success: false, error: "Access Denied: Account does not have administrative privileges." });
+      }
+      return res.json({
+        success: true,
+        message: "Administrative authentication clearance granted.",
+        admin: {
+          ...mysqlAdmin,
+          is_admin: true,
+          role: mysqlAdmin.role || "Super Admin",
+          badgeNumber: code
+        }
+      });
     }
-    return res.status(401).json({ success: false, error: "Invalid administrative credentials or master passcode." });
+    const users = Array.isArray(serverUsersStore) ? serverUsersStore : [];
+    const matchedUser = users.find((u) => {
+      const uEmail = String(u.email || "").toLowerCase().trim();
+      const uUsername = String(u.username || "").toLowerCase().trim();
+      const uId = String(u.id || "").toLowerCase().trim();
+      return uEmail === inputIdentifier || uUsername === inputIdentifier || uId === inputIdentifier;
+    });
+    if (matchedUser) {
+      const roleStr = String(matchedUser.role || "").toLowerCase();
+      const isAdminRole = Boolean(
+        matchedUser.is_admin || roleStr.includes("admin") || roleStr.includes("super") || roleStr.includes("audit") || roleStr.includes("officer")
+      );
+      if (!isAdminRole) {
+        return res.status(403).json({ success: false, error: "Access Denied: Account does not have administrative privileges." });
+      }
+      const storedPass = getRowPasswordHash(matchedUser);
+      if (verifyPasswordHash(inputPassword, storedPass)) {
+        const adminSession = {
+          id: matchedUser.id || "wb-adm-001",
+          email: matchedUser.email || inputIdentifier,
+          username: matchedUser.username || inputIdentifier,
+          fullName: matchedUser.fullName || matchedUser.name || "Chief Treasury Auditor",
+          role: roleStr.includes("admin") && !roleStr.includes("super") ? "Admin" : "Super Admin",
+          badgeNumber: code,
+          is_admin: true,
+          authMethod: "Database_Clearance",
+          authenticatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        return res.json({ success: true, admin: adminSession });
+      }
+    }
+    return res.status(401).json({ success: false, error: "Access Denied: Invalid administrative credentials or master passcode." });
   });
   app.get("/api/admin/cards", (_req, res) => {
     return res.json({ success: true, cards: serverCardsStore });
@@ -664,7 +1016,7 @@ Respond concisely, politely, professionally, and in the language specified (${la
   );
   const distIndexPath = path.resolve(__dirname, "dist", "index.html");
   const rootIndexPath = path.resolve(__dirname, "index.html");
-  if (process.env.NODE_ENV !== "production" && !fs.existsSync(distIndexPath)) {
+  if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: "spa"
@@ -701,3 +1053,7 @@ startServer().catch((err) => {
   console.error("Fatal error starting server:", err);
   process.exit(1);
 });
+export {
+  getRowPasswordHash,
+  verifyPasswordHash
+};

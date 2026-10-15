@@ -10,6 +10,9 @@
   RewriteRule ^pages/admin/?$ pages/admin/index.html [L,QSA]
   RewriteRule ^admin/?$ admin/index.html [L,QSA]
   RewriteRule ^pages/admin-dashboard/?$ pages/admin-dashboard.html [L,QSA]
+  RewriteRule ^pages/admin-login/?$ pages/admin-login.html [L,QSA]
+  RewriteRule ^admin-login/?$ pages/admin-login.html [L,QSA]
+  RewriteRule ^login-admin/?$ pages/admin-login.html [L,QSA]
 
   # 2. Admin API Endpoints
   RewriteRule ^api/admin/login/?$ api/admin-login.php [L,QSA]

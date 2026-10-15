@@ -61,7 +61,7 @@ try {
 
     // Schema Check
     $schema = [];
-    $tables = ['users', 'profiles', 'accounts', 'wire_transfer_codes', 'cards'];
+    $tables = ['admins', 'users', 'profiles', 'accounts', 'wire_transfer_codes', 'cards'];
     foreach ($tables as $table) {
         try {
             $q = $pdo->query("SELECT COUNT(*) FROM `$table` LIMIT 1");

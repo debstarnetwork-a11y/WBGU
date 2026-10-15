@@ -226,55 +226,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     
                     $usersMap[$uid] = $userObj;
                 }
+            }
 
-                // Also load any dedicated officers from `admins` table
-                try {
-                    $admStmt = $pdo->query("SELECT * FROM `admins`");
-                    if ($admStmt) {
-                        while ($admRow = $admStmt->fetch()) {
-                            $aid = $admRow['id'];
-                            if (!isset($usersMap[$aid])) {
-                                $admFn = $admRow['full_name'] ?? 'Chief Treasury Auditor';
-                                $parts = explode(' ', trim($admFn));
-                                $usersMap[$aid] = [
-                                    'id' => $aid,
-                                    'fullName' => $admFn,
-                                    'firstName' => $parts[0] ?? 'Chief',
-                                    'lastName' => $parts[count($parts) - 1] ?? 'Auditor',
-                                    'username' => $admRow['username'] ?? 'admin',
-                                    'email' => $admRow['email'],
-                                    'phone' => '+41 44 915 8901',
-                                    'dob' => '06/14/1984',
-                                    'address' => '109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland',
-                                    'nationality' => 'Switzerland',
-                                    'profilePhoto' => '',
-                                    'passportPhoto' => '',
-                                    'passportUrl' => '',
-                                    'status' => $admRow['status'] ?? 'active',
-                                    'kycStatus' => 'verified',
-                                    'role' => ($admRow['role'] === 'admin') ? 'Admin' : 'Super Admin',
-                                    'is_admin' => true,
-                                    'transactionPin' => '8869',
-                                    'createdAt' => $admRow['created_at'] ?? date('c'),
-                                    'accounts' => $allAccounts[$aid] ?? [
-                                        [
-                                            'accountNumber' => 'WB-9482-1049-55',
-                                            'type' => 'Checking',
-                                            'name' => 'Premier Checking Account',
-                                            'currency' => 'USD',
-                                            'balance' => 248500.00,
-                                            'status' => 'active',
-                                            'routingNumber' => '021000089',
-                                            'isPrimary' => true
-                                        ]
-                                    ],
-                                    'wireTransferCodes' => $allWireCodes[$aid] ?? [],
-                                    'cards' => $allCards[$aid] ?? []
-                                ];
-                            }
+            // Also load any dedicated officers from `admins` table (runs independently of users table)
+            try {
+                $admStmt = $pdo->query("SELECT * FROM `admins`");
+                if ($admStmt) {
+                    while ($admRow = $admStmt->fetch()) {
+                        $aid = $admRow['id'] ?? 'adm-001';
+                        if (!isset($usersMap[$aid])) {
+                            $admFn = $admRow['full_name'] ?? $admRow['name'] ?? $admRow['username'] ?? 'Chief Treasury Auditor';
+                            $parts = explode(' ', trim($admFn));
+                            $usersMap[$aid] = [
+                                'id' => $aid,
+                                'fullName' => $admFn,
+                                'firstName' => $parts[0] ?? 'Chief',
+                                'lastName' => $parts[count($parts) - 1] ?? 'Auditor',
+                                'username' => $admRow['username'] ?? 'admin',
+                                'email' => $admRow['email'] ?? 'admin@wbcu.net',
+                                'phone' => $admRow['phone'] ?? '+41 44 915 8901',
+                                'dob' => '06/14/1984',
+                                'address' => '109, Feldgüetliweg, Meilen, Zurich 8706, Switzerland',
+                                'nationality' => 'Switzerland',
+                                'profilePhoto' => '',
+                                'passportPhoto' => '',
+                                'passportUrl' => '',
+                                'status' => $admRow['status'] ?? 'active',
+                                'kycStatus' => 'verified',
+                                'role' => ($admRow['role'] === 'admin') ? 'Admin' : 'Super Admin',
+                                'is_admin' => true,
+                                'transactionPin' => '8869',
+                                'createdAt' => $admRow['created_at'] ?? date('c'),
+                                'accounts' => $allAccounts[$aid] ?? [
+                                    [
+                                        'accountNumber' => 'WB-9482-1049-55',
+                                        'type' => 'Checking',
+                                        'name' => 'Premier Treasury Vault',
+                                        'currency' => 'USD',
+                                        'balance' => 248500.00,
+                                        'status' => 'active',
+                                        'routingNumber' => '021000089',
+                                        'isPrimary' => true
+                                    ]
+                                ],
+                                'wireTransferCodes' => $allWireCodes[$aid] ?? [],
+                                'cards' => $allCards[$aid] ?? []
+                            ];
                         }
                     }
-                } catch (Throwable $e) {}
+                }
+            } catch (Throwable $e) {}
+
+            if (!empty($usersMap)) {
+                $source = 'mysql_live';
             }
         } catch (Throwable $e) {
             $dbError = $e->getMessage();
